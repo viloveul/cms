@@ -1,0 +1,59 @@
+{
+    "name": "viloveul/cms",
+    "description": "Viloveul CMS.",
+    "type": "project",
+    "license": "MIT",
+    "authors": [{
+        "name": "Fajrul Akbar Zuhdi",
+        "email": "fajrulaz@gmail.com"
+    }],
+    "keywords": ["project", "api", "zafex", "viloveul", "fajrulaz"],
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "config": {
+        "sort-packages": true
+    },
+    "require": {
+        "viloveul/kernel": "v1.*|v1.x-dev",
+        "viloveul/auth": "v1.*|v1.x-dev",
+        "viloveul/cache": "v1.*|v1.x-dev",
+        "viloveul/container": "v1.*|v1.x-dev",
+        "viloveul/event": "v1.*|v1.x-dev",
+        "viloveul/http": "v1.*|v1.x-dev",
+        "viloveul/media": "v1.*|v1.x-dev",
+        "viloveul/router": "v1.*|v1.x-dev",
+        "viloveul/middleware": "v1.*|v1.x-dev",
+        "viloveul/support": "v1.*|v1.x-dev",
+        "vlucas/phpdotenv": "2.5.*",
+        "vlucas/valitron": "1.4.*"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/"
+        }
+    },
+    "require-dev": {
+        "codeception/codeception": "2.5.*"
+    },
+    "scripts": {
+        "clearall": [
+            "rm -f config/main.php config/private.pem config/public.pem bootstrap.php"
+        ],
+        "bootstrap": [
+            "mkdir -p public/uploads",
+            "cp -n sample/main.php config/main.php",
+            "touch .env"
+        ],
+        "genrsakey": [
+            "openssl genrsa -out config/private.pem -aes256 4096",
+            "openssl rsa -pubout -in config/private.pem -out config/public.pem"
+        ],
+        "post-create-project-cmd": [
+            "mkdir -p public/uploads",
+            "cp -n sample/main.php config/main.php",
+            "touch .env",
+            "openssl genrsa -out config/private.pem -aes256 4096",
+            "openssl rsa -pubout -in config/private.pem -out config/public.pem"
+        ]
+    }
+}
