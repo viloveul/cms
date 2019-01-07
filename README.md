@@ -1,4 +1,4 @@
-# viloveul
+# viloveul Content Management System
 
 need php7
 
@@ -8,4 +8,5 @@ $ cd cms
 $ composer install
 $ composer run bootstrap
 $ composer run genrsakey
+$ php init
 ```

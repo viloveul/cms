@@ -2,10 +2,15 @@
 
 namespace App\Entity;
 
-use Viloveul\Framework\Model;
+use Viloveul\Kernel\Model;
 
 class UserRole extends Model
 {
+    /**
+     * @var array
+     */
+    protected $fillable = ['user_id', 'role_id', 'created_at'];
+
     /**
      * @var string
      */
