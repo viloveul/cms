@@ -2,11 +2,12 @@
 
 namespace App\Controller;
 
+use App\Component\RequestAssignment;
 use App\Entity\User;
 use App\Validation\User as UserValidation;
 use Viloveul\Event\Contracts\Dispatcher as Event;
-use Viloveul\Http\Contracts\ServerRequest as Request;
 use Viloveul\Http\Contracts\Response;
+use Viloveul\Http\Contracts\ServerRequest as Request;
 use Viloveul\Support\Pagination;
 
 class UserController
@@ -42,18 +43,18 @@ class UserController
      */
     public function create()
     {
-        $request = $this->request->all() ?: [];
-        $validator = new UserValidation($request);
+        $post = $this->request->loadPostTo(new RequestAssignment);
+        $validator = new UserValidation($post->all());
         if ($validator->validate('store')) {
             $user = new User();
-            $data = array_only($request, ['username', 'email', 'password']);
+            $data = array_only($post->all(), ['username', 'email', 'password']);
             foreach ($data as $key => $value) {
                 $user->{$key} = $value;
             }
             $user->created_at = date('Y-m-d H:i:s');
             $user->password = password_hash(array_get($data, 'password'), PASSWORD_DEFAULT);
             if ($user->save()) {
-                $this->response->setData([
+                $response = $this->response->withPayload([
                     'data' => [
                         'id' => $user->id,
                         'type' => 'user',
@@ -61,18 +62,18 @@ class UserController
                     ],
                 ]);
             } else {
-                $this->response->setStatus(500);
-                $this->response->addError(500, 'Something Wrong !!!', 'Error Processing Request');
+                $response = $this->response->withErrors(500, ['Something Wrong !!!']);
             }
         } else {
-            $this->response->setStatus(400);
-            foreach ($validator->errors() as $key => $errors) {
-                foreach ($errors as $error) {
-                    $this->response->addError(400, 'Invalid Value', $error);
+            $errors = [];
+            foreach ($validator->errors() as $key => $errArray) {
+                foreach ($errArray as $error) {
+                    $errors[] = $error;
                 }
             }
+            $response = $this->response->withErrors(400, $errors);
         }
-        return $this->response;
+        return $response;
     }
 
     /**
@@ -84,15 +85,13 @@ class UserController
             $user->deleted = 1;
             $user->deleted_at = date('Y-m-d H:i:s');
             if ($user->save()) {
+                return $this->response->withStatus(201);
             } else {
-                $this->response->addError(500, 'Something Wrong !!!', 'Error Processing Request');
-                $this->response->setStatus(500);
+                return $this->response->withErrors(500, ['Something Wrong !!!']);
             }
         } else {
-            $this->response->setStatus(404);
-            $this->response->addError(404, 'Invalid Id', 'User not found');
+            return $this->response->withErrors(404, ['User not found']);
         }
-        return $this->response;
     }
 
     /**
@@ -101,7 +100,7 @@ class UserController
     public function detail($id)
     {
         if ($user = User::where('id', $id)->first()) {
-            $this->response->setData([
+            return $this->response->withPayload([
                 'data' => [
                     'id' => $user->id,
                     'type' => 'user',
@@ -109,10 +108,8 @@ class UserController
                 ],
             ]);
         } else {
-            $this->response->setStatus(404);
-            $this->response->addError(404, 'Invalid Id', 'User not found');
+            return $this->response->withErrors(404, ['User not found']);
         }
-        return $this->response;
     }
 
     /**
@@ -146,10 +143,10 @@ class UserController
     public function update($id)
     {
         if ($user = User::where('id', $id)->first()) {
-            $request = $this->request->all() ?: [];
-            $validator = new UserValidation($request, [$id]);
+            $post = $this->request->loadPostTo(new RequestAssignment);
+            $validator = new UserValidation($post->all(), [$id]);
             if ($validator->validate('edit')) {
-                $data = array_only($request, ['username', 'email', 'status', 'deleted']);
+                $data = array_only($post->all(), ['username', 'email', 'status', 'deleted']);
                 foreach ($data as $key => $value) {
                     $user->{$key} = $value;
                 }
@@ -158,7 +155,7 @@ class UserController
                     $user->password = password_hash($password, PASSWORD_DEFAULT);
                 }
                 if ($user->save()) {
-                    $this->response->setData([
+                    return $this->response->withPayload([
                         'data' => [
                             'id' => $id,
                             'type' => 'user',
@@ -166,21 +163,19 @@ class UserController
                         ],
                     ]);
                 } else {
-                    $this->response->setStatus(500);
-                    $this->response->addError(500, 'Something Wrong !!!', 'Error Processing Request');
+                    return $this->response->withErrors(500, ['Something Wrong !!!']);
                 }
             } else {
-                $this->response->setStatus(400);
-                foreach ($validator->errors() as $key => $errors) {
-                    foreach ($errors as $error) {
-                        $this->response->addError(400, 'Invalid Value', $error);
+                $errors = [];
+                foreach ($validator->errors() as $key => $errArray) {
+                    foreach ($errArray as $error) {
+                        $errors[] = $error;
                     }
                 }
+                return $this->response->withErrors(400, $errors);
             }
         } else {
-            $this->response->setStatus(404);
-            $this->response->addError(404, 'Invalid Id', 'User not found');
+            return $this->response->withErrors(404, ['User not found']);
         }
-        return $this->response;
     }
 }

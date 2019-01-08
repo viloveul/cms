@@ -3,13 +3,14 @@
 namespace App\Controller;
 
 use App\Component\Privilege as PrivilegeComponent;
+use App\Component\RequestAssignment;
 use App\Component\Setting as SettingComponent;
 use App\Entity\User;
 use App\Validation\User as UserValidation;
 use Viloveul\Auth\Contracts\Authentication;
 use Viloveul\Auth\UserData;
-use Viloveul\Http\Contracts\Request;
 use Viloveul\Http\Contracts\Response;
+use Viloveul\Http\Contracts\ServerRequest;
 
 class AuthController
 {
@@ -24,12 +25,12 @@ class AuthController
     protected $response;
 
     /**
-     * @param Request  $request
-     * @param Response $response
+     * @param ServerRequest $request
+     * @param Response      $response
      */
-    public function __construct(Request $request, Response $response, SettingComponent $setting)
+    public function __construct(ServerRequest $request, Response $response, SettingComponent $setting)
     {
-        $this->request = $request->request;
+        $this->request = $request;
         $this->response = $response;
         $setting->load();
     }
@@ -41,10 +42,10 @@ class AuthController
      */
     public function login(Authentication $auth, PrivilegeComponent $privilege)
     {
-        $request = $this->request->all() ?: [];
-        $validator = new UserValidation($request);
+        $post = $this->request->loadPostTo(new RequestAssignment);
+        $validator = new UserValidation($post->all());
         if ($validator->validate('login')) {
-            $data = array_only($request, ['username', 'password']);
+            $data = array_only($post->all(), ['username', 'password']);
             $user = User::where('username', $data['username'])->first();
             if ($user && $user->status == 1 && password_verify($data['password'], $user->password)) {
                 $token = $auth->generate(
@@ -55,23 +56,24 @@ class AuthController
                     ])
                 );
                 $auth->setToken($token);
-                $this->response->setData([
+                $privilege->clear();
+                $response = $this->response->withPayload([
                     'data' => $token,
                 ]);
-                $privilege->clear();
             } else {
-                $this->response->setStatus(400);
-                $this->response->addError(400, 'Invalid Credentials');
+                $response = $this->response->withErrors(400, ['Invalid Credentials']);
             }
         } else {
-            $this->response->setStatus(400);
-            foreach ($validator->errors() as $key => $errors) {
-                foreach ($errors as $error) {
-                    $this->response->addError(400, 'Invalid Value', $error);
+            $errors = [];
+            foreach ($validator->errors() as $key => $errArray) {
+                foreach ($errArray as $error) {
+                    $errors[] = $error;
                 }
             }
+            $response = $this->response->withErrors(400, $errors);
         }
-        return $this->response;
+
+        return $response;
     }
 
     /**
@@ -79,32 +81,32 @@ class AuthController
      */
     public function register()
     {
-        $request = $this->request->all() ?: [];
-        $validator = new UserValidation($request);
+        $post = $this->request->loadPostTo(new RequestAssignment);
+        $validator = new UserValidation($post->all());
         if ($validator->validate('store')) {
             $user = new User();
-            $data = array_only($request, ['username', 'email', 'password']);
+            $data = array_only($post->all(), ['username', 'email', 'password']);
             foreach ($data as $key => $value) {
                 $user->{$key} = $value;
             }
             $user->created_at = date('Y-m-d H:i:s');
             $user->password = password_hash(array_get($data, 'password'), PASSWORD_DEFAULT);
             if ($user->save()) {
-                $this->response->setData([
+                $response = $this->response->withPayload([
                     'data' => $user,
                 ]);
             } else {
-                $this->response->setStatus(500);
-                $this->response->addError(500, 'Something wrong !!!');
+                $response = $this->response->withErrors(500, ['Something wrong !!!']);
             }
         } else {
-            $this->response->setStatus(400);
-            foreach ($validator->errors() as $key => $errors) {
-                foreach ($errors as $error) {
-                    $this->response->addError(400, 'Invalid Value', $error);
+            $errors = [];
+            foreach ($validator->errors() as $key => $errArray) {
+                foreach ($errArray as $error) {
+                    $errors[] = $error;
                 }
             }
+            $response = $this->response->withErrors(400, $errors);
         }
-        return $this->response;
+        return $response;
     }
 }
