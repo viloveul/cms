@@ -2,14 +2,14 @@
 
 namespace App\Entity;
 
-use Viloveul\Framework\Model;
+use Viloveul\Kernel\Model;
 
 class User extends Model
 {
     /**
      * @var array
      */
-    protected $fillable = ['username', 'password', 'email', 'created_at', 'updated_at', 'deleted_at'];
+    protected $fillable = ['username', 'password', 'email', 'status', 'created_at', 'updated_at', 'deleted_at'];
 
     /**
      * @var array

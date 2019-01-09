@@ -37,7 +37,7 @@
     },
     "scripts": {
         "clearall": [
-            "rm -f config/main.php config/private.pem config/public.pem bootstrap.php"
+            "rm -f config/main.php config/private.pem config/public.pem"
         ],
         "bootstrap": [
             "mkdir -p public/uploads",

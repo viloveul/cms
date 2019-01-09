@@ -47,7 +47,7 @@ class SettingController
      */
     public function set(ServerRequest $request, $name)
     {
-        $value = $request->getPost('data');
+        $value = $request->getBody()->getContents();
         $option = is_scalar($value) ? $value : json_encode($value);
         Setting::updateOrCreate(compact('name'), compact('option'));
         $this->options->clear();

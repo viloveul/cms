@@ -2,7 +2,7 @@
 
 namespace App\Entity;
 
-use Viloveul\Framework\Model;
+use Viloveul\Kernel\Model;
 
 class PostTag extends Model
 {
