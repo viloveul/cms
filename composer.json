@@ -7,7 +7,7 @@
         "name": "Fajrul Akbar Zuhdi",
         "email": "fajrulaz@gmail.com"
     }],
-    "keywords": ["project", "api", "zafex", "viloveul", "fajrulaz"],
+    "keywords": ["project", "api", "api", "zafex", "viloveul", "fajrulaz"],
     "minimum-stability": "dev",
     "prefer-stable": true,
     "config": {
@@ -55,5 +55,9 @@
             "openssl genrsa -out config/private.pem -aes256 4096",
             "openssl rsa -pubout -in config/private.pem -out config/public.pem"
         ]
-    }
+    },
+    "repositories": [{
+        "type": "git",
+        "url": "https://github.com/viloveul/support.git"
+    }]
 }
