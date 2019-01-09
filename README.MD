@@ -1,9 +1,9 @@
-# viloveul Content Management System
+# Viloveul Content Management System
 
-need php7
+need php 7
 
 ```batch
-$ git clone https://github.com/viloveul/cms.git
+$ git clone https://github.com/zafex/viloveul-cms.git
 $ cd cms
 $ composer install
 $ composer run bootstrap
