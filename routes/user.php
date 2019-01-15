@@ -10,7 +10,12 @@ $router->add('user.create', new Route('POST /user/create', [App\Controller\UserC
 /**
  * get user
  */
-$router->add('user.index', new Route('GET /user/index', [App\Controller\UserController::class, 'index']));
+$router->add('user.index', new Route('GET /user/index', [
+    'handler' => [App\Controller\UserController::class, 'index'],
+    'middleware' => function ($request, $next) {
+        return $next->handle($request);
+    },
+]));
 
 /**
  * get user
