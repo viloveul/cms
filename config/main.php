@@ -1,6 +1,10 @@
 <?php
 
 return [
+    # application name
+    'name' => 'VILOVEUL API CMS',
+    # version
+    'version' => '1.0',
     # root application
     'root' => dirname(__DIR__),
     # base pathinfo on url
@@ -49,4 +53,7 @@ return [
         /* CACHE PORT (REDIS) */
         'port' => env('CACHE_PORT', 6379),
     ],
+    'commands' => [
+        App\Command\InstallCommand::class
+    ]
 ];

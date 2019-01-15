@@ -30,7 +30,7 @@ class Setting
         }
     }
 
-    public function clear()
+    public function clear(): void
     {
         if ($this->cache->has('setting.options')) {
             $this->cache->delete('setting.options');
@@ -47,7 +47,7 @@ class Setting
         return array_key_exists($name, $this->options) ? $this->options[$name] : $default;
     }
 
-    public function load()
+    public function load(): void
     {
         $settings = SettingModel::all();
         foreach ($settings as $setting) {

@@ -51,7 +51,7 @@ class Privilege
      * @param $name
      * @param $object_id
      */
-    public function check($name, $object_id = 0)
+    public function check($name, $object_id = 0): bool
     {
         if ($sub = array_get($this->auth->authenticate(), 'sub')) {
             $id = $sub->getValue();
@@ -66,7 +66,7 @@ class Privilege
         return false;
     }
 
-    public function clear()
+    public function clear(): void
     {
         if ($this->cache->has('privilege.permissions')) {
             $this->cache->delete('privilege.permissions');
@@ -78,7 +78,7 @@ class Privilege
         }
     }
 
-    public function load()
+    public function load(): void
     {
         foreach (Role::all() ?: [] as $role) {
             $this->permissions[$role->id][] = $role->name . '-' . abs($role->object_id);
@@ -107,7 +107,7 @@ class Privilege
      * @param array  $relations
      * @param $key
      */
-    protected function recursive(array $relations, $key)
+    protected function recursive(array $relations, $key): void
     {
         if (array_key_exists($key, $relations)) {
             foreach ($relations[$key] as $child) {

@@ -3,98 +3,75 @@
 namespace App\Validation;
 
 use App\Entity\User as UserModel;
-use Valitron\Validator;
+use Viloveul\Validation\Validator;
 
-class User
+class User extends Validator
 {
-    /**
-     * @var mixed
-     */
-    protected $params = [];
-
-    /**
-     * @var array
-     */
-    protected $rules = [
-        'store' => [
-            'username' => [
-                'required',
-                ['lengthMin', 5],
-                ['lengthMax', 250],
-                ['notIn', ['admin']],
-                'slug',
-                'checkUnique',
-            ],
-            'email' => [
-                'required',
-                'email',
-                'checkUnique',
-                ['lengthMax', 250],
-            ],
-            'password' => [
-                'required',
-                ['lengthMin', 6],
-                ['equals', 'passconf'],
-            ],
-            'passconf' => [
-                'required',
-            ],
-        ],
-        'edit' => [
-            'username' => [
-                ['optional'],
-                ['lengthMin', 5],
-                ['lengthMax', 250],
-                ['notIn', ['admin']],
-                'slug',
-                'checkUnique',
-            ],
-            'email' => [
-                ['optional'],
-                'email',
-                'checkUnique',
-                ['lengthMax', 250],
-            ],
-            'password' => [
-                ['optional'],
-                ['lengthMin', 6],
-                ['equals', 'passconf'],
-            ],
-            'passconf' => [
-                ['optional'],
-            ],
-        ],
-        'login' => [
-            'username' => [
-                'required',
-            ],
-            'password' => [
-                'required',
-            ],
-        ],
-    ];
-
-    /**
-     * @var mixed
-     */
-    protected $validator;
-
-    /**
-     * @param array $data
-     */
-    public function __construct(array $data, array $params = [])
+    public function boot()
     {
-        $this->params = $params;
-        $this->validator = new Validator($data);
         $this->validator->addInstanceRule('checkUnique', [$this, 'unique'], '{field} already registered.');
     }
 
-    /**
-     * @return mixed
-     */
-    public function errors()
+    public function rules(): array
     {
-        return $this->validator->errors();
+        return [
+            'insert' => [
+                'username' => [
+                    'required',
+                    ['lengthMin', 5],
+                    ['lengthMax', 250],
+                    ['notIn', ['admin']],
+                    'slug',
+                    'checkUnique',
+                ],
+                'email' => [
+                    'required',
+                    'email',
+                    'checkUnique',
+                    ['lengthMax', 250],
+                ],
+                'password' => [
+                    'required',
+                    ['lengthMin', 6],
+                    ['equals', 'passconf'],
+                ],
+                'passconf' => [
+                    'required',
+                ],
+            ],
+            'update' => [
+                'username' => [
+                    ['optional'],
+                    ['lengthMin', 5],
+                    ['lengthMax', 250],
+                    ['notIn', ['admin']],
+                    'slug',
+                    'checkUnique',
+                ],
+                'email' => [
+                    ['optional'],
+                    'email',
+                    'checkUnique',
+                    ['lengthMax', 250],
+                ],
+                'password' => [
+                    ['optional'],
+                    ['lengthMin', 6],
+                    ['equals', 'passconf'],
+                ],
+                'passconf' => [
+                    ['optional'],
+                ],
+            ],
+            'login' => [
+                'username' => [
+                    'required',
+                ],
+                'password' => [
+                    'required',
+                ],
+            ],
+        ];
     }
 
     /**
@@ -109,14 +86,5 @@ class User
             return !empty($this->params) && in_array($user->id, $this->params);
         }
         return true;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function validate($rule)
-    {
-        $this->validator->mapFieldsRules($this->rules[$rule]);
-        return $this->validator->validate();
     }
 }

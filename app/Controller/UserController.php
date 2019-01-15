@@ -2,13 +2,14 @@
 
 namespace App\Controller;
 
-use App\Component\RequestAssignment;
+use App\Component\AttrAssignment;
 use App\Entity\User;
 use App\Validation\User as UserValidation;
 use Viloveul\Event\Contracts\Dispatcher as Event;
 use Viloveul\Http\Contracts\Response;
 use Viloveul\Http\Contracts\ServerRequest as Request;
-use Viloveul\Support\Pagination;
+use Viloveul\Pagination\Builder as Pagination;
+use Viloveul\Pagination\Parameter;
 
 class UserController
 {
@@ -43,18 +44,18 @@ class UserController
      */
     public function create()
     {
-        $post = $this->request->loadPostTo(new RequestAssignment);
-        $validator = new UserValidation($post->all());
-        if ($validator->validate('store')) {
+        $post = $this->request->loadPostTo(new AttrAssignment);
+        $validator = new UserValidation($post->getAttributes());
+        if ($validator->validate('insert')) {
             $user = new User();
-            $data = array_only($post->all(), ['username', 'email', 'password']);
+            $data = array_only($post->getAttributes(), ['username', 'email', 'password']);
             foreach ($data as $key => $value) {
                 $user->{$key} = $value;
             }
             $user->created_at = date('Y-m-d H:i:s');
             $user->password = password_hash(array_get($data, 'password'), PASSWORD_DEFAULT);
             if ($user->save()) {
-                $response = $this->response->withPayload([
+                return $this->response->withPayload([
                     'data' => [
                         'id' => $user->id,
                         'type' => 'user',
@@ -62,18 +63,11 @@ class UserController
                     ],
                 ]);
             } else {
-                $response = $this->response->withErrors(500, ['Something Wrong !!!']);
+                return $this->response->withErrors(500, ['Something Wrong !!!']);
             }
         } else {
-            $errors = [];
-            foreach ($validator->errors() as $key => $errArray) {
-                foreach ($errArray as $error) {
-                    $errors[] = $error;
-                }
-            }
-            $response = $this->response->withErrors(400, $errors);
+            return $this->response->withErrors(400, $validator->errors());
         }
-        return $response;
     }
 
     /**
@@ -117,24 +111,24 @@ class UserController
      */
     public function index(Request $request)
     {
-        $pagination = new Pagination('search', $_GET);
-        $pagination->setBaseUrl('/api/v1/user/index');
-        $pagination->prepare(function (Pagination $pagination, array $conditions = []) {
-            $model = new User();
-            foreach ($conditions as $key => $value) {
-                $model->where($key, 'LIKE', "%{$value}%");
+        $parameter = new Parameter('search', $_GET);
+        $parameter->setBaseUrl('/api/v1/user/index');
+        $pagination = new Pagination($parameter);
+        $pagination->prepare(function () {
+            $model = User::query();
+            $parameter = $this->getParameter();
+            foreach ($parameter->getConditions() as $key => $value) {
+                $model->where($key, 'like', "%{$value}%");
             }
-            $pagination->setTotal($model->count());
-            $pagination->setData(
-                $model
-                    ->orderBy($pagination->getOrderBy(), $pagination->getSortOrder())
-                    ->skip(($pagination->getCurrentPage() * $pagination->getPageSize()) - $pagination->getPageSize())
-                    ->take($pagination->getPageSize())
-                    ->get()
-                    ->toArray()
-            );
+            $this->total = $model->count();
+            $this->data = $model->orderBy($parameter->getOrderBy(), $parameter->getSortOrder())
+                ->skip(($parameter->getCurrentPage() * $parameter->getPageSize()) - $parameter->getPageSize())
+                ->take($parameter->getPageSize())
+                ->get()
+                ->toArray();
         });
-        return $this->response->withPayload($pagination->results());
+
+        return $this->response->withPayload($pagination->getResults());
     }
 
     /**
@@ -143,10 +137,10 @@ class UserController
     public function update($id)
     {
         if ($user = User::where('id', $id)->first()) {
-            $post = $this->request->loadPostTo(new RequestAssignment);
-            $validator = new UserValidation($post->all(), [$id]);
-            if ($validator->validate('edit')) {
-                $data = array_only($post->all(), ['username', 'email', 'status', 'deleted']);
+            $post = $this->request->loadPostTo(new AttrAssignment);
+            $validator = new UserValidation($post->getAttributes(), [$id]);
+            if ($validator->validate('update')) {
+                $data = array_only($post->getAttributes(), ['username', 'email', 'status', 'deleted']);
                 foreach ($data as $key => $value) {
                     $user->{$key} = $value;
                 }
@@ -166,13 +160,7 @@ class UserController
                     return $this->response->withErrors(500, ['Something Wrong !!!']);
                 }
             } else {
-                $errors = [];
-                foreach ($validator->errors() as $key => $errArray) {
-                    foreach ($errArray as $error) {
-                        $errors[] = $error;
-                    }
-                }
-                return $this->response->withErrors(400, $errors);
+                return $this->response->withErrors(400, $validator->errors());
             }
         } else {
             return $this->response->withErrors(404, ['User not found']);

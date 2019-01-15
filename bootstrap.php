@@ -11,17 +11,16 @@ require_once __DIR__ . '/vendor/autoload.php';
 $dotenv = new Dotenv\Dotenv(__DIR__);
 $dotenv->load();
 
-// load configuration data
-$configs = require __DIR__ . '/config/main.php';
-
-// initialize container with several components
-$container = new Viloveul\Container\Container([
-    App\Component\Privilege::class => App\Component\Privilege::class,
-    App\Component\Setting::class => App\Component\Setting::class,
-]);
-
-// initialize application object with existing $container and $configs
-$app = new Viloveul\Kernel\Application($container, $configs);
+// initialize application object
+$app = new Viloveul\Kernel\Application(
+    // initialize container with several components
+    new Viloveul\Container\Container([
+        App\Component\Privilege::class => App\Component\Privilege::class,
+        App\Component\Setting::class => App\Component\Setting::class,
+    ]),
+    // load file configuration
+    Viloveul\Config\Configuration::load(__DIR__ . '/config/main.php')
+);
 
 /**
  * Load all routes
