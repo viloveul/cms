@@ -15,9 +15,10 @@ $middleware->add(function (ServerRequest $request, $next) {
         $auth = $container->get(Authentication::class);
         [$name, $token] = sscanf($request->getServer('HTTP_AUTHORIZATION'), "%s %s");
         if (array_get($configs, 'auth.name') === $name && !empty($token)) {
-            $auth = $auth->withToken($token);
+            $auth->setToken($token);
         }
         $user = $auth->authenticate(new UserData);
+        dd($user);
         $this->getContainer()->set(IUserData::class, function () use ($user) {
             return $user;
         });

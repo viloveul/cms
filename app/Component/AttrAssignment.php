@@ -8,4 +8,9 @@ use Viloveul\Support\AttrAwareTrait;
 class AttrAssignment implements IServerRequestAssignment
 {
     use AttrAwareTrait;
+
+    /**
+     * @var array
+     */
+    protected $attributes = [];
 }
