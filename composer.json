@@ -46,13 +46,8 @@
             "mkdir -p public/uploads",
             "touch .env"
         ],
-        "genrsakey": [
-            "openssl genrsa -out config/private.pem -aes256 4096",
-            "openssl rsa -pubout -in config/private.pem -out config/public.pem"
-        ],
         "post-create-project-cmd": [
-            "@bootstrap",
-            "@genrsakey"
+            "@bootstrap"
         ]
     }
 }

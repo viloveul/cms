@@ -3,11 +3,15 @@
 
 need php 7
 
-```batch
+```bash
 $ git clone https://github.com/zafex/viloveul-cms.git
 $ cd cms
 $ composer install
 $ composer run bootstrap
-$ composer run genrsakey
+```
+
+update your .env variable, and then type :
+
+```bash
 $ php viloveulc cms:install
 ```
