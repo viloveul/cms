@@ -15,6 +15,7 @@ $dotenv->load();
 $app = new Viloveul\Kernel\Application(
     // initialize container with several components
     new Viloveul\Container\Container([
+        App\Component\SlugCreation::class => App\Component\SlugCreation::class,
         App\Component\Privilege::class => App\Component\Privilege::class,
         App\Component\Setting::class => App\Component\Setting::class,
     ]),

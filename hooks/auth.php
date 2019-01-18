@@ -11,14 +11,13 @@ $middleware->add(function (ServerRequest $request, $next) {
     $container = $this->getContainer();
     $configs = $container->get(Configuration::class);
     $route = $container->get(Route::class);
+    $auth = $container->get(Authentication::class);
+    [$name, $token] = sscanf($request->getServer('HTTP_AUTHORIZATION'), "%s %s");
+    if (array_get($configs, 'auth.name') === $name && !empty($token)) {
+        $auth->setToken($token);
+    }
     if (!in_array($route->getName(), ['auth.login', 'auth.register'])) {
-        $auth = $container->get(Authentication::class);
-        [$name, $token] = sscanf($request->getServer('HTTP_AUTHORIZATION'), "%s %s");
-        if (array_get($configs, 'auth.name') === $name && !empty($token)) {
-            $auth->setToken($token);
-        }
         $user = $auth->authenticate(new UserData);
-        dd($user);
         $this->getContainer()->set(IUserData::class, function () use ($user) {
             return $user;
         });

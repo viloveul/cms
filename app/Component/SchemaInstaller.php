@@ -38,6 +38,7 @@ class SchemaInstaller
                 $table->string('email')->unique();
                 $table->integer('status')->default(0)->index();
                 $table->string('password');
+                $table->integer('deleted')->default(0)->index();
                 $table->timestamp('created_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
                 $table->timestamp('updated_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
                 $table->timestamp('deleted_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
@@ -95,6 +96,7 @@ class SchemaInstaller
                 $table->string('name')->unique();
                 $table->text('description')->nullable();
                 $table->string('type')->default('tag')->index();
+                $table->integer('deleted')->default(0)->index();
                 $table->timestamp('created_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
                 $table->timestamp('updated_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
                 $table->timestamp('deleted_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
@@ -111,6 +113,7 @@ class SchemaInstaller
                 $table->text('description')->nullable();
                 $table->text('content')->nullable();
                 $table->integer('status')->default(0)->index();
+                $table->integer('deleted')->default(0)->index();
                 $table->timestamp('created_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
                 $table->timestamp('updated_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
                 $table->timestamp('deleted_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
@@ -135,6 +138,7 @@ class SchemaInstaller
                 $table->unsignedBigInteger('author_id')->default(0)->index();
                 $table->text('content')->nullable();
                 $table->integer('status')->default(0)->index();
+                $table->integer('deleted')->default(0)->index();
                 $table->timestamp('created_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
                 $table->timestamp('updated_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
                 $table->timestamp('deleted_at')->default(date('Y-m-d H:i:s'))->nullable()->index();

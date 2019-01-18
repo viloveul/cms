@@ -2,7 +2,7 @@
 
 namespace App\Controller;
 
-use Viloveul\Http\Contracts\Request;
+use Viloveul\Http\Contracts\ServerRequest;
 use Viloveul\Http\Contracts\Response;
 
 class TagController
@@ -18,12 +18,12 @@ class TagController
     protected $response;
 
     /**
-     * @param Request  $request
+     * @param ServerRequest  $request
      * @param Response $response
      */
-    public function __construct(Request $request, Response $response)
+    public function __construct(ServerRequest $request, Response $response)
     {
-        $this->request = $request->request;
+        $this->request = $request;
         $this->response = $response;
     }
 

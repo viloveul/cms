@@ -33,10 +33,10 @@ class SettingController
      * @param  $name
      * @return mixed
      */
-    public function get($name)
+    public function get(string $name)
     {
         return $this->response->withPayload([
-            'data' => $this->options->get($name),
+            $name => $this->options->get($name),
         ]);
     }
 
@@ -45,7 +45,7 @@ class SettingController
      * @param  $name
      * @return mixed
      */
-    public function set(ServerRequest $request, $name)
+    public function set(ServerRequest $request, string $name)
     {
         $value = $request->getBody()->getContents();
         $option = is_scalar($value) ? $value : json_encode($value);

@@ -2,8 +2,13 @@
 
 namespace App\Controller;
 
-use Viloveul\Http\Contracts\Request;
+use App\Component\AttrAssignment;
+use App\Entity\Post;
+use App\Validation\Post as PostValidation;
 use Viloveul\Http\Contracts\Response;
+use Viloveul\Http\Contracts\ServerRequest;
+use Viloveul\Pagination\Builder as Pagination;
+use Viloveul\Pagination\Parameter;
 
 class PostController
 {
@@ -18,46 +23,133 @@ class PostController
     protected $response;
 
     /**
-     * @param Request  $request
-     * @param Response $response
+     * @param ServerRequest $request
+     * @param Response      $response
      */
-    public function __construct(Request $request, Response $response)
+    public function __construct(ServerRequest $request, Response $response)
     {
-        $this->request = $request->request;
+        $this->request = $request;
         $this->response = $response;
     }
 
+    /**
+     * @return mixed
+     */
     public function create()
     {
-
+        $data = $this->request->loadPostTo(new AttrAssignment);
+        $validator = new PostValidation($data->getAttributes());
+        if ($validator->validate('insert')) {
+            $post = new Post();
+            $data = array_only($data->getAttributes(), ['title', 'slug', 'content', 'description']);
+            foreach ($data as $key => $value) {
+                $post->{$key} = $value;
+            }
+            $post->created_at = date('Y-m-d H:i:s');
+            if ($post->save()) {
+                return $this->response->withPayload([
+                    'data' => [
+                        'id' => $post->id,
+                        'type' => 'post',
+                        'attributes' => $post,
+                    ],
+                ]);
+            } else {
+                return $this->response->withErrors(500, ['Something Wrong !!!']);
+            }
+        } else {
+            return $this->response->withErrors(400, $validator->errors());
+        }
     }
 
     /**
      * @param $id
      */
-    public function delete($id)
+    public function delete(int $id)
     {
-
+        if ($post = Post::where('id', $id)->first()) {
+            $post->deleted = 1;
+            $post->deleted_at = date('Y-m-d H:i:s');
+            if ($post->save()) {
+                return $this->response->withStatus(201);
+            } else {
+                return $this->response->withErrors(500, ['Something Wrong !!!']);
+            }
+        } else {
+            return $this->response->withErrors(404, ['Post not found']);
+        }
     }
 
     /**
      * @param $id
      */
-    public function detail($id)
+    public function detail(int $id)
     {
-
+        if ($post = Post::where('id', $id)->first()) {
+            return $this->response->withPayload([
+                'data' => [
+                    'id' => $post->id,
+                    'type' => 'post',
+                    'attributes' => $post,
+                ],
+            ]);
+        } else {
+            return $this->response->withErrors(404, ['Post not found']);
+        }
     }
 
     public function index()
     {
+        $parameter = new Parameter('search', $_GET);
+        $parameter->setBaseUrl('/api/v1/post/index');
+        $pagination = new Pagination($parameter);
+        $pagination->prepare(function () {
+            $model = Post::query();
+            $parameter = $this->getParameter();
+            foreach ($parameter->getConditions() as $key => $value) {
+                $model->where($key, 'like', "%{$value}%");
+            }
+            $this->total = $model->count();
+            $this->data = $model->orderBy($parameter->getOrderBy(), $parameter->getSortOrder())
+                ->skip(($parameter->getCurrentPage() * $parameter->getPageSize()) - $parameter->getPageSize())
+                ->take($parameter->getPageSize())
+                ->get()
+                ->toArray();
+        });
 
+        return $this->response->withPayload($pagination->getResults());
     }
 
     /**
      * @param $id
      */
-    public function update($id)
+    public function update(int $id)
     {
-
+        if ($post = Post::where('id', $id)->first()) {
+            $data = $this->request->loadPostTo(new AttrAssignment);
+            $validator = new PostValidation($data->getAttributes(), [$id]);
+            if ($validator->validate('update')) {
+                $data = array_only($data->getAttributes(), ['title', 'slug', 'content', 'description']);
+                foreach ($data as $key => $value) {
+                    $post->{$key} = $value;
+                }
+                $post->updated_at = date('Y-m-d H:i:s');
+                if ($post->save()) {
+                    return $this->response->withPayload([
+                        'data' => [
+                            'id' => $id,
+                            'type' => 'post',
+                            'attributes' => $post,
+                        ],
+                    ]);
+                } else {
+                    return $this->response->withErrors(500, ['Something Wrong !!!']);
+                }
+            } else {
+                return $this->response->withErrors(400, $validator->errors());
+            }
+        } else {
+            return $this->response->withErrors(404, ['Post not found']);
+        }
     }
 }

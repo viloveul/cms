@@ -42,7 +42,7 @@ class Setting
      * @param $name
      * @param $default
      */
-    public function get($name, $default = null)
+    public function get(string $name, $default = null)
     {
         return array_key_exists($name, $this->options) ? $this->options[$name] : $default;
     }
