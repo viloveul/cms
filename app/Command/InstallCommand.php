@@ -10,19 +10,18 @@ use App\Entity\UserRole;
 use RuntimeException;
 use Symfony\Component\Console\Question\Question;
 use Viloveul\Console\Command;
-use Viloveul\Container\ContainerInjectorTrait;
-use Viloveul\Container\Contracts\Injector;
+use Viloveul\Container\ContainerAwareTrait;
+use Viloveul\Container\Contracts\ContainerAware;
 use Viloveul\Router\Contracts\Collection;
-use Dotenv\Dotenv;
 
-class InstallCommand extends Command implements Injector
+class InstallCommand extends Command implements ContainerAware
 {
-    use ContainerInjectorTrait;
+    use ContainerAwareTrait;
 
     /**
      * @var string
      */
-    protected static $defaultName = 'cms:install';
+    protected static $defaultName = 'install';
 
     /**
      * @return mixed
@@ -30,25 +29,25 @@ class InstallCommand extends Command implements Injector
     public function handle()
     {
         if (!env('AUTH_PASSPHRASE')) {
-        	$this->writeError('Please put AUTH_PASSPHRASE as a non-empty string or not null on your .env');
-        	exit();
+            $this->writeError('Please put AUTH_PASSPHRASE as a non-empty string or not null on your .env');
+            exit();
         }
 
-    	$res = openssl_pkey_new();
-    	openssl_pkey_export($res, $privkey, env('AUTH_PASSPHRASE'), [
-    		'private_key_type' => OPENSSL_KEYTYPE_RSA,
-    		'private_key_bits' => 4096,
-    		'digest_alg' => 'RSA-SHA256'
-    	]);
+        $res = openssl_pkey_new();
+        openssl_pkey_export($res, $privkey, env('AUTH_PASSPHRASE'), [
+            'private_key_type' => OPENSSL_KEYTYPE_RSA,
+            'private_key_bits' => 4096,
+            'digest_alg' => 'RSA-SHA256',
+        ]);
 
-    	$priv = fopen(__DIR__ . '/../../config/private.pem', 'w');
-    	fwrite($priv, $privkey);
-    	fclose($priv);
+        $priv = fopen(__DIR__ . '/../../config/private.pem', 'w');
+        fwrite($priv, $privkey);
+        fclose($priv);
 
-    	$details = openssl_pkey_get_details($res);
-    	$pub = fopen(__DIR__ . '/../../config/public.pem', 'w');
-    	fwrite($pub, $details['key']);
-    	fclose($pub);
+        $details = openssl_pkey_get_details($res);
+        $pub = fopen(__DIR__ . '/../../config/public.pem', 'w');
+        fwrite($pub, $details['key']);
+        fclose($pub);
 
         $helper = $this->getHelper('question');
 
@@ -88,7 +87,7 @@ class InstallCommand extends Command implements Injector
         $helper->ask($this->getInput(), $this->getOutput(), $questionPassconf);
 
         $container = $this->getContainer();
-        $installer = $container->factory(SchemaInstaller::class);
+        $installer = $container->make(SchemaInstaller::class);
 
         $this->writeInfo('check and create table user if not exists.');
         $installer->install('user');

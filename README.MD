@@ -4,14 +4,12 @@
 need php 7
 
 ```bash
-$ git clone https://github.com/zafex/viloveul-cms.git
-$ cd cms
-$ composer install
-$ composer run bootstrap
+$ composer create-project zafex/viloveul-cms your-project-name
+$ cd your-project-name
 ```
 
 update your .env variable, and then type :
 
 ```bash
-$ php viloveulc cms:install
+$ php viloveulc install
 ```

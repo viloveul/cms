@@ -4,6 +4,8 @@ error_reporting(-1);
 
 ini_set('display_errors', 'On');
 
+defined('VILOVEUL_WORKDIR') or define('VILOVEUL_WORKDIR', __DIR__);
+
 // require composer autoloader
 require_once __DIR__ . '/vendor/autoload.php';
 
@@ -14,13 +16,13 @@ $dotenv->load();
 // initialize application object
 $app = new Viloveul\Kernel\Application(
     // initialize container with several components
-    new Viloveul\Container\Container([
+    Viloveul\Container\ContainerFactory::instance([
         App\Component\SlugCreation::class => App\Component\SlugCreation::class,
         App\Component\Privilege::class => App\Component\Privilege::class,
         App\Component\Setting::class => App\Component\Setting::class,
     ]),
     // load file configuration
-    Viloveul\Config\Configuration::load(__DIR__ . '/config/main.php')
+    Viloveul\Config\ConfigFactory::load(__DIR__ . '/config/main.php')
 );
 
 /**
