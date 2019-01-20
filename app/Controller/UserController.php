@@ -7,7 +7,7 @@ use App\Entity\User;
 use App\Validation\User as UserValidation;
 use Viloveul\Event\Contracts\Dispatcher as Event;
 use Viloveul\Http\Contracts\Response;
-use Viloveul\Http\Contracts\ServerRequest as Request;
+use Viloveul\Http\Contracts\ServerRequest;
 use Viloveul\Pagination\Builder as Pagination;
 use Viloveul\Pagination\Parameter;
 
@@ -29,10 +29,10 @@ class UserController
     protected $response;
 
     /**
-     * @param Request  $request
-     * @param Response $response
+     * @param ServerRequest $request
+     * @param Response      $response
      */
-    public function __construct(Request $request, Response $response, Event $event)
+    public function __construct(ServerRequest $request, Response $response, Event $event)
     {
         $this->request = $request;
         $this->response = $response;
@@ -44,11 +44,11 @@ class UserController
      */
     public function create()
     {
-        $post = $this->request->loadPostTo(new AttrAssignment);
-        $validator = new UserValidation($post->getAttributes());
+        $data = $this->request->loadPostTo(new AttrAssignment);
+        $validator = new UserValidation($data->getAttributes());
         if ($validator->validate('insert')) {
             $user = new User();
-            $data = array_only($post->getAttributes(), ['username', 'email', 'password']);
+            $data = array_only($data->getAttributes(), ['username', 'email', 'password']);
             foreach ($data as $key => $value) {
                 $user->{$key} = $value;
             }
@@ -73,7 +73,7 @@ class UserController
     /**
      * @param $id
      */
-    public function delete($id)
+    public function delete(int $id)
     {
         if ($user = User::where('id', $id)->first()) {
             $user->deleted = 1;
@@ -91,7 +91,7 @@ class UserController
     /**
      * @param $id
      */
-    public function detail($id)
+    public function detail(int $id)
     {
         if ($user = User::where('id', $id)->first()) {
             return $this->response->withPayload([
@@ -109,7 +109,7 @@ class UserController
     /**
      * @return mixed
      */
-    public function index(Request $request)
+    public function index(ServerRequest $request)
     {
         $parameter = new Parameter('search', $_GET);
         $parameter->setBaseUrl('/api/v1/user/index');
@@ -134,7 +134,7 @@ class UserController
     /**
      * @param $id
      */
-    public function update($id)
+    public function update(int $id)
     {
         if ($user = User::where('id', $id)->first()) {
             $post = $this->request->loadPostTo(new AttrAssignment);

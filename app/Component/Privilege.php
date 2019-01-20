@@ -51,7 +51,7 @@ class Privilege
      * @param $name
      * @param $object_id
      */
-    public function check($name, $object_id = 0): bool
+    public function check(string $name, $object_id = 0): bool
     {
         if ($sub = array_get($this->auth->authenticate(), 'sub')) {
             $id = $sub->getValue();

@@ -12,5 +12,10 @@ class AttrAssignment implements IServerRequestAssignment
     /**
      * @var array
      */
-    protected $attributes = [];
+    private $attributes = [];
+
+    public function attrkey(): string
+    {
+        return 'attributes';
+    }
 }
