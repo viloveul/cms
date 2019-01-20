@@ -9,11 +9,11 @@ use Viloveul\Router\Contracts\Route;
 
 $middleware->add(function (ServerRequest $request, $next) {
     $container = $this->getContainer();
-    $configs = $container->get(Configuration::class);
+    $config = $container->get(Configuration::class);
     $route = $container->get(Route::class);
     $auth = $container->get(Authentication::class);
     [$name, $token] = sscanf($request->getServer('HTTP_AUTHORIZATION'), "%s %s");
-    if (array_get($configs, 'auth.name') === $name && !empty($token)) {
+    if (array_get($config->all(), 'auth.name') === $name && !empty($token)) {
         $auth->setToken($token);
     }
     if (!in_array($route->getName(), ['auth.login', 'auth.register'])) {
