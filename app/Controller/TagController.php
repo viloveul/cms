@@ -34,9 +34,55 @@ class TagController
      * @param  int     $id
      * @return mixed
      */
-    public function detail(int $id)
+    public function delete(int $id)
     {
         if ($tag = Tag::where('id', $id)->first()) {
+            $tag->deleted = 1;
+            $tag->deleted_at = date('Y-m-d H:i:s');
+            if ($tag->save()) {
+                Tag::where('status', 1)->where('deleted', 0)->where('parent_id', $id)->update(['parent_id', 0]);
+                return $this->response->withStatus(201);
+            } else {
+                return $this->response->withErrors(500, ['Something Wrong !!!']);
+            }
+        } else {
+            return $this->response->withErrors(404, ['Tag not found']);
+        }
+    }
+    public function create()
+    {
+        $data = $this->request->loadPostTo(new AttrAssignment);
+        $validator = new PostValidation($data->getAttributes());
+        if ($validator->validate('insert')) {
+            $post = new Post();
+            $data = array_only($data->getAttributes(), ['title', 'slug', 'content', 'description']);
+            foreach ($data as $key => $value) {
+                $post->{$key} = $value;
+            }
+            $post->created_at = date('Y-m-d H:i:s');
+            if ($post->save()) {
+                return $this->response->withPayload([
+                    'data' => [
+                        'id' => $post->id,
+                        'type' => 'post',
+                        'attributes' => $post,
+                    ],
+                ]);
+            } else {
+                return $this->response->withErrors(500, ['Something Wrong !!!']);
+            }
+        } else {
+            return $this->response->withErrors(400, $validator->errors());
+        }
+    }
+
+    /**
+     * @param  int     $id
+     * @return mixed
+     */
+    public function detail(int $id)
+    {
+        if ($tag = Tag::where('id', $id)->with('childs')->first()) {
             return $this->response->withPayload([
                 'data' => [
                     'id' => $tag->id,

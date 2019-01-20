@@ -85,7 +85,7 @@ class PostController
      */
     public function detail(int $id)
     {
-        if ($post = Post::where('id', $id)->first()) {
+        if ($post = Post::where('id', $id)->with(['author', 'tags'])->first()) {
             return $this->response->withPayload([
                 'data' => [
                     'id' => $post->id,
