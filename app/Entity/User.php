@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Role;
 use Viloveul\Kernel\Model;
 
 class User extends Model
@@ -9,7 +10,15 @@ class User extends Model
     /**
      * @var array
      */
-    protected $fillable = ['username', 'password', 'email', 'status', 'created_at', 'updated_at', 'deleted_at'];
+    protected $fillable = [
+        'username',
+        'password',
+        'email',
+        'status',
+        'created_at',
+        'updated_at',
+        'deleted_at',
+    ];
 
     /**
      * @var array
@@ -20,4 +29,12 @@ class User extends Model
      * @var string
      */
     protected $table = 'user';
+
+    /**
+     * @return mixed
+     */
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class, 'user_role')->where('deleted', 0)->where('status', 1);
+    }
 }

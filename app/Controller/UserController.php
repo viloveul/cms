@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Component\AttrAssignment;
 use App\Entity\User;
+use App\Entity\UserRole;
 use App\Validation\User as UserValidation;
 use Viloveul\Event\Contracts\Dispatcher as Event;
 use Viloveul\Http\Contracts\Response;
@@ -37,6 +38,29 @@ class UserController
         $this->request = $request;
         $this->response = $response;
         $this->event = $event;
+    }
+
+    /**
+     * @param  $id
+     * @return mixed
+     */
+    public function assign($id)
+    {
+        if ($user = User::where('id', $id)->where('deleted', 0)->where('status', 1)->first()) {
+            $ids = (array) $this->request->getPost('role') ?: [];
+            $roles = [];
+            foreach ($ids as $role_id) {
+                $role = UserRole::firstOrCreate(
+                    ['user_id' => $user->id, 'role_id' => $role_id],
+                    ['created_at' => date('Y-m-d H:i:s')]
+                );
+                if ($role) {
+                    $roles[] = $role;
+                }
+            }
+            return $this->response->withStatus(201);
+        }
+        return $this->response->withErrors(404, ['User not found']);
     }
 
     /**
@@ -93,7 +117,7 @@ class UserController
      */
     public function detail(int $id)
     {
-        if ($user = User::where('id', $id)->first()) {
+        if ($user = User::where('id', $id)->with('roles')->first()) {
             return $this->response->withPayload([
                 'data' => [
                     'id' => $user->id,
@@ -129,6 +153,22 @@ class UserController
         });
 
         return $this->response->withPayload($pagination->getResults());
+    }
+
+    /**
+     * @param  $id
+     * @return mixed
+     */
+    public function unassign($id)
+    {
+        if ($user = User::where('id', $id)->where('deleted', 0)->where('status', 1)->first()) {
+            $ids = (array) $this->request->getPost('role') ?: [];
+            foreach ($ids as $role_id) {
+                UserRole::where('user_id', $id)->where('role_id', $role_id)->delete();
+            }
+            return $this->response->withStatus(201);
+        }
+        return $this->response->withErrors(404, ['User not found']);
     }
 
     /**

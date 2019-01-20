@@ -36,8 +36,8 @@ class SchemaInstaller
                 $table->bigIncrements('id');
                 $table->string('username')->unique();
                 $table->string('email')->unique();
-                $table->integer('status')->default(0)->index();
                 $table->string('password');
+                $table->integer('status')->default(0)->index();
                 $table->integer('deleted')->default(0)->index();
                 $table->timestamp('created_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
                 $table->timestamp('updated_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
@@ -60,8 +60,9 @@ class SchemaInstaller
                 $table->bigIncrements('id');
                 $table->string('name')->unique();
                 $table->string('type')->default('access')->index();
-                $table->unsignedBigInteger('object_id')->default(0)->index();
                 $table->text('description')->nullable();
+                $table->integer('status')->default(1)->index();
+                $table->integer('deleted')->default(0)->index();
                 $table->timestamp('created_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
                 $table->timestamp('updated_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
                 $table->timestamp('deleted_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
@@ -96,6 +97,7 @@ class SchemaInstaller
                 $table->string('name')->unique();
                 $table->text('description')->nullable();
                 $table->string('type')->default('tag')->index();
+                $table->integer('status')->default(1)->index();
                 $table->integer('deleted')->default(0)->index();
                 $table->timestamp('created_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
                 $table->timestamp('updated_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
@@ -110,6 +112,7 @@ class SchemaInstaller
                 $table->unsignedBigInteger('author_id')->default(0)->index();
                 $table->string('slug')->unique();
                 $table->string('title')->index();
+                $table->string('type')->index();
                 $table->text('description')->nullable();
                 $table->text('content')->nullable();
                 $table->integer('status')->default(0)->index();
@@ -136,6 +139,9 @@ class SchemaInstaller
                 $table->unsignedBigInteger('post_id')->index();
                 $table->unsignedBigInteger('parent_id')->default(0)->index();
                 $table->unsignedBigInteger('author_id')->default(0)->index();
+                $table->string('fullname')->index();
+                $table->string('email')->index();
+                $table->string('website')->nullable()->index();
                 $table->text('content')->nullable();
                 $table->integer('status')->default(0)->index();
                 $table->integer('deleted')->default(0)->index();

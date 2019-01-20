@@ -2,8 +2,11 @@
 
 namespace App\Controller;
 
-use Viloveul\Http\Contracts\ServerRequest;
+use App\Entity\Tag;
 use Viloveul\Http\Contracts\Response;
+use Viloveul\Http\Contracts\ServerRequest;
+use Viloveul\Pagination\Builder as Pagination;
+use Viloveul\Pagination\Parameter;
 
 class TagController
 {
@@ -18,8 +21,8 @@ class TagController
     protected $response;
 
     /**
-     * @param ServerRequest  $request
-     * @param Response $response
+     * @param ServerRequest $request
+     * @param Response      $response
      */
     public function __construct(ServerRequest $request, Response $response)
     {
@@ -27,37 +30,43 @@ class TagController
         $this->response = $response;
     }
 
-    public function create()
-    {
-
-    }
-
     /**
-     * @param $id
+     * @param  int     $id
+     * @return mixed
      */
-    public function delete($id)
+    public function detail(int $id)
     {
-
-    }
-
-    /**
-     * @param $id
-     */
-    public function detail($id)
-    {
-
+        if ($tag = Tag::where('id', $id)->first()) {
+            return $this->response->withPayload([
+                'data' => [
+                    'id' => $tag->id,
+                    'type' => 'tag',
+                    'attributes' => $tag,
+                ],
+            ]);
+        } else {
+            return $this->response->withErrors(404, ['Tag not found']);
+        }
     }
 
     public function index()
     {
-
-    }
-
-    /**
-     * @param $id
-     */
-    public function update($id)
-    {
-
+        $parameter = new Parameter('search', $_GET);
+        $parameter->setBaseUrl('/api/v1/tag/index');
+        $pagination = new Pagination($parameter);
+        $pagination->prepare(function () {
+            $model = Tag::query();
+            $parameter = $this->getParameter();
+            foreach ($parameter->getConditions() as $key => $value) {
+                $model->where($key, 'like', "%{$value}%");
+            }
+            $this->total = $model->count();
+            $this->data = $model->orderBy($parameter->getOrderBy(), $parameter->getSortOrder())
+                ->skip(($parameter->getCurrentPage() * $parameter->getPageSize()) - $parameter->getPageSize())
+                ->take($parameter->getPageSize())
+                ->get()
+                ->toArray();
+        });
+        return $this->response->withPayload($pagination->getResults());
     }
 }
