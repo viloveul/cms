@@ -2,10 +2,10 @@
 
 namespace App\Validation;
 
-use App\Entity\User as UserModel;
+use App\Entity\Post as PostModel;
 use Viloveul\Validation\Validator;
 
-class User extends Validator
+class Post extends Validator
 {
     public function boot()
     {
@@ -28,6 +28,9 @@ class User extends Validator
                     ['lengthMin', 5],
                     ['lengthMax', 250],
                 ],
+                'type' => [
+                    'required',
+                ],
                 'content' => [
                     'required',
                 ],
@@ -45,6 +48,9 @@ class User extends Validator
                     ['lengthMin', 5],
                     ['lengthMax', 250],
                 ],
+                'type' => [
+                    ['optional'],
+                ],
                 'content' => [
                     ['optional'],
                 ],
@@ -60,7 +66,7 @@ class User extends Validator
      */
     public function unique($field, $value, array $params, array $fields)
     {
-        if ($user = UserModel::where($field, $value)->first()) {
+        if ($user = PostModel::where($field, $value)->first()) {
             return !empty($this->params) && in_array($user->id, $this->params);
         }
         return true;

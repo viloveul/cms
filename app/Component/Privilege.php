@@ -5,16 +5,12 @@ namespace App\Component;
 use App\Entity\Role;
 use App\Entity\RoleChild;
 use App\Entity\UserRole;
-use Viloveul\Auth\Contracts\Authentication;
+use Exception;
+use Viloveul\Auth\Contracts\UserData;
 use Viloveul\Cache\Contracts\Cache;
 
 class Privilege
 {
-    /**
-     * @var mixed
-     */
-    protected $auth;
-
     /**
      * @var mixed
      */
@@ -23,7 +19,12 @@ class Privilege
     /**
      * @var array
      */
-    protected $permissions = [];
+    protected $roles = [];
+
+    /**
+     * @var mixed
+     */
+    protected $user;
 
     /**
      * @var mixed
@@ -31,18 +32,18 @@ class Privilege
     protected $users = [];
 
     /**
-     * @param Cache   $cache
-     * @param $name
+     * @param Cache    $cache
+     * @param UserData $user
      */
-    public function __construct(Cache $cache, Authentication $auth)
+    public function __construct(Cache $cache, UserData $user)
     {
         $this->cache = $cache;
-        $this->auth = $auth;
-        if (!$this->cache->has('privilege.permissions') || !$this->cache->has('privilege.users')) {
+        $this->user = $user;
+        if (!$this->cache->has('privilege.roles') || !$this->cache->has('privilege.users')) {
             $this->load();
         } else {
             // retrieve from cache
-            $this->permissions = $this->cache->get('privilege.permissions') ?: [];
+            $this->roles = $this->cache->get('privilege.roles') ?: [];
             $this->users = $this->cache->get('privilege.users') ?: [];
         }
     }
@@ -53,24 +54,27 @@ class Privilege
      */
     public function check(string $name, $object_id = 0): bool
     {
-        if ($sub = array_get($this->auth->authenticate(), 'sub')) {
-            $id = $sub->getValue();
-            if (array_key_exists($id, $this->users)) {
-                if (in_array($name . '-' . $object_id, $this->users[$id])) {
-                    return true;
-                } else {
-                    return in_array($name . '-0', $this->users[$id]);
+        try {
+            if ($id = $this->user->get('sub')) {
+                if (array_key_exists($id, $this->users)) {
+                    if (in_array($name, $this->users[$id])) {
+                        return true;
+                    } else {
+                        return in_array($name, $this->users[$id]);
+                    }
                 }
             }
+        } catch (Exception $e) {
+
         }
         return false;
     }
 
     public function clear(): void
     {
-        if ($this->cache->has('privilege.permissions')) {
-            $this->cache->delete('privilege.permissions');
-            $this->permissions = [];
+        if ($this->cache->has('privilege.roles')) {
+            $this->cache->delete('privilege.roles');
+            $this->roles = [];
         }
         if ($this->cache->has('privilege.users')) {
             $this->cache->delete('privilege.users');
@@ -81,13 +85,13 @@ class Privilege
     public function load(): void
     {
         foreach (Role::all() ?: [] as $role) {
-            $this->permissions[$role->id][] = $role->name . '-' . abs($role->object_id);
+            $this->roles[$role->id][] = $role->name . '/' . $role->type;
         }
         $relations = [];
         foreach (RoleChild::all() ?: [] as $child) {
             $relations[$child->role_id][] = $child->child_id;
         }
-        foreach (array_keys($this->permissions) as $key) {
+        foreach (array_keys($this->roles) as $key) {
             $this->recursive($relations, $key);
         }
         foreach (UserRole::all() ?: [] as $user) {
@@ -96,10 +100,10 @@ class Privilege
             }
             $this->users[$user->user_id] = array_unique(array_merge(
                 $this->users[$user->user_id],
-                $this->permissions[$user->role_id]
+                $this->roles[$user->role_id]
             ));
         }
-        $this->cache->set('privilege.permissions', $this->permissions);
+        $this->cache->set('privilege.roles', $this->roles);
         $this->cache->set('privilege.users', $this->users);
     }
 
@@ -114,10 +118,10 @@ class Privilege
                 if (array_key_exists($child, $relations)) {
                     $this->recursive($relations, $child);
                 }
-                if (array_key_exists($child, $this->permissions)) {
-                    $this->permissions[$key] = array_unique(array_merge(
-                        $this->permissions[$key],
-                        $this->permissions[$child]
+                if (array_key_exists($child, $this->roles)) {
+                    $this->roles[$key] = array_unique(array_merge(
+                        $this->roles[$key],
+                        $this->roles[$child]
                     ));
                 }
             }

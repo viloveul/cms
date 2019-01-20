@@ -9,7 +9,10 @@ class Setting extends Model
     /**
      * @var array
      */
-    protected $fillable = ['name', 'option'];
+    protected $fillable = [
+        'name',
+        'option',
+    ];
 
     /**
      * @var string
