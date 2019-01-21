@@ -38,7 +38,7 @@ $app->uses(function (Viloveul\Router\Contracts\Collection $router) {
  * Load all middlewares
  */
 $app->uses(function (Viloveul\Kernel\Contracts\Middleware $middleware) {
-    foreach (glob(__DIR__ . '/hooks/*.php') as $file) {
+    foreach (glob(__DIR__ . '/middlewares/*.php') as $file) {
         require $file;
     }
 });

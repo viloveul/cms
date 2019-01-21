@@ -11,9 +11,9 @@ class Tag extends Model
      * @var array
      */
     protected $fillable = [
-        'name',
+        'title',
         'type',
-        'description',
+        'slug',
         'deleted',
         'status',
     ];
@@ -22,6 +22,14 @@ class Tag extends Model
      * @var string
      */
     protected $table = 'tag';
+
+    /**
+     * @return mixed
+     */
+    public function childs()
+    {
+        return $this->hasMany(Tag::class, 'parent_id', 'id')->where('deleted', 0)->where('status', 1);
+    }
 
     /**
      * @return mixed

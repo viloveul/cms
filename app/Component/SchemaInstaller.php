@@ -94,8 +94,8 @@ class SchemaInstaller
                 $table->bigIncrements('id');
                 $table->unsignedBigInteger('parent_id')->default(0)->index();
                 $table->unsignedBigInteger('author_id')->default(0)->index();
-                $table->string('name')->unique();
-                $table->text('description')->nullable();
+                $table->string('title')->index();
+                $table->string('slug')->unique();
                 $table->string('type')->default('tag')->index();
                 $table->integer('status')->default(1)->index();
                 $table->integer('deleted')->default(0)->index();

@@ -49,7 +49,7 @@ class BlogController
             $model->where('deleted', 0);
             $model->where('status', 1);
             $model->whereHas('tags', function ($query) use ($archive) {
-                $query->where('name', $archive);
+                $query->where('slug', $archive);
                 $query->where('status', 1);
                 $query->where('deleted', 0);
             });
