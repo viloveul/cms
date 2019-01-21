@@ -57,7 +57,7 @@ $router->add(
  */
 $router->add(
     'user.update',
-    new Route('PATCH /user/update/{:id}', [
+    new Route('POST /user/update/{:id}', [
         App\Controller\UserController::class, 'update',
     ])
 );

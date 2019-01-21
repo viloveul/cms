@@ -68,11 +68,11 @@ class UserController
      */
     public function create()
     {
-        $data = $this->request->loadPostTo(new AttrAssignment);
-        $validator = new UserValidation($data->getAttributes());
+        $attr = $this->request->loadPostTo(new AttrAssignment);
+        $validator = new UserValidation($attr->getAttributes());
         if ($validator->validate('insert')) {
             $user = new User();
-            $data = array_only($data->getAttributes(), ['username', 'email', 'password']);
+            $data = array_only($attr->getAttributes(), ['username', 'email', 'password']);
             foreach ($data as $key => $value) {
                 $user->{$key} = $value;
             }
@@ -177,10 +177,10 @@ class UserController
     public function update(int $id)
     {
         if ($user = User::where('id', $id)->first()) {
-            $post = $this->request->loadPostTo(new AttrAssignment);
-            $validator = new UserValidation($post->getAttributes(), [$id]);
+            $attr = $this->request->loadPostTo(new AttrAssignment);
+            $validator = new UserValidation($attr->getAttributes(), ['id' => $id]);
             if ($validator->validate('update')) {
-                $data = array_only($post->getAttributes(), ['username', 'email', 'status', 'deleted']);
+                $data = array_only($attr->getAttributes(), ['username', 'email', 'status', 'deleted']);
                 foreach ($data as $key => $value) {
                     $user->{$key} = $value;
                 }

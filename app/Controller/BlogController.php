@@ -8,6 +8,7 @@ use Viloveul\Http\Contracts\Response;
 use Viloveul\Http\Contracts\ServerRequest;
 use Viloveul\Pagination\Builder as Pagination;
 use Viloveul\Pagination\Parameter;
+use App\Component\AttrAssignment;
 
 class BlogController
 {

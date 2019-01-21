@@ -2,8 +2,10 @@
 
 namespace App\Controller;
 
+use App\Component\AttrAssignment;
 use App\Entity\Role;
 use App\Entity\RoleChild;
+use App\Validation\Role as RoleValidation;
 use Viloveul\Http\Contracts\Response;
 use Viloveul\Http\Contracts\ServerRequest;
 use Viloveul\Pagination\Builder as Pagination;
@@ -45,12 +47,43 @@ class RoleController
                     ['created_at' => date('Y-m-d H:i:s')]
                 );
                 if ($child) {
-                    $childs[] = $child;
+                    $childs[] = $child_id;
                 }
             }
-            return $this->response->withStatus(201);
+            return $this->response->withStatus(201)->withPayload(['data' => $childs]);
         }
         return $this->response->withErrors(404, ['Role not found']);
+    }
+
+    /**
+     * @return mixed
+     */
+    public function create()
+    {
+        $attr = $this->request->loadPostTo(new AttrAssignment);
+        $attr->set('name', preg_replace('/[^a-z0-9\-\.\_]+/', '-', strtolower($attr->get('name'))), true);
+        $validator = new RoleValidation($attr->getAttributes());
+        if ($validator->validate('insert')) {
+            $role = new Role();
+            $data = array_only($attr->getAttributes(), ['name', 'type', 'description']);
+            foreach ($data as $key => $value) {
+                $role->{$key} = $value;
+            }
+            $role->created_at = date('Y-m-d H:i:s');
+            if ($role->save()) {
+                return $this->response->withPayload([
+                    'data' => [
+                        'id' => $role->id,
+                        'type' => 'role',
+                        'attributes' => $role,
+                    ],
+                ]);
+            } else {
+                return $this->response->withErrors(500, ['Something Wrong !!!']);
+            }
+        } else {
+            return $this->response->withErrors(400, $validator->errors());
+        }
     }
 
     /**
@@ -101,11 +134,49 @@ class RoleController
     {
         if ($role = Role::where('id', $id)->where('deleted', 0)->where('status', 1)->first()) {
             $ids = (array) $this->request->getPost('child') ?: [];
+            $childs = [];
             foreach ($ids as $child_id) {
-                RoleChild::where('role_id', $id)->where('child_id', $child_id)->delete();
+                if (RoleChild::where('role_id', $id)->where('child_id', $child_id)->delete()) {
+                    $childs[] = $child_id;
+                }
             }
-            return $this->response->withStatus(201);
+            return $this->response->withStatus(201)->withPayload(['data' => $childs]);
         }
         return $this->response->withErrors(404, ['Role not found']);
+    }
+
+    /**
+     * @param  int     $id
+     * @return mixed
+     */
+    public function update(int $id)
+    {
+        if ($role = Role::where('id', $id)->first()) {
+            $attr = $this->request->loadPostTo(new AttrAssignment);
+            $attr->set('name', preg_replace('/[^a-z0-9\-\.\_]+/', '-', strtolower($attr->get('name') ?: $role->name)), true);
+            $validator = new RoleValidation($attr->getAttributes(), compact('id'));
+            if ($validator->validate('update')) {
+                $data = array_only($attr->getAttributes(), ['name', 'type', 'description']);
+                foreach ($data as $key => $value) {
+                    $role->{$key} = $value;
+                }
+                $role->updated_at = date('Y-m-d H:i:s');
+                if ($role->save()) {
+                    return $this->response->withPayload([
+                        'data' => [
+                            'id' => $id,
+                            'type' => 'role',
+                            'attributes' => $role,
+                        ],
+                    ]);
+                } else {
+                    return $this->response->withErrors(500, ['Something Wrong !!!']);
+                }
+            } else {
+                return $this->response->withErrors(400, $validator->errors());
+            }
+        } else {
+            return $this->response->withErrors(404, ['Role not found']);
+        }
     }
 }

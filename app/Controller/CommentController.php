@@ -37,11 +37,11 @@ class CommentController
      */
     public function create()
     {
-        $data = $this->request->loadPostTo(new AttrAssignment);
-        $validator = new CommentValidation($data->getAttributes());
+        $attr = $this->request->loadPostTo(new AttrAssignment);
+        $validator = new CommentValidation($attr->getAttributes());
         if ($validator->validate('insert')) {
             $comment = new Comment();
-            $data = array_only($data->getAttributes(), ['parent_id', 'post_id', 'author_id', 'fullname', 'email', 'website', 'content']);
+            $data = array_only($attr->getAttributes(), ['parent_id', 'post_id', 'author_id', 'fullname', 'email', 'website', 'content']);
             foreach ($data as $key => $value) {
                 $comment->{$key} = $value;
             }
@@ -128,10 +128,10 @@ class CommentController
     public function update(int $id)
     {
         if ($comment = Comment::where('id', $id)->first()) {
-            $data = $this->request->loadPostTo(new AttrAssignment);
-            $validator = new CommentValidation($data->getAttributes(), [$id]);
+            $attr = $this->request->loadPostTo(new AttrAssignment);
+            $validator = new CommentValidation($attr->getAttributes());
             if ($validator->validate('update')) {
-                $data = array_only($data->getAttributes(), ['parent_id', 'post_id', 'author_id', 'fullname', 'email', 'website', 'content', 'status', 'deleted']);
+                $data = array_only($attr->getAttributes(), ['parent_id', 'post_id', 'author_id', 'fullname', 'email', 'website', 'content', 'status', 'deleted']);
                 foreach ($data as $key => $value) {
                     $comment->{$key} = $value;
                 }
