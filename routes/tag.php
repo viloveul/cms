@@ -37,7 +37,7 @@ $router->add(
  */
 $router->add(
     'tag.update',
-    new Route('PATCH /tag/update/{:id}', [
+    new Route('POST /tag/update/{:id}', [
         App\Controller\TagController::class, 'update',
     ])
 );

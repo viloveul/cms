@@ -7,26 +7,31 @@ use Viloveul\Kernel\Contracts\Model;
 class SlugCreation
 {
     /**
-     * @param  Model   $model
+     * @param  string  $model
      * @param  string  $field
      * @param  string  $slug
      * @return mixed
      */
-    public function check(Model $model, string $field, string $slug)
+    public function check(string $model, string $field, string $slug)
     {
         return $model::query()->where($field, $slug)->first();
     }
 
+    public static function create()
+    {
+        return new static;
+    }
+
     /**
-     * @param  Model   $model
+     * @param  string  $model
      * @param  string  $field
      * @param  string  $slug
      * @param  int     $id
      * @return mixed
      */
-    public function generate(Model $model, string $field, string $slug, int $id = null): string
+    public function generate(string $model, string $field, string $slug, int $id = null): string
     {
-        $slug = preg_replace('/[^a-z0-9\-\:\.]+/', '-', strtolower($slug));
+        $slug = preg_replace('/[^a-z0-9\-\_]+/', '-', strtolower($slug));
         $suffix = '';
         $increase = 1;
 

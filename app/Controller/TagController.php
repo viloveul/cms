@@ -2,7 +2,10 @@
 
 namespace App\Controller;
 
+use App\Component\AttrAssignment;
+use App\Component\SlugCreation;
 use App\Entity\Tag;
+use App\Validation\Tag as TagValidation;
 use Viloveul\Http\Contracts\Response;
 use Viloveul\Http\Contracts\ServerRequest;
 use Viloveul\Pagination\Builder as Pagination;
@@ -31,6 +34,39 @@ class TagController
     }
 
     /**
+     * @return mixed
+     */
+    public function create()
+    {
+        $attr = $this->request->loadPostTo(new AttrAssignment);
+        if (!$attr->has('slug')) {
+            $attr->slug = SlugCreation::create()->generate(Tag::class, 'slug', $attr->get('title'), null);
+        }
+        $validator = new TagValidation($attr->getAttributes());
+        if ($validator->validate('insert')) {
+            $tag = new Tag();
+            $data = array_only($attr->getAttributes(), ['title', 'slug', 'type', 'parent_id', 'author_id']);
+            foreach ($data as $key => $value) {
+                $tag->{$key} = $value;
+            }
+            $tag->created_at = date('Y-m-d H:i:s');
+            if ($tag->save()) {
+                return $this->response->withPayload([
+                    'data' => [
+                        'id' => $tag->id,
+                        'type' => 'tag',
+                        'attributes' => $tag,
+                    ],
+                ]);
+            } else {
+                return $this->response->withErrors(500, ['Something Wrong !!!']);
+            }
+        } else {
+            return $this->response->withErrors(400, $validator->errors());
+        }
+    }
+
+    /**
      * @param  int     $id
      * @return mixed
      */
@@ -47,32 +83,6 @@ class TagController
             }
         } else {
             return $this->response->withErrors(404, ['Tag not found']);
-        }
-    }
-    public function create()
-    {
-        $data = $this->request->loadPostTo(new AttrAssignment);
-        $validator = new PostValidation($data->getAttributes());
-        if ($validator->validate('insert')) {
-            $post = new Post();
-            $data = array_only($data->getAttributes(), ['title', 'slug', 'content', 'description']);
-            foreach ($data as $key => $value) {
-                $post->{$key} = $value;
-            }
-            $post->created_at = date('Y-m-d H:i:s');
-            if ($post->save()) {
-                return $this->response->withPayload([
-                    'data' => [
-                        'id' => $post->id,
-                        'type' => 'post',
-                        'attributes' => $post,
-                    ],
-                ]);
-            } else {
-                return $this->response->withErrors(500, ['Something Wrong !!!']);
-            }
-        } else {
-            return $this->response->withErrors(400, $validator->errors());
         }
     }
 
@@ -114,5 +124,39 @@ class TagController
                 ->toArray();
         });
         return $this->response->withPayload($pagination->getResults());
+    }
+
+    /**
+     * @param  int     $id
+     * @return mixed
+     */
+    public function update(int $id)
+    {
+        if ($tag = Tag::where('id', $id)->first()) {
+            $attr = $this->request->loadPostTo(new AttrAssignment);
+            $validator = new TagValidation($attr->getAttributes(), compact('id'));
+            if ($validator->validate('update')) {
+                $data = array_only($attr->getAttributes(), ['title', 'slug', 'type', 'parent_id', 'author_id']);
+                foreach ($data as $key => $value) {
+                    $tag->{$key} = $value;
+                }
+                $tag->updated_at = date('Y-m-d H:i:s');
+                if ($tag->save()) {
+                    return $this->response->withPayload([
+                        'data' => [
+                            'id' => $id,
+                            'type' => 'tag',
+                            'attributes' => $tag,
+                        ],
+                    ]);
+                } else {
+                    return $this->response->withErrors(500, ['Something Wrong !!!']);
+                }
+            } else {
+                return $this->response->withErrors(400, $validator->errors());
+            }
+        } else {
+            return $this->response->withErrors(404, ['Tag not found']);
+        }
     }
 }

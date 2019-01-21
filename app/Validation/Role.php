@@ -2,10 +2,10 @@
 
 namespace App\Validation;
 
-use App\Entity\Post as PostModel;
+use App\Entity\Role as RoleModel;
 use Viloveul\Validation\Validator;
 
-class Post extends Validator
+class Role extends Validator
 {
     public function boot()
     {
@@ -16,43 +16,29 @@ class Post extends Validator
     {
         return [
             'insert' => [
-                'slug' => [
+                'name' => [
                     'required',
                     ['lengthMin', 5],
                     ['lengthMax', 250],
-                    'slug',
                     'checkUnique',
-                ],
-                'title' => [
-                    'required',
-                    ['lengthMin', 5],
-                    ['lengthMax', 250],
                 ],
                 'type' => [
                     'required',
-                ],
-                'content' => [
-                    'required',
+                    ['lengthMin', 5],
+                    ['lengthMax', 250],
                 ],
             ],
             'update' => [
-                'slug' => [
+                'name' => [
                     ['optional'],
                     ['lengthMin', 5],
                     ['lengthMax', 250],
-                    'slug',
                     'checkUnique',
-                ],
-                'title' => [
-                    ['optional'],
-                    ['lengthMin', 5],
-                    ['lengthMax', 250],
                 ],
                 'type' => [
                     ['optional'],
-                ],
-                'content' => [
-                    ['optional'],
+                    ['lengthMin', 5],
+                    ['lengthMax', 250],
                 ],
             ],
         ];
@@ -66,8 +52,8 @@ class Post extends Validator
      */
     public function unique($field, $value, array $params, array $fields)
     {
-        if ($post = PostModel::where($field, $value)->first()) {
-            return !empty($this->params) && in_array($post->id, (array) (array_get($this->params, 'id') ?: []));
+        if ($role = RoleModel::where($field, $value)->first()) {
+            return !empty($this->params) && in_array($role->id, (array) (array_get($this->params, 'id') ?: []));
         }
         return true;
     }

@@ -2,10 +2,10 @@
 
 namespace App\Validation;
 
-use App\Entity\Post as PostModel;
+use App\Entity\Tag as TagModel;
 use Viloveul\Validation\Validator;
 
-class Post extends Validator
+class Tag extends Validator
 {
     public function boot()
     {
@@ -31,9 +31,6 @@ class Post extends Validator
                 'type' => [
                     'required',
                 ],
-                'content' => [
-                    'required',
-                ],
             ],
             'update' => [
                 'slug' => [
@@ -51,9 +48,6 @@ class Post extends Validator
                 'type' => [
                     ['optional'],
                 ],
-                'content' => [
-                    ['optional'],
-                ],
             ],
         ];
     }
@@ -66,8 +60,8 @@ class Post extends Validator
      */
     public function unique($field, $value, array $params, array $fields)
     {
-        if ($post = PostModel::where($field, $value)->first()) {
-            return !empty($this->params) && in_array($post->id, (array) (array_get($this->params, 'id') ?: []));
+        if ($tag = TagModel::where($field, $value)->first()) {
+            return !empty($this->params) && in_array($tag->id, (array) (array_get($this->params, 'id') ?: []));
         }
         return true;
     }

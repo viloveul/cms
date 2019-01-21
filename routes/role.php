@@ -57,7 +57,7 @@ $router->add(
  */
 $router->add(
     'role.update',
-    new Route('PATCH /role/update/{:id}', [
+    new Route('POST /role/update/{:id}', [
         App\Controller\RoleController::class, 'update',
     ])
 );

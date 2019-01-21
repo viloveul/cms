@@ -40,10 +40,10 @@ class AuthController
      */
     public function login(Authentication $auth, PrivilegeComponent $privilege)
     {
-        $post = $this->request->loadPostTo(new AttrAssignment);
-        $validator = new UserValidation($post->getAttributes());
+        $attr = $this->request->loadPostTo(new AttrAssignment);
+        $validator = new UserValidation($attr->getAttributes());
         if ($validator->validate('login')) {
-            $data = array_only($post->getAttributes(), ['username', 'password']);
+            $data = array_only($attr->getAttributes(), ['username', 'password']);
             $user = User::where('username', $data['username'])->first();
             if ($user && $user->status == 1 && password_verify($data['password'], $user->password)) {
                 $privilege->clear();
@@ -70,11 +70,11 @@ class AuthController
      */
     public function register()
     {
-        $post = $this->request->loadPostTo(new AttrAssignment);
-        $validator = new UserValidation($post->getAttributes());
+        $attr = $this->request->loadPostTo(new AttrAssignment);
+        $validator = new UserValidation($attr->getAttributes());
         if ($validator->validate('store')) {
             $user = new User();
-            $data = array_only($post->getAttributes(), ['username', 'email', 'password']);
+            $data = array_only($attr->getAttributes(), ['username', 'email', 'password']);
             foreach ($data as $key => $value) {
                 $user->{$key} = $value;
             }

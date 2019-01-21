@@ -3,7 +3,10 @@
 namespace App\Controller;
 
 use App\Component\AttrAssignment;
+use App\Component\SlugCreation;
 use App\Entity\Post;
+use App\Entity\PostTag;
+use App\Entity\Tag;
 use App\Validation\Post as PostValidation;
 use Viloveul\Http\Contracts\Response;
 use Viloveul\Http\Contracts\ServerRequest;
@@ -37,21 +40,31 @@ class PostController
      */
     public function create()
     {
-        $data = $this->request->loadPostTo(new AttrAssignment);
-        $validator = new PostValidation($data->getAttributes());
+        $attr = $this->request->loadPostTo(new AttrAssignment);
+        if (!$attr->has('slug')) {
+            $attr->slug = SlugCreation::create()->generate(Post::class, 'slug', $attr->get('title'), null);
+        }
+        $validator = new PostValidation($attr->getAttributes());
         if ($validator->validate('insert')) {
             $post = new Post();
-            $data = array_only($data->getAttributes(), ['title', 'slug', 'content', 'description']);
+            $data = array_only($attr->getAttributes(), ['title', 'slug', 'type', 'content', 'description']);
             foreach ($data as $key => $value) {
                 $post->{$key} = $value;
             }
             $post->created_at = date('Y-m-d H:i:s');
             if ($post->save()) {
+                $tags = [];
+                $tagIds = $attr->get('tags');
+                foreach (Tag::whereIn('id', $tagIds)->get() as $tag) {
+                    if (PostTag::create(['post_id' => $post->id, 'tag_id' => $tag->id, 'created_at' => date('Y-m-d H:i:s')])) {
+                        $tags[] = $tag;
+                    }
+                }
                 return $this->response->withPayload([
                     'data' => [
                         'id' => $post->id,
                         'type' => 'post',
-                        'attributes' => $post,
+                        'attributes' => array_merge($post->toArray(), compact('tags')),
                     ],
                 ]);
             } else {
@@ -126,20 +139,28 @@ class PostController
     public function update(int $id)
     {
         if ($post = Post::where('id', $id)->first()) {
-            $data = $this->request->loadPostTo(new AttrAssignment);
-            $validator = new PostValidation($data->getAttributes(), [$id]);
+            $attr = $this->request->loadPostTo(new AttrAssignment);
+            $validator = new PostValidation($attr->getAttributes(), compact('id'));
             if ($validator->validate('update')) {
-                $data = array_only($data->getAttributes(), ['title', 'slug', 'content', 'description']);
+                $data = array_only($attr->getAttributes(), ['title', 'slug', 'type', 'content', 'description']);
                 foreach ($data as $key => $value) {
                     $post->{$key} = $value;
                 }
                 $post->updated_at = date('Y-m-d H:i:s');
                 if ($post->save()) {
+                    $tags = [];
+                    $tagIds = $attr->get('tags') ?: [];
+                    PostTag::where('post_id', $id)->whereNotIn('tag_id', $tagIds)->delete();
+                    foreach (Tag::whereIn('id', $tagIds)->get() as $tag) {
+                        if (PostTag::firstOrCreate(['post_id' => $post->id, 'tag_id' => $tag->id], ['created_at' => date('Y-m-d H:i:s')])) {
+                            $tags[] = $tag;
+                        }
+                    }
                     return $this->response->withPayload([
                         'data' => [
-                            'id' => $id,
+                            'id' => $post->id,
                             'type' => 'post',
-                            'attributes' => $post,
+                            'attributes' => array_merge($post->toArray(), compact('tags')),
                         ],
                     ]);
                 } else {
