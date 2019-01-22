@@ -1,13 +1,13 @@
 {
-    "name": "zafex/viloveul-cms",
-    "description": "Viloveul CMS.",
+    "name": "zafex/viloveul-cms-api",
+    "description": "Viloveul CMS API.",
     "type": "project",
     "license": "MIT",
     "authors": [{
         "name": "Fajrul Akbar Zuhdi",
         "email": "fajrulaz@gmail.com"
     }],
-    "keywords": ["project", "api", "api", "zafex", "viloveul", "fajrulaz"],
+    "keywords": ["project", "cms", "api", "zafex", "viloveul", "fajrulaz"],
     "minimum-stability": "stable",
     "prefer-stable": true,
     "config": {
