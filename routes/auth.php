@@ -21,3 +21,12 @@ $router->add(
         App\Controller\AuthController::class, 'register',
     ])
 );
+
+$router->add(
+    'auth.validate',
+    new Route('GET /auth/validate', [
+        'handler' => function () {
+            // do nothing
+        },
+    ])
+);

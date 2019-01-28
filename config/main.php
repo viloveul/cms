@@ -43,7 +43,7 @@ return [
     ],
     'cache' => [
         /* ADAPTER (APCU|REDIS) */
-        'adapter' => env('CACHE_ADAPTER', 'apcu'),
+        'adapter' => env('CACHE_ADAPTER', 'redis'),
         /* LIFETIME CACHE BEFORE DELETE */
         'lifetime' => env('CACHE_LIFETIME', 3600),
         /* CACHE PREFIX */

@@ -49,6 +49,18 @@ class BlogController
             $model->where('type', 'post');
             $model->where('deleted', 0);
             $model->where('status', 1);
+
+            $model->withCount('comments');
+            $model->with([
+                'author' => function($query) {
+                    $query->select(['id', 'username', 'email']);
+                },
+                'tags' => function($query) {
+                    $query->select(['tag_id', 'post_id', 'title', 'type', 'slug']);
+                    $query->where('type', 'tag');
+                }
+            ]);
+
             $model->whereHas('tags', function ($query) use ($archive) {
                 $query->where('slug', $archive);
                 $query->where('status', 1);
@@ -83,6 +95,17 @@ class BlogController
             $model->where('type', 'post');
             $model->where('deleted', 0);
             $model->where('status', 1);
+
+            $model->withCount('comments');
+            $model->with([
+                'author' => function($query) {
+                    $query->select(['id', 'username', 'email']);
+                },
+                'tags' => function($query) {
+                    $query->select(['tag_id', 'post_id', 'title', 'type', 'slug']);
+                    $query->where('type', 'tag');
+                }
+            ]);
 
             $model->whereHas('author', function ($query) use ($author) {
                 $query->where('username', $author);
@@ -127,6 +150,8 @@ class BlogController
             $model->where('status', 1);
             $model->where('post_id', $post_id);
 
+            $model->with('author');
+
             $this->total = $model->count();
             $this->data = $model->orderBy($parameter->getOrderBy(), $parameter->getSortOrder())
                 ->skip(($parameter->getCurrentPage() * $parameter->getPageSize()) - $parameter->getPageSize())
@@ -145,7 +170,7 @@ class BlogController
      */
     public function detail(string $slug)
     {
-        if ($post = Post::where('slug', $slug)->where('deleted', 0)->where('status', 1)->with('author')->first()) {
+        if ($post = Post::where('slug', $slug)->where('deleted', 0)->where('status', 1)->with(['author', 'tags'])->first()) {
             return $this->response->withPayload([
                 'data' => [
                     'id' => $post->id,
@@ -159,7 +184,7 @@ class BlogController
 
     public function index()
     {
-        $model = Post::query();
+        $model = Post::query()->select(['id', 'author_id', 'created_at', 'title', 'description', 'slug', 'type']);
         $parameter = new Parameter('search', $_GET);
         $parameter->setBaseUrl('/api/v1/blog/index');
         $pagination = new Pagination($parameter);
@@ -171,6 +196,17 @@ class BlogController
             $model->where('type', 'post');
             $model->where('deleted', 0);
             $model->where('status', 1);
+
+            $model->withCount('comments');
+            $model->with([
+                'author' => function($query) {
+                    $query->select(['id', 'username', 'email']);
+                },
+                'tags' => function($query) {
+                    $query->select(['tag_id', 'post_id', 'title', 'type', 'slug']);
+                    $query->where('type', 'tag');
+                }
+            ]);
 
             $this->total = $model->count();
             $this->data = $model->orderBy($parameter->getOrderBy(), $parameter->getSortOrder())
