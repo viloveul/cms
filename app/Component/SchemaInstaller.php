@@ -34,9 +34,10 @@ class SchemaInstaller
         if ($name == 'user' && !$this->builder->hasTable('user')) {
             $this->builder->create('user', function (Blueprint $table) {
                 $table->bigIncrements('id');
-                $table->string('username')->unique();
+                $table->string('name')->index();
+                $table->string('nickname')->unique();
                 $table->string('email')->unique();
-                $table->string('password');
+                $table->string('password')->index();
                 $table->integer('status')->default(0)->index();
                 $table->integer('deleted')->default(0)->index();
                 $table->timestamp('created_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
@@ -139,7 +140,8 @@ class SchemaInstaller
                 $table->unsignedBigInteger('post_id')->index();
                 $table->unsignedBigInteger('parent_id')->default(0)->index();
                 $table->unsignedBigInteger('author_id')->default(0)->index();
-                $table->string('fullname')->index();
+                $table->string('name')->index();
+                $table->string('nickname')->index();
                 $table->string('email')->index();
                 $table->string('website')->nullable()->index();
                 $table->text('content')->nullable();

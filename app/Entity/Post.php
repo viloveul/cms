@@ -53,6 +53,6 @@ class Post extends Model
      */
     public function tags()
     {
-        return $this->belongsToMany(Tag::class, 'post_tag')->where('deleted', 0)->where('status', 1);
+        return $this->belongsToMany(Tag::class, 'post_tag')->where('deleted', 0)->where('status', 1)->where('type', 'tag');
     }
 }

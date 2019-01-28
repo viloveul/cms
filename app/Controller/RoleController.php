@@ -116,7 +116,6 @@ class RoleController
             foreach ($parameter->getConditions() as $key => $value) {
                 $model->where($key, 'like', "%{$value}%");
             }
-            $model->with('childs');
             $this->total = $model->count();
             $this->data = $model->orderBy($parameter->getOrderBy(), $parameter->getSortOrder())
                 ->skip(($parameter->getCurrentPage() * $parameter->getPageSize()) - $parameter->getPageSize())

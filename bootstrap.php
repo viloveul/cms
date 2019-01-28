@@ -6,6 +6,16 @@ ini_set('display_errors', 'On');
 
 defined('VILOVEUL_WORKDIR') or define('VILOVEUL_WORKDIR', __DIR__);
 
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS');
+header('Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept, Authorization');
+header('Access-Control-Request-Headers: Origin, X-Requested-With, Content-Type, Accept, Authorization');
+header('Access-Control-Request-Method: GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS');
+
+if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+    exit(1);
+}
+
 // require composer autoloader
 require_once __DIR__ . '/vendor/autoload.php';
 

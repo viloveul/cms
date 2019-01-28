@@ -117,7 +117,7 @@ class PostController
         $parameter->setBaseUrl('/api/v1/post/index');
         $pagination = new Pagination($parameter);
         $pagination->prepare(function () {
-            $model = Post::query();
+            $model = Post::query()->with('author');
             $parameter = $this->getParameter();
             foreach ($parameter->getConditions() as $key => $value) {
                 $model->where($key, 'like', "%{$value}%");

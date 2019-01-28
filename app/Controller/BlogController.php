@@ -53,7 +53,7 @@ class BlogController
             $model->withCount('comments');
             $model->with([
                 'author' => function($query) {
-                    $query->select(['id', 'username', 'email']);
+                    $query->select(['id', 'email', 'name', 'nickname']);
                 },
                 'tags' => function($query) {
                     $query->select(['tag_id', 'post_id', 'title', 'type', 'slug']);
@@ -99,7 +99,7 @@ class BlogController
             $model->withCount('comments');
             $model->with([
                 'author' => function($query) {
-                    $query->select(['id', 'username', 'email']);
+                    $query->select(['id', 'email', 'name', 'nickname']);
                 },
                 'tags' => function($query) {
                     $query->select(['tag_id', 'post_id', 'title', 'type', 'slug']);
@@ -108,7 +108,7 @@ class BlogController
             ]);
 
             $model->whereHas('author', function ($query) use ($author) {
-                $query->where('username', $author);
+                $query->where('nickname', $author);
                 $query->where('deleted', 0);
                 $query->where('status', 1);
             });
@@ -200,7 +200,7 @@ class BlogController
             $model->withCount('comments');
             $model->with([
                 'author' => function($query) {
-                    $query->select(['id', 'username', 'email']);
+                    $query->select(['id', 'email', 'name', 'nickname']);
                 },
                 'tags' => function($query) {
                     $query->select(['tag_id', 'post_id', 'title', 'type', 'slug']);
