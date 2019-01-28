@@ -41,7 +41,7 @@ class CommentController
         $validator = new CommentValidation($attr->getAttributes());
         if ($validator->validate('insert')) {
             $comment = new Comment();
-            $data = array_only($attr->getAttributes(), ['parent_id', 'post_id', 'author_id', 'fullname', 'email', 'website', 'content']);
+            $data = array_only($attr->getAttributes(), ['parent_id', 'post_id', 'author_id', 'name', 'nickname', 'email', 'website', 'content']);
             foreach ($data as $key => $value) {
                 $comment->{$key} = $value;
             }
@@ -106,7 +106,7 @@ class CommentController
         $parameter->setBaseUrl('/api/v1/comment/index');
         $pagination = new Pagination($parameter);
         $pagination->prepare(function () {
-            $model = Comment::query();
+            $model = Comment::query()->with('post');
             $parameter = $this->getParameter();
             foreach ($parameter->getConditions() as $key => $value) {
                 $model->where($key, 'like', "%{$value}%");
@@ -131,7 +131,7 @@ class CommentController
             $attr = $this->request->loadPostTo(new AttrAssignment);
             $validator = new CommentValidation($attr->getAttributes());
             if ($validator->validate('update')) {
-                $data = array_only($attr->getAttributes(), ['parent_id', 'post_id', 'author_id', 'fullname', 'email', 'website', 'content', 'status', 'deleted']);
+                $data = array_only($attr->getAttributes(), ['parent_id', 'post_id', 'author_id', 'name', 'nickname', 'email', 'website', 'content', 'status', 'deleted']);
                 foreach ($data as $key => $value) {
                     $comment->{$key} = $value;
                 }

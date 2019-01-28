@@ -16,7 +16,13 @@ class User extends Validator
     {
         return [
             'insert' => [
-                'username' => [
+                'name' => [
+                    'required',
+                    ['lengthMin', 5],
+                    ['lengthMax', 250],
+                    ['notIn', ['admin']],
+                ],
+                'nickname' => [
                     'required',
                     ['lengthMin', 5],
                     ['lengthMax', 250],
@@ -40,7 +46,13 @@ class User extends Validator
                 ],
             ],
             'update' => [
-                'username' => [
+                'name' => [
+                    ['optional'],
+                    ['lengthMin', 5],
+                    ['lengthMax', 250],
+                    ['notIn', ['admin']],
+                ],
+                'nickname' => [
                     ['optional'],
                     ['lengthMin', 5],
                     ['lengthMax', 250],
@@ -64,7 +76,7 @@ class User extends Validator
                 ],
             ],
             'login' => [
-                'username' => [
+                'email' => [
                     'required',
                 ],
                 'password' => [

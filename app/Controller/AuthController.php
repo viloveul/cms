@@ -43,15 +43,16 @@ class AuthController
         $attr = $this->request->loadPostTo(new AttrAssignment);
         $validator = new UserValidation($attr->getAttributes());
         if ($validator->validate('login')) {
-            $data = array_only($attr->getAttributes(), ['username', 'password']);
-            $user = User::where('username', $data['username'])->first();
+            $data = array_only($attr->getAttributes(), ['email', 'password']);
+            $user = User::where('email', $data['email'])->first();
             if ($user && $user->status == 1 && password_verify($data['password'], $user->password)) {
                 $privilege->clear();
                 $token = $auth->generate(
                     new UserData([
                         'sub' => $user->id,
-                        'name' => $user->username,
+                        'name' => $user->name,
                         'email' => $user->email,
+                        'nickname' => $user->nickname,
                     ])
                 );
                 return $this->response->withPayload([
@@ -74,7 +75,7 @@ class AuthController
         $validator = new UserValidation($attr->getAttributes());
         if ($validator->validate('store')) {
             $user = new User();
-            $data = array_only($attr->getAttributes(), ['username', 'email', 'password']);
+            $data = array_only($attr->getAttributes(), ['name', 'nickname', 'email', 'password']);
             foreach ($data as $key => $value) {
                 $user->{$key} = $value;
             }

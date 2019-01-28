@@ -20,9 +20,9 @@ $middleware->add(function (ServerRequest $request, $next) {
         $auth->setToken($token);
     }
 
-    // if (!in_array($route->getName(), ['auth.login', 'auth.register']) && 0 !== stripos($route->getName(), 'blog.')) {
-    //     $user = $auth->authenticate($user);
-    // }
+    if (!in_array($route->getName(), ['auth.login', 'auth.register', 'setting.get']) && 0 !== stripos($route->getName(), 'blog.')) {
+        $user = $auth->authenticate($user);
+    }
 
     $this->getContainer()->set(IUserData::class, function () use ($user) {
         return $user;

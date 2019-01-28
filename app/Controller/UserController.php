@@ -46,7 +46,7 @@ class UserController
      */
     public function assign($id)
     {
-        if ($user = User::where('id', $id)->where('deleted', 0)->where('status', 1)->first()) {
+        if ($user = User::where('id', $id)->where('deleted', 0)->first()) {
             $ids = (array) $this->request->getPost('role') ?: [];
             $roles = [];
             foreach ($ids as $role_id) {
@@ -72,7 +72,7 @@ class UserController
         $validator = new UserValidation($attr->getAttributes());
         if ($validator->validate('insert')) {
             $user = new User();
-            $data = array_only($attr->getAttributes(), ['username', 'email', 'password']);
+            $data = array_only($attr->getAttributes(), ['nickname', 'name', 'email', 'password']);
             foreach ($data as $key => $value) {
                 $user->{$key} = $value;
             }
@@ -161,7 +161,7 @@ class UserController
      */
     public function unassign($id)
     {
-        if ($user = User::where('id', $id)->where('deleted', 0)->where('status', 1)->first()) {
+        if ($user = User::where('id', $id)->where('deleted', 0)->first()) {
             $ids = (array) $this->request->getPost('role') ?: [];
             foreach ($ids as $role_id) {
                 UserRole::where('user_id', $id)->where('role_id', $role_id)->delete();
@@ -180,7 +180,7 @@ class UserController
             $attr = $this->request->loadPostTo(new AttrAssignment);
             $validator = new UserValidation($attr->getAttributes(), ['id' => $id]);
             if ($validator->validate('update')) {
-                $data = array_only($attr->getAttributes(), ['username', 'email', 'status', 'deleted']);
+                $data = array_only($attr->getAttributes(), ['nickname', 'name', 'email', 'status', 'deleted']);
                 foreach ($data as $key => $value) {
                     $user->{$key} = $value;
                 }

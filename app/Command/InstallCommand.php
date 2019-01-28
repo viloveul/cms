@@ -51,16 +51,16 @@ class InstallCommand extends Command implements ContainerAware
 
         $helper = $this->getHelper('question');
 
-        $questionName = new Question('Please enter the name for user admin : ', 'admin');
-        $questionName->setValidator(function ($answer) {
+        $questionEmail = new Question('Please enter the email for user admin : ', 'mail@admin.me');
+        $questionEmail->setValidator(function ($answer) {
             if (empty($answer)) {
-                throw new RuntimeException('The name of the user should be non-empty string');
+                throw new RuntimeException('The email of the user should be non-empty string');
             }
 
             return $answer;
         });
-        $questionName->setMaxAttempts(2);
-        $name = $helper->ask($this->getInput(), $this->getOutput(), $questionName);
+        $questionEmail->setMaxAttempts(2);
+        $email = $helper->ask($this->getInput(), $this->getOutput(), $questionEmail);
 
         $questionPassword = new Question('Please enter the password for user admin : ');
         $questionPassword->setValidator(function ($answer) {
@@ -127,8 +127,13 @@ class InstallCommand extends Command implements ContainerAware
 
         $this->writeInfo('Create user admin');
         $user = User::updateOrCreate(
-            ['username' => $name],
-            ['password' => password_hash($password, PASSWORD_DEFAULT), 'status' => 1, 'email' => 'me@admin.com']
+            ['email' => $email],
+            [
+                'password' => password_hash($password, PASSWORD_DEFAULT),
+                'status' => 1,
+                'name' => $email,
+                'nickname' => $email,
+            ]
         );
         $this->writeNormal('--------------------------------------------------------------');
         $this->writeInfo('Create role group admin');
