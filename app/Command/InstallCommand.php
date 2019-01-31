@@ -125,6 +125,10 @@ class InstallCommand extends Command implements ContainerAware
         $installer->install('comment');
         $this->writeNormal('--------------------------------------------------------------');
 
+        $this->writeInfo('check and create table media if not exists.');
+        $installer->install('media');
+        $this->writeNormal('--------------------------------------------------------------');
+
         $this->writeInfo('Create user admin');
         $user = User::updateOrCreate(
             ['email' => $email],

@@ -152,5 +152,24 @@ class SchemaInstaller
                 $table->timestamp('deleted_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
             });
         }
+
+        if ($name == 'media' && !$this->builder->hasTable('media')) {
+            $this->builder->create('media', function (Blueprint $table) {
+                $table->bigIncrements('id');
+                $table->unsignedBigInteger('author_id')->default(0)->index();
+                $table->string('name')->index();
+                $table->string('filename')->unique();
+                $table->string('type')->index();
+                $table->string('size')->index();
+                $table->string('year')->index();
+                $table->string('month')->index();
+                $table->string('day')->index();
+                $table->integer('status')->default(0)->index();
+                $table->integer('deleted')->default(0)->index();
+                $table->timestamp('created_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
+                $table->timestamp('updated_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
+                $table->timestamp('deleted_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
+            });
+        }
     }
 }
