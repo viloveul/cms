@@ -100,6 +100,7 @@ class UserController
     public function delete(int $id)
     {
         if ($user = User::where('id', $id)->first()) {
+            $user->status = 0;
             $user->deleted = 1;
             $user->deleted_at = date('Y-m-d H:i:s');
             if ($user->save()) {

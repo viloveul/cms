@@ -48,6 +48,6 @@ $router->add(
 $router->add(
     'post.delete',
     new Route('DELETE /post/delete/{:id}', [
-        App\Controller\PostController::class, 'update',
+        App\Controller\PostController::class, 'delete',
     ])
 );

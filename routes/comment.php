@@ -48,6 +48,6 @@ $router->add(
 $router->add(
     'comment.delete',
     new Route('DELETE /comment/delete/{:id}', [
-        App\Controller\CommentController::class, 'update',
+        App\Controller\CommentController::class, 'delete',
     ])
 );

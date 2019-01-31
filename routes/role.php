@@ -78,6 +78,6 @@ $router->add(
 $router->add(
     'role.delete',
     new Route('DELETE /role/delete/{:id}', [
-        App\Controller\RoleController::class, 'update',
+        App\Controller\RoleController::class, 'delete',
     ])
 );
