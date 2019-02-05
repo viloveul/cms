@@ -36,6 +36,22 @@ class TagController
     /**
      * @return mixed
      */
+    public function all()
+    {
+        $tag = Tag::select(['id', 'title', 'slug', 'type', 'parent_id']);
+        foreach ($_GET as $key => $value) {
+            $tag->where($key, $value);
+        }
+        $tag->where('status', 1);
+        $tag->where('deleted', 0);
+        return $this->response->withPayload([
+            'data' => $tag->get(),
+        ]);
+    }
+
+    /**
+     * @return mixed
+     */
     public function create()
     {
         $attr = $this->request->loadPostTo(new AttrAssignment);

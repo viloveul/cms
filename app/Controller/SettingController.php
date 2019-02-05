@@ -36,7 +36,7 @@ class SettingController
     public function get(string $name)
     {
         return $this->response->withPayload([
-            $name => $this->options->get($name),
+            'data' => $this->options->get($name),
         ]);
     }
 
@@ -47,12 +47,12 @@ class SettingController
      */
     public function set(ServerRequest $request, string $name)
     {
-        $value = $request->getPost($name);
+        $value = $request->getBody()->getContents();
         $option = is_scalar($value) ? $value : json_encode($value);
         Setting::updateOrCreate(compact('name'), compact('option'));
         $this->options->clear();
         return $this->response->withPayload([
-            $name => $value,
+            'data' => $value,
         ]);
     }
 }

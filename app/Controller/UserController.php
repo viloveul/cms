@@ -72,12 +72,12 @@ class UserController
         $validator = new UserValidation($attr->getAttributes());
         if ($validator->validate('insert')) {
             $user = new User();
-            $data = array_only($attr->getAttributes(), ['nickname', 'name', 'email', 'password']);
+            $data = array_only($attr->getAttributes(), ['nickname', 'photo', 'name', 'email', 'status', 'deleted']);
             foreach ($data as $key => $value) {
                 $user->{$key} = $value;
             }
             $user->created_at = date('Y-m-d H:i:s');
-            $user->password = password_hash(array_get($data, 'password'), PASSWORD_DEFAULT);
+            $user->password = password_hash($attr->get('password'), PASSWORD_DEFAULT);
             if ($user->save()) {
                 return $this->response->withPayload([
                     'data' => [
@@ -100,6 +100,7 @@ class UserController
     public function delete(int $id)
     {
         if ($user = User::where('id', $id)->first()) {
+            $user->status = 0;
             $user->deleted = 1;
             $user->deleted_at = date('Y-m-d H:i:s');
             if ($user->save()) {
@@ -180,12 +181,12 @@ class UserController
             $attr = $this->request->loadPostTo(new AttrAssignment);
             $validator = new UserValidation($attr->getAttributes(), ['id' => $id]);
             if ($validator->validate('update')) {
-                $data = array_only($attr->getAttributes(), ['nickname', 'name', 'email', 'status', 'deleted']);
+                $data = array_only($attr->getAttributes(), ['nickname', 'photo', 'name', 'email', 'status', 'deleted']);
                 foreach ($data as $key => $value) {
                     $user->{$key} = $value;
                 }
                 $user->updated_at = date('Y-m-d H:i:s');
-                if ($password = array_get($data, 'password')) {
+                if ($password = $attr->get('password')) {
                     $user->password = password_hash($password, PASSWORD_DEFAULT);
                 }
                 if ($user->save()) {

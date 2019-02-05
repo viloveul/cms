@@ -38,4 +38,20 @@ class Tag extends Model
     {
         return $this->belongsToMany(Post::class, 'post_tag')->where('deleted', 0)->where('status', 1);
     }
+
+    /**
+     * @param $value
+     */
+    public function setDeletedAttribute($value)
+    {
+        $this->attributes['deleted'] = abs($value);
+    }
+
+    /**
+     * @param $value
+     */
+    public function setStatusAttribute($value)
+    {
+        $this->attributes['status'] = abs($value);
+    }
 }

@@ -68,6 +68,6 @@ $router->add(
 $router->add(
     'user.delete',
     new Route('DELETE /user/delete/{:id}', [
-        App\Controller\UserController::class, 'update',
+        App\Controller\UserController::class, 'delete',
     ])
 );

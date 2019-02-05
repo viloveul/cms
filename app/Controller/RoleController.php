@@ -34,6 +34,22 @@ class RoleController
     }
 
     /**
+     * @return mixed
+     */
+    public function all()
+    {
+        $role = Role::select(['id', 'name', 'type']);
+        foreach ($_GET as $key => $value) {
+            $role->where($key, $value);
+        }
+        $role->where('status', 1);
+        $role->where('deleted', 0);
+        return $this->response->withPayload([
+            'data' => $role->get(),
+        ]);
+    }
+
+    /**
      * @param $id
      */
     public function assign($id)

@@ -18,14 +18,14 @@ $router->add(
 
 $router->add(
     'blog.author',
-    new Route('GET /blog/author/{:author}', [
+    new Route('GET /blog/author/{:name}', [
         App\Controller\BlogController::class, 'author',
     ])
 );
 
 $router->add(
     'blog.archive',
-    new Route('GET /blog/archive/{:archive}', [
+    new Route('GET /blog/archive/{:slug}', [
         App\Controller\BlogController::class, 'archive',
     ])
 );

@@ -13,12 +13,22 @@ $router->add(
 );
 
 /**
- * get user
+ * get users
  */
 $router->add(
     'tag.index',
     new Route('GET /tag/index', [
         App\Controller\TagController::class, 'index',
+    ])
+);
+
+/**
+ * get all tags
+ */
+$router->add(
+    'tag.all',
+    new Route('GET /tag/all', [
+        App\Controller\TagController::class, 'all',
     ])
 );
 
@@ -48,6 +58,6 @@ $router->add(
 $router->add(
     'tag.delete',
     new Route('DELETE /tag/delete/{:id}', [
-        App\Controller\TagController::class, 'update',
+        App\Controller\TagController::class, 'delete',
     ])
 );

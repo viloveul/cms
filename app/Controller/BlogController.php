@@ -2,13 +2,18 @@
 
 namespace App\Controller;
 
+use App\Component\AttrAssignment;
+use App\Component\Setting;
 use App\Entity\Comment;
 use App\Entity\Post;
+use App\Entity\Tag;
+use App\Entity\User;
+use App\Validation\Comment as CommentValidation;
+use Viloveul\Auth\Contracts\UserData;
 use Viloveul\Http\Contracts\Response;
 use Viloveul\Http\Contracts\ServerRequest;
 use Viloveul\Pagination\Builder as Pagination;
 use Viloveul\Pagination\Parameter;
-use App\Component\AttrAssignment;
 
 class BlogController
 {
@@ -23,113 +28,157 @@ class BlogController
     protected $response;
 
     /**
+     * @var mixed
+     */
+    protected $setting;
+
+    /**
      * @param ServerRequest $request
      * @param Response      $response
+     * @param Setting       $setting
      */
-    public function __construct(ServerRequest $request, Response $response)
+    public function __construct(ServerRequest $request, Response $response, Setting $setting)
     {
         $this->request = $request;
         $this->response = $response;
+        $this->setting = $setting;
     }
 
     /**
-     * @param string $archive
+     * @param string $slug
      */
-    public function archive(string $archive)
+    public function archive(string $slug)
     {
-        $model = Post::query();
-        $parameter = new Parameter('search', $_GET);
-        $parameter->setBaseUrl("/api/v1/blog/archive/{$archive}");
-        $pagination = new Pagination($parameter);
-        $pagination->prepare(function () use ($model, $archive) {
-            $parameter = $this->getParameter();
-            foreach ($parameter->getConditions() as $key => $value) {
-                $model->where($key, 'like', "%{$value}%");
-            }
-            $model->where('type', 'post');
-            $model->where('deleted', 0);
-            $model->where('status', 1);
-
-            $model->withCount('comments');
-            $model->with([
-                'author' => function($query) {
-                    $query->select(['id', 'email', 'name', 'nickname']);
-                },
-                'tags' => function($query) {
-                    $query->select(['tag_id', 'post_id', 'title', 'type', 'slug']);
-                    $query->where('type', 'tag');
+        if ($archive = Tag::where('slug', $name)->first()) {
+            $model = Post::query();
+            $parameter = new Parameter('search', $_GET);
+            $parameter->setBaseUrl("/api/v1/blog/archive/{$slug}");
+            $pagination = new Pagination($parameter);
+            $pagination->prepare(function () use ($model, $slug) {
+                $parameter = $this->getParameter();
+                foreach ($parameter->getConditions() as $key => $value) {
+                    $model->where($key, 'like', "%{$value}%");
                 }
-            ]);
+                $model->where('type', 'post');
+                $model->where('deleted', 0);
+                $model->where('status', 1);
 
-            $model->whereHas('tags', function ($query) use ($archive) {
-                $query->where('slug', $archive);
-                $query->where('status', 1);
-                $query->where('deleted', 0);
+                $model->withCount('comments');
+                $model->with([
+                    'author' => function ($query) {
+                        $query->select(['id', 'email', 'name', 'nickname']);
+                    },
+                    'tags' => function ($query) {
+                        $query->select(['tag_id', 'post_id', 'title', 'type', 'slug']);
+                        $query->where('type', 'tag');
+                    },
+                ]);
+
+                $model->whereHas('tags', function ($query) use ($slug) {
+                    $query->where('slug', $slug);
+                    $query->where('status', 1);
+                    $query->where('deleted', 0);
+                });
+
+                $this->total = $model->count();
+                $this->data = $model->orderBy($parameter->getOrderBy(), $parameter->getSortOrder())
+                    ->skip(($parameter->getCurrentPage() * $parameter->getPageSize()) - $parameter->getPageSize())
+                    ->take($parameter->getPageSize())
+                    ->get()
+                    ->toArray();
             });
-
-            $this->total = $model->count();
-            $this->data = $model->orderBy($parameter->getOrderBy(), $parameter->getSortOrder())
-                ->skip(($parameter->getCurrentPage() * $parameter->getPageSize()) - $parameter->getPageSize())
-                ->take($parameter->getPageSize())
-                ->get()
-                ->toArray();
-        });
-        $results = $pagination->getResults();
-        return $this->response->withPayload($results);
+            $results = $pagination->getResults();
+            $results['meta']['archive'] = $archive;
+            return $this->response->withPayload($results);
+        }
+        return $this->response->withErrors(404, ["Archive {$slug} not found."]);
     }
 
     /**
-     * @param string $author
+     * @param string $name
      */
-    public function author(string $author)
+    public function author(string $name)
     {
-        $model = Post::query();
-        $parameter = new Parameter('search', $_GET);
-        $parameter->setBaseUrl("/api/v1/blog/author/{$author}");
-        $pagination = new Pagination($parameter);
-        $pagination->prepare(function () use ($model, $author) {
-            $parameter = $this->getParameter();
-            foreach ($parameter->getConditions() as $key => $value) {
-                $model->where($key, 'like', "%{$value}%");
-            }
-            $model->where('type', 'post');
-            $model->where('deleted', 0);
-            $model->where('status', 1);
-
-            $model->withCount('comments');
-            $model->with([
-                'author' => function($query) {
-                    $query->select(['id', 'email', 'name', 'nickname']);
-                },
-                'tags' => function($query) {
-                    $query->select(['tag_id', 'post_id', 'title', 'type', 'slug']);
-                    $query->where('type', 'tag');
+        if ($author = User::where('nickname', $name)->first()) {
+            $model = Post::query();
+            $parameter = new Parameter('search', $_GET);
+            $parameter->setBaseUrl("/api/v1/blog/author/{$name}");
+            $pagination = new Pagination($parameter);
+            $pagination->prepare(function () use ($model, $author) {
+                $parameter = $this->getParameter();
+                foreach ($parameter->getConditions() as $key => $value) {
+                    $model->where($key, 'like', "%{$value}%");
                 }
-            ]);
+                $model->where('type', 'post');
+                $model->where('deleted', 0);
+                $model->where('status', 1);
+                $model->where('author_id', $author->id);
 
-            $model->whereHas('author', function ($query) use ($author) {
-                $query->where('nickname', $author);
-                $query->where('deleted', 0);
-                $query->where('status', 1);
+                $model->withCount('comments');
+                $model->with([
+                    'author' => function ($query) {
+                        $query->select(['id', 'email', 'name', 'nickname']);
+                    },
+                    'tags' => function ($query) {
+                        $query->select(['tag_id', 'post_id', 'title', 'type', 'slug']);
+                        $query->where('type', 'tag');
+                    },
+                ]);
+
+                $this->total = $model->count();
+                $this->data = $model->orderBy($parameter->getOrderBy(), $parameter->getSortOrder())
+                    ->skip(($parameter->getCurrentPage() * $parameter->getPageSize()) - $parameter->getPageSize())
+                    ->take($parameter->getPageSize())
+                    ->get()
+                    ->toArray();
             });
-
-            $this->total = $model->count();
-            $this->data = $model->orderBy($parameter->getOrderBy(), $parameter->getSortOrder())
-                ->skip(($parameter->getCurrentPage() * $parameter->getPageSize()) - $parameter->getPageSize())
-                ->take($parameter->getPageSize())
-                ->get()
-                ->toArray();
-        });
-        $results = $pagination->getResults();
-        return $this->response->withPayload($results);
+            $results = $pagination->getResults();
+            $results['meta']['author'] = $author;
+            return $this->response->withPayload($results);
+        }
+        return $this->response->withErrors(404, ["Author {$name} not found."]);
     }
 
     /**
      * @param int $post_id
      */
-    public function comment(int $post_id)
+    public function comment(int $post_id, UserData $user)
     {
-
+        if ($post = Post::where('status', 1)->where('deleted', 0)->where('id', $post_id)->where('comment_enabled', 1)->first()) {
+            $attributes = new AttrAssignment();
+            $this->request->loadPostTo($attributes);
+            if ($id = $user->get('sub')) {
+                $attributes['author_id'] = $id;
+                $attributes['name'] = $name;
+                $attributes['nickname'] = $nickname;
+                $attributes['email'] = $email;
+            }
+            $attributes['post_id'] = $post_id;
+            $validator = new CommentValidation($attributes->getAttributes());
+            if ($validator->validate('insert')) {
+                $comment = new Comment();
+                $data = array_only($attributes->getAttributes(), ['parent_id', 'post_id', 'author_id', 'name', 'nickname', 'email', 'website', 'content']);
+                foreach ($data as $key => $value) {
+                    $comment->{$key} = $value;
+                }
+                $comment->created_at = date('Y-m-d H:i:s');
+                if ($comment->save()) {
+                    return $this->response->withPayload([
+                        'data' => [
+                            'id' => $comment->id,
+                            'type' => 'comment',
+                            'attributes' => $comment,
+                        ],
+                    ]);
+                } else {
+                    return $this->response->withErrors(500, ['Something Wrong !!!']);
+                }
+            } else {
+                return $this->response->withErrors(400, $validator->errors());
+            }
+        } else {
+            return $this->response->withErrors(404, ['Page not found.']);
+        }
     }
 
     /**
@@ -199,13 +248,13 @@ class BlogController
 
             $model->withCount('comments');
             $model->with([
-                'author' => function($query) {
+                'author' => function ($query) {
                     $query->select(['id', 'email', 'name', 'nickname']);
                 },
-                'tags' => function($query) {
+                'tags' => function ($query) {
                     $query->select(['tag_id', 'post_id', 'title', 'type', 'slug']);
                     $query->where('type', 'tag');
-                }
+                },
             ]);
 
             $this->total = $model->count();

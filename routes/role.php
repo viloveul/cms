@@ -13,12 +13,22 @@ $router->add(
 );
 
 /**
- * get user
+ * get users
  */
 $router->add(
     'role.index',
     new Route('GET /role/index', [
         App\Controller\RoleController::class, 'index',
+    ])
+);
+
+/**
+ * all users
+ */
+$router->add(
+    'role.all',
+    new Route('GET /role/all', [
+        App\Controller\RoleController::class, 'all',
     ])
 );
 
@@ -68,6 +78,6 @@ $router->add(
 $router->add(
     'role.delete',
     new Route('DELETE /role/delete/{:id}', [
-        App\Controller\RoleController::class, 'update',
+        App\Controller\RoleController::class, 'delete',
     ])
 );

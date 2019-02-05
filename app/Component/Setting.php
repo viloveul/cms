@@ -4,6 +4,7 @@ namespace App\Component;
 
 use App\Entity\Setting as SettingModel;
 use Viloveul\Cache\Contracts\Cache;
+use Viloveul\Event\Contracts\Dispatcher as Event;
 
 class Setting
 {
@@ -13,6 +14,11 @@ class Setting
     protected $cache;
 
     /**
+     * @var mixed
+     */
+    protected $event;
+
+    /**
      * @var array
      */
     protected $options = [];
@@ -20,9 +26,10 @@ class Setting
     /**
      * @param Cache $cache
      */
-    public function __construct(Cache $cache)
+    public function __construct(Cache $cache, Event $event)
     {
         $this->cache = $cache;
+        $this->event = $event;
         if (!$this->cache->has('setting.options')) {
             $this->load();
         } else {
@@ -44,7 +51,8 @@ class Setting
      */
     public function get(string $name, $default = null)
     {
-        return array_key_exists($name, $this->options) ? $this->options[$name] : $default;
+        $value = array_key_exists($name, $this->options) ? $this->options[$name] : $default;
+        return $this->event->dispatch("setting.{$name}", $value);
     }
 
     public function load(): void
