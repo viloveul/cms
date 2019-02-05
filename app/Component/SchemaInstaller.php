@@ -35,6 +35,7 @@ class SchemaInstaller
             $this->builder->create('user', function (Blueprint $table) {
                 $table->bigIncrements('id');
                 $table->string('name')->index();
+                $table->string('photo')->index();
                 $table->string('nickname')->unique();
                 $table->string('email')->unique();
                 $table->string('password')->index();
@@ -113,6 +114,7 @@ class SchemaInstaller
                 $table->unsignedBigInteger('author_id')->default(0)->index();
                 $table->string('slug')->unique();
                 $table->string('title')->index();
+                $table->string('cover')->nullable();
                 $table->string('type')->index();
                 $table->text('description')->nullable();
                 $table->text('content')->nullable();

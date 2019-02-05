@@ -3,7 +3,7 @@
 use Viloveul\Router\Route;
 
 /**
- * Create new media
+ * Upload new file
  */
 $router->add(
     'media.upload',
@@ -13,7 +13,7 @@ $router->add(
 );
 
 /**
- * get media
+ * get files
  */
 $router->add(
     'media.index',
@@ -23,7 +23,17 @@ $router->add(
 );
 
 /**
- * Delete media
+ * get file
+ */
+$router->add(
+    'media.detail',
+    new Route('GET /media/detail', [
+        App\Controller\MediaController::class, 'detail',
+    ])
+);
+
+/**
+ * Delete file
  */
 $router->add(
     'media.delete',

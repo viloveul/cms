@@ -13,6 +13,8 @@ class Role extends Model
     protected $fillable = [
         'name',
         'type',
+        'status',
+        'deleted',
         'created_at',
     ];
 
@@ -27,6 +29,22 @@ class Role extends Model
     public function childs()
     {
         return $this->belongsToMany(__CLASS__, 'role_child', 'role_id', 'child_id')->where('deleted', 0)->where('status', 1);
+    }
+
+    /**
+     * @param $value
+     */
+    public function setDeletedAttribute($value)
+    {
+        $this->attributes['deleted'] = abs($value);
+    }
+
+    /**
+     * @param $value
+     */
+    public function setStatusAttribute($value)
+    {
+        $this->attributes['status'] = abs($value);
     }
 
     /**

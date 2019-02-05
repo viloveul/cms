@@ -14,13 +14,18 @@ class Comment extends Validator
                     'required',
                 ],
                 'parent_id' => [
-                    'required',
+                    ['optional'],
                 ],
                 'author_id' => [
-                    'required',
+                    ['optional'],
                 ],
-                'fullname' => [
+                'name' => [
                     'required',
+                    ['lengthMin', 5],
+                    ['lengthMax', 250],
+                ],
+                'nickname' => [
+                    ['optional'],
                     ['lengthMin', 5],
                     ['lengthMax', 250],
                 ],
@@ -43,7 +48,12 @@ class Comment extends Validator
                 'author_id' => [
                     ['optional'],
                 ],
-                'fullname' => [
+                'name' => [
+                    ['optional'],
+                    ['lengthMin', 5],
+                    ['lengthMax', 250],
+                ],
+                'nickname' => [
                     ['optional'],
                     ['lengthMin', 5],
                     ['lengthMax', 250],

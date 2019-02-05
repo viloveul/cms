@@ -135,8 +135,9 @@ class InstallCommand extends Command implements ContainerAware
             [
                 'password' => password_hash($password, PASSWORD_DEFAULT),
                 'status' => 1,
-                'name' => $email,
-                'nickname' => $email,
+                'deleted' => 0,
+                'name' => 'Administrator',
+                'nickname' => 'admin',
             ]
         );
         $this->writeNormal('--------------------------------------------------------------');

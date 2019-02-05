@@ -38,4 +38,20 @@ class Media extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    /**
+     * @param $value
+     */
+    public function setDeletedAttribute($value)
+    {
+        $this->attributes['deleted'] = abs($value);
+    }
+
+    /**
+     * @param $value
+     */
+    public function setStatusAttribute($value)
+    {
+        $this->attributes['status'] = abs($value);
+    }
 }

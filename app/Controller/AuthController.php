@@ -7,6 +7,7 @@ use App\Component\Privilege as PrivilegeComponent;
 use App\Entity\User;
 use App\Validation\User as UserValidation;
 use Viloveul\Auth\Contracts\Authentication;
+use Viloveul\Auth\Contracts\UserData as Data;
 use Viloveul\Auth\UserData;
 use Viloveul\Http\Contracts\Response;
 use Viloveul\Http\Contracts\ServerRequest;
@@ -44,19 +45,34 @@ class AuthController
         $validator = new UserValidation($attr->getAttributes());
         if ($validator->validate('login')) {
             $data = array_only($attr->getAttributes(), ['email', 'password']);
-            $user = User::where('email', $data['email'])->first();
+            $user = User::where('email', $data['email'])->where('deleted', 0)->first();
             if ($user && $user->status == 1 && password_verify($data['password'], $user->password)) {
+                if (!$user->photo) {
+                    $uri = $this->request->getUri();
+                    $user->photo = sprintf(
+                        '%s://%s:%s/images/no-image.jpg',
+                        $uri->getScheme(),
+                        $uri->getHost(),
+                        $uri->getPort()
+                    );
+                }
                 $privilege->clear();
-                $token = $auth->generate(
-                    new UserData([
-                        'sub' => $user->id,
-                        'name' => $user->name,
-                        'email' => $user->email,
-                        'nickname' => $user->nickname,
-                    ])
-                );
                 return $this->response->withPayload([
-                    'data' => $token,
+                    'data' => [
+                        'id' => $user->id,
+                        'type' => 'user',
+                        'attributes' => $user,
+                    ],
+                    'meta' => [
+                        'token' => $auth->generate(
+                            new UserData([
+                                'sub' => $user->id,
+                                'name' => $user->name,
+                                'email' => $user->email,
+                                'nickname' => $user->nickname,
+                            ])
+                        ),
+                    ],
                 ]);
             } else {
                 return $this->response->withErrors(400, ['Invalid Credentials']);
@@ -90,6 +106,42 @@ class AuthController
             }
         } else {
             return $this->response->withErrors(400, $validator->errors());
+        }
+    }
+
+    /**
+     * @param  Authentication $auth
+     * @param  UserData       $data
+     * @return mixed
+     */
+    public function validate(Authentication $auth, Data $data)
+    {
+        if ($id = $data->get('sub')) {
+            if ($user = User::where('id', $id)->where('status', 1)->where('deleted', 0)->first()) {
+                if (!$user->photo) {
+                    $uri = $this->request->getUri();
+                    $user->photo = sprintf(
+                        '%s://%s:%s/images/no-image.jpg',
+                        $uri->getScheme(),
+                        $uri->getHost(),
+                        $uri->getPort()
+                    );
+                }
+                return $this->response->withPayload([
+                    'data' => [
+                        'id' => $user->id,
+                        'type' => 'user',
+                        'attributes' => $user,
+                    ],
+                    'meta' => [
+                        'token' => $auth->getToken(),
+                    ],
+                ]);
+            } else {
+                return $this->response->withErrors(400, ['User not actived.']);
+            }
+        } else {
+            return $this->response->withErrors(400, ['Invalid Credentials']);
         }
     }
 }

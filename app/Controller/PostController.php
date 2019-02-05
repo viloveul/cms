@@ -47,7 +47,7 @@ class PostController
         $validator = new PostValidation($attr->getAttributes());
         if ($validator->validate('insert')) {
             $post = new Post();
-            $data = array_only($attr->getAttributes(), ['title', 'slug', 'type', 'content', 'description']);
+            $data = array_only($attr->getAttributes(), ['title', 'cover', 'slug', 'type', 'status', 'deleted', 'content', 'description', 'comment_enabled']);
             foreach ($data as $key => $value) {
                 $post->{$key} = $value;
             }
@@ -142,7 +142,7 @@ class PostController
             $attr = $this->request->loadPostTo(new AttrAssignment);
             $validator = new PostValidation($attr->getAttributes(), compact('id'));
             if ($validator->validate('update')) {
-                $data = array_only($attr->getAttributes(), ['title', 'slug', 'type', 'content', 'description']);
+                $data = array_only($attr->getAttributes(), ['title', 'cover', 'slug', 'type', 'status', 'deleted', 'content', 'description', 'comment_enabled']);
                 foreach ($data as $key => $value) {
                     $post->{$key} = $value;
                 }

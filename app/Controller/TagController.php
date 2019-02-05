@@ -38,7 +38,7 @@ class TagController
      */
     public function all()
     {
-        $tag = Tag::select(['id', 'title', 'slug', 'type']);
+        $tag = Tag::select(['id', 'title', 'slug', 'type', 'parent_id']);
         foreach ($_GET as $key => $value) {
             $tag->where($key, $value);
         }

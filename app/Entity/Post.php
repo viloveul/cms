@@ -20,6 +20,7 @@ class Post extends Model
         'type',
         'description',
         'content',
+        'comment_enabled',
         'status',
         'deleted',
         'created_at',
@@ -49,10 +50,34 @@ class Post extends Model
     }
 
     /**
+     * @param $value
+     */
+    public function setCommentEnabledAttribute($value)
+    {
+        $this->attributes['comment_enabled'] = abs($value);
+    }
+
+    /**
+     * @param $value
+     */
+    public function setDeletedAttribute($value)
+    {
+        $this->attributes['deleted'] = abs($value);
+    }
+
+    /**
+     * @param $value
+     */
+    public function setStatusAttribute($value)
+    {
+        $this->attributes['status'] = abs($value);
+    }
+
+    /**
      * @return mixed
      */
     public function tags()
     {
-        return $this->belongsToMany(Tag::class, 'post_tag')->where('deleted', 0)->where('status', 1)->where('type', 'tag');
+        return $this->belongsToMany(Tag::class, 'post_tag')->where('deleted', 0)->where('status', 1);
     }
 }
