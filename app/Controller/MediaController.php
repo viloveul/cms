@@ -3,7 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Media;
-use Viloveul\Auth\Contracts\UserData;
+use Viloveul\Auth\Contracts\Authentication;
 use Viloveul\Http\Contracts\Response;
 use Viloveul\Http\Contracts\ServerRequest;
 use Viloveul\Media\Contracts\Uploader;
@@ -33,7 +33,8 @@ class MediaController
     }
 
     /**
-     * @param $id
+     * @param  int     $id
+     * @return mixed
      */
     public function delete(int $id)
     {
@@ -51,7 +52,8 @@ class MediaController
     }
 
     /**
-     * @param $id
+     * @param  int     $id
+     * @return mixed
      */
     public function detail(int $id)
     {
@@ -66,6 +68,9 @@ class MediaController
         }
     }
 
+    /**
+     * @return mixed
+     */
     public function index()
     {
         $parameter = new Parameter('search', $_GET);
@@ -87,7 +92,7 @@ class MediaController
             $schema = $uri->getScheme();
             $host = $uri->getHost();
             $port = $uri->getPort();
-            $this->data = array_map(function($o) use ($schema, $host, $port) {
+            $this->data = array_map(function ($o) use ($schema, $host, $port) {
                 $media = array_merge($o, [
                     'url' => sprintf(
                         '%s://%s:%s/uploads/%s/%s/%s/%s',
@@ -98,7 +103,7 @@ class MediaController
                         $o['month'],
                         $o['day'],
                         $o['filename']
-                    )
+                    ),
                 ]);
                 return $media;
             }, $data);
@@ -108,15 +113,18 @@ class MediaController
     }
 
     /**
+     * @param  Uploader       $uploader
+     * @param  Response       $response
+     * @param  Authentication $auth
      * @return mixed
      */
-    public function upload(Uploader $uploader, Response $response, UserData $user)
+    public function upload(Uploader $uploader, Response $response, Authentication $auth)
     {
-        return $uploader->upload('*', function ($uploadedFiles, $errors, $files) use ($response, $user) {
+        return $uploader->upload('*', function ($uploadedFiles, $errors, $files) use ($response, $auth) {
             $results = [];
             foreach ($uploadedFiles as $uploadedFile) {
                 $results[] = Media::create([
-                    'author_id' => $user->get('sub') ?: 0,
+                    'author_id' => $auth->getUser()->get('sub') ?: 0,
                     'name' => $uploadedFile['name'],
                     'filename' => $uploadedFile['filename'],
                     'type' => $uploadedFile['type'],
