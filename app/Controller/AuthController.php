@@ -7,7 +7,6 @@ use App\Component\Privilege as PrivilegeComponent;
 use App\Entity\User;
 use App\Validation\User as UserValidation;
 use Viloveul\Auth\Contracts\Authentication;
-use Viloveul\Auth\Contracts\UserData as Data;
 use Viloveul\Auth\UserData;
 use Viloveul\Http\Contracts\Response;
 use Viloveul\Http\Contracts\ServerRequest;
@@ -111,12 +110,11 @@ class AuthController
 
     /**
      * @param  Authentication $auth
-     * @param  UserData       $data
      * @return mixed
      */
-    public function validate(Authentication $auth, Data $data)
+    public function validate(Authentication $auth)
     {
-        if ($id = $data->get('sub')) {
+        if ($id = $auth->getUser()->get('sub')) {
             if ($user = User::where('id', $id)->where('status', 1)->where('deleted', 0)->first()) {
                 if (!$user->photo) {
                     $uri = $this->request->getUri();

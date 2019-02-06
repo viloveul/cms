@@ -16,7 +16,7 @@ $event->listen('setting.posts', function ($payload) {
             'label' => 'Page',
         ],
     ];
-    foreach ($payload as $post) {
+    foreach ($payload ?: [] as $post) {
         if (isset($post->format, $post->name, $post->label)) {
             $posts[] = (array) $post;
         }
@@ -40,7 +40,7 @@ $event->listen('setting.tags', function ($payload) {
             'label' => 'Category',
         ],
     ];
-    foreach ($payload as $tag) {
+    foreach ($payload ?: [] as $tag) {
         if (isset($tag->format, $tag->name, $tag->label)) {
             $tags[] = (array) $tag;
         }

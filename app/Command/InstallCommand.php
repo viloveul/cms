@@ -89,44 +89,94 @@ class InstallCommand extends Command implements ContainerAware
         $container = $this->getContainer();
         $installer = $container->make(SchemaInstaller::class);
 
-        $this->writeInfo('check and create table user if not exists.');
-        $installer->install('user');
+        if (!$installer->check('user')) {
+            $this->writeInfo('check and create table user if not exists.');
+            $installer->install('user');
+        } else {
+            $this->writeInfo('Table exist. alter table user.');
+            $installer->alter('user');
+        }
         $this->writeNormal('--------------------------------------------------------------');
 
-        $this->writeInfo('check and create table user_role if not exists.');
-        $installer->install('user_role');
+        if (!$installer->check('user_role')) {
+            $this->writeInfo('check and create table user_role if not exists.');
+            $installer->install('user_role');
+        } else {
+            $this->writeInfo('Table exist. alter table user_role.');
+            $installer->alter('user_role');
+        }
         $this->writeNormal('--------------------------------------------------------------');
 
-        $this->writeInfo('check and create table role if not exists.');
-        $installer->install('role');
+        if (!$installer->check('role')) {
+            $this->writeInfo('check and create table role if not exists.');
+            $installer->install('role');
+        } else {
+            $this->writeInfo('Table exist. alter table role.');
+            $installer->alter('role');
+        }
         $this->writeNormal('--------------------------------------------------------------');
 
-        $this->writeInfo('check and create table role_child if not exists.');
-        $installer->install('role_child');
+        if (!$installer->check('role_child')) {
+            $this->writeInfo('check and create table role_child if not exists.');
+            $installer->install('role_child');
+        } else {
+            $this->writeInfo('Table exist. alter table role_child.');
+            $installer->alter('role_child');
+        }
         $this->writeNormal('--------------------------------------------------------------');
 
-        $this->writeInfo('check and create table setting if not exists.');
-        $installer->install('setting');
+        if (!$installer->check('setting')) {
+            $this->writeInfo('check and create table setting if not exists.');
+            $installer->install('setting');
+        } else {
+            $this->writeInfo('Table exist. alter table setting.');
+            $installer->alter('setting');
+        }
         $this->writeNormal('--------------------------------------------------------------');
 
-        $this->writeInfo('check and create table tag if not exists.');
-        $installer->install('tag');
+        if (!$installer->check('tag')) {
+            $this->writeInfo('check and create table tag if not exists.');
+            $installer->install('tag');
+        } else {
+            $this->writeInfo('Table exist. alter table tag.');
+            $installer->alter('tag');
+        }
         $this->writeNormal('--------------------------------------------------------------');
 
-        $this->writeInfo('check and create table post if not exists.');
-        $installer->install('post');
+        if (!$installer->check('post')) {
+            $this->writeInfo('check and create table post if not exists.');
+            $installer->install('post');
+        } else {
+            $this->writeInfo('Table exist. alter table post.');
+            $installer->alter('post');
+        }
         $this->writeNormal('--------------------------------------------------------------');
 
-        $this->writeInfo('check and create table post_tag if not exists.');
-        $installer->install('post_tag');
+        if (!$installer->check('post_tag')) {
+            $this->writeInfo('check and create table post_tag if not exists.');
+            $installer->install('post_tag');
+        } else {
+            $this->writeInfo('Table exist. alter table post_tag.');
+            $installer->alter('post_tag');
+        }
         $this->writeNormal('--------------------------------------------------------------');
 
-        $this->writeInfo('check and create table comment if not exists.');
-        $installer->install('comment');
+        if (!$installer->check('comment')) {
+            $this->writeInfo('check and create table comment if not exists.');
+            $installer->install('comment');
+        } else {
+            $this->writeInfo('Table exist. alter table comment.');
+            $installer->alter('comment');
+        }
         $this->writeNormal('--------------------------------------------------------------');
 
-        $this->writeInfo('check and create table media if not exists.');
-        $installer->install('media');
+        if (!$installer->check('media')) {
+            $this->writeInfo('check and create table media if not exists.');
+            $installer->install('media');
+        } else {
+            $this->writeInfo('Table exist. alter table media.');
+            $installer->alter('media');
+        }
         $this->writeNormal('--------------------------------------------------------------');
 
         $this->writeInfo('Create user admin');
