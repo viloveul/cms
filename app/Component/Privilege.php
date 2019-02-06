@@ -6,7 +6,7 @@ use App\Entity\Role;
 use App\Entity\RoleChild;
 use App\Entity\UserRole;
 use Exception;
-use Viloveul\Auth\Contracts\UserData;
+use Viloveul\Auth\Contracts\Authentication;
 use Viloveul\Cache\Contracts\Cache;
 
 class Privilege
@@ -32,13 +32,13 @@ class Privilege
     protected $users = [];
 
     /**
-     * @param Cache    $cache
-     * @param UserData $user
+     * @param Cache          $cache
+     * @param Authentication $auth
      */
-    public function __construct(Cache $cache, UserData $user)
+    public function __construct(Cache $cache, Authentication $auth)
     {
         $this->cache = $cache;
-        $this->user = $user;
+        $this->user = $auth->getUser();
         if (!$this->cache->has('privilege.roles') || !$this->cache->has('privilege.users')) {
             $this->load();
         } else {
@@ -49,18 +49,19 @@ class Privilege
     }
 
     /**
-     * @param $name
+     * @param string       $name
+     * @param $type
      * @param $object_id
      */
-    public function check(string $name, $object_id = 0): bool
+    public function check(string $name, $type = 'access', $object_id = 0): bool
     {
         try {
             if ($id = $this->user->get('sub')) {
                 if (array_key_exists($id, $this->users)) {
-                    if (in_array($name, $this->users[$id])) {
+                    if (in_array($name . '/' . $type, $this->users[$id])) {
                         return true;
                     } else {
-                        return in_array($name, $this->users[$id]);
+                        return in_array($name . '/' . $type, $this->users[$id]);
                     }
                 }
             }

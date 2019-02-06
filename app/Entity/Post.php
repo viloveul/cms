@@ -68,6 +68,14 @@ class Post extends Model
     /**
      * @param $value
      */
+    public function setDescriptionAttribute($value)
+    {
+        $this->attributes['description'] = substr(strip_tags($value), 0, 300);
+    }
+
+    /**
+     * @param $value
+     */
     public function setStatusAttribute($value)
     {
         $this->attributes['status'] = abs($value);

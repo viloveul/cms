@@ -2,17 +2,18 @@
 
 namespace App\Middleware;
 
+use Exception;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Viloveul\Auth\Contracts\Authentication;
-use Viloveul\Auth\Contracts\UserData as IUserData;
-use Viloveul\Auth\UserData;
+use Viloveul\Auth\InvalidTokenException;
 use Viloveul\Config\Contracts\Configuration;
 use Viloveul\Container\ContainerAwareTrait;
 use Viloveul\Container\Contracts\ContainerAware;
-use Viloveul\Router\Contracts\Route;
+use Viloveul\Http\Contracts\Response;
+use Viloveul\Router\Contracts\Dispatcher;
 
 class Auth implements MiddlewareInterface, ContainerAware
 {
@@ -26,9 +27,8 @@ class Auth implements MiddlewareInterface, ContainerAware
     {
         $container = $this->getContainer();
         $config = $container->get(Configuration::class);
-        $route = $container->get(Route::class);
+        $route = $container->get(Dispatcher::class)->routed();
         $auth = $container->get(Authentication::class);
-        $user = new UserData();
 
         [$name, $token] = sscanf($request->getServer('HTTP_AUTHORIZATION'), "%s %s");
 
@@ -38,13 +38,20 @@ class Auth implements MiddlewareInterface, ContainerAware
 
         $routeIgnores = ['auth.login', 'auth.register', 'setting.get'];
 
-        if (!in_array($route->getName(), $routeIgnores) && 0 !== stripos($route->getName(), 'blog.')) {
-            $user = $auth->authenticate($user);
+        if (!in_array($route->getName(), $routeIgnores)) {
+            try {
+                $auth->authenticate();
+            } catch (Exception $e) {
+                if (0 !== stripos($route->getName(), 'blog.')) {
+                    if ($e instanceof InvalidTokenException) {
+                        return $container->get(Response::class)->withErrors(403, [
+                            $e->getMessage(),
+                        ]);
+                    }
+                    throw $e;
+                }
+            }
         }
-
-        $this->getContainer()->set(IUserData::class, function () use ($user) {
-            return $user;
-        });
 
         return $next->handle($request);
 

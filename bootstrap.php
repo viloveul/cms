@@ -41,9 +41,8 @@ $app = new Viloveul\Kernel\Application(
 /**
  * Load all middlewares
  */
-$app->middleware(
-    $container->make(App\Middleware\Auth::class)
-);
+$app->middleware($container->make(App\Middleware\Auth::class));
+$app->middleware($container->make(App\Middleware\Access::class));
 
 /**
  * Load all routes

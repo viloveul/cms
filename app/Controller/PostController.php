@@ -52,6 +52,9 @@ class PostController
                 $post->{$key} = $value;
             }
             $post->created_at = date('Y-m-d H:i:s');
+            if (!$post->description) {
+                $post->description = $post->content;
+            }
             if ($post->save()) {
                 $tags = [];
                 $tagIds = $attr->get('tags');
@@ -147,6 +150,9 @@ class PostController
                     $post->{$key} = $value;
                 }
                 $post->updated_at = date('Y-m-d H:i:s');
+                if (!$post->description) {
+                    $post->description = $post->content;
+                }
                 if ($post->save()) {
                     $tags = [];
                     $tagIds = $attr->get('tags') ?: [];
