@@ -60,7 +60,6 @@ class BlogController
                     $model->where($key, 'like', "%{$value}%");
                 }
                 $model->where('type', 'post');
-                $model->where('deleted', 0);
                 $model->where('status', 1);
 
                 $model->withCount('comments');
@@ -77,7 +76,6 @@ class BlogController
                 $model->whereHas('tags', function ($query) use ($slug) {
                     $query->where('slug', $slug);
                     $query->where('status', 1);
-                    $query->where('deleted', 0);
                 });
 
                 $this->total = $model->count();
@@ -110,7 +108,6 @@ class BlogController
                     $model->where($key, 'like', "%{$value}%");
                 }
                 $model->where('type', 'post');
-                $model->where('deleted', 0);
                 $model->where('status', 1);
                 $model->where('author_id', $author->id);
 
@@ -146,7 +143,7 @@ class BlogController
      */
     public function comment(int $post_id, Authentication $auth)
     {
-        if ($post = Post::where('status', 1)->where('deleted', 0)->where('id', $post_id)->where('comment_enabled', 1)->first()) {
+        if ($post = Post::where('status', 1)->where('id', $post_id)->where('comment_enabled', 1)->first()) {
             $attributes = new AttrAssignment();
             $this->request->loadPostTo($attributes);
             $user = $auth->getUser();
@@ -164,6 +161,7 @@ class BlogController
                 foreach ($data as $key => $value) {
                     $comment->{$key} = $value;
                 }
+                $comment->status = !$this->setting->get('moderations.comment');
                 $comment->created_at = date('Y-m-d H:i:s');
                 if ($comment->save()) {
                     return $this->response->withPayload([
@@ -189,7 +187,7 @@ class BlogController
      */
     public function comments(int $post_id)
     {
-        if ($post = Post::where('id', $post_id)->where('deleted', 0)->where('status', 1)->where('comment_enabled', 1)->first()) {
+        if ($post = Post::where('id', $post_id)->where('status', 1)->where('comment_enabled', 1)->first()) {
             $model = Comment::query();
             $parameter = new Parameter('search', $_GET);
             $parameter->setBaseUrl("/api/v1/blog/comments/{$post_id}");
@@ -199,7 +197,6 @@ class BlogController
                 foreach ($parameter->getConditions() as $key => $value) {
                     $model->where($key, 'like', "%{$value}%");
                 }
-                $model->where('deleted', 0);
                 $model->where('status', 1);
                 $model->where('post_id', $post_id);
 
@@ -225,7 +222,7 @@ class BlogController
      */
     public function detail(string $slug)
     {
-        if ($post = Post::where('slug', $slug)->where('deleted', 0)->where('status', 1)->with(['author', 'tags'])->first()) {
+        if ($post = Post::where('slug', $slug)->where('status', 1)->with(['author', 'tags'])->first()) {
             return $this->response->withPayload([
                 'data' => [
                     'id' => $post->id,
@@ -249,7 +246,6 @@ class BlogController
                 $model->where($key, 'like', "%{$value}%");
             }
             $model->where('type', 'post');
-            $model->where('deleted', 0);
             $model->where('status', 1);
 
             $model->withCount('comments');

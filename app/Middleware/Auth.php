@@ -44,11 +44,13 @@ class Auth implements MiddlewareInterface, ContainerAware
             } catch (Exception $e) {
                 if (0 !== stripos($route->getName(), 'blog.')) {
                     if ($e instanceof InvalidTokenException) {
-                        return $container->get(Response::class)->withErrors(403, [
+                        return $container->get(Response::class)->withErrors(406, [
                             $e->getMessage(),
                         ]);
                     }
-                    throw $e;
+                    return $container->get(Response::class)->withErrors(401, [
+                        $e->getMessage(),
+                    ]);
                 }
             }
         }

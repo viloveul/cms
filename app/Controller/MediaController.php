@@ -39,7 +39,7 @@ class MediaController
     public function delete(int $id)
     {
         if ($media = Media::where('id', $id)->first()) {
-            $media->deleted = 1;
+            $media->status = 3;
             $media->deleted_at = date('Y-m-d H:i:s');
             if ($media->save()) {
                 return $this->response->withStatus(201);
@@ -133,7 +133,6 @@ class MediaController
                     'month' => $uploadedFile['month'],
                     'day' => $uploadedFile['day'],
                     'status' => 1,
-                    'deleted' => 0,
                     'created_at' => date('Y-m-d H:i:s'),
                 ]);
             }

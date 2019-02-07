@@ -51,7 +51,7 @@ class Setting
      */
     public function get(string $name, $default = null)
     {
-        $value = array_key_exists($name, $this->options) ? $this->options[$name] : $default;
+        $value = array_get($this->options, $name, $default);
         return $this->event->dispatch("setting.{$name}", $value);
     }
 
@@ -59,7 +59,7 @@ class Setting
     {
         $settings = SettingModel::all();
         foreach ($settings as $setting) {
-            $values = json_decode($setting->option);
+            $values = json_decode($setting->option, true);
             $this->options[$setting->name] = json_last_error() === JSON_ERROR_NONE ? $values : $setting->option;
         }
         $this->cache->set('setting.options', $this->options);

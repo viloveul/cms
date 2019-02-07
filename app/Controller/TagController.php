@@ -43,7 +43,6 @@ class TagController
             $tag->where($key, $value);
         }
         $tag->where('status', 1);
-        $tag->where('deleted', 0);
         return $this->response->withPayload([
             'data' => $tag->get(),
         ]);
@@ -89,10 +88,10 @@ class TagController
     public function delete(int $id)
     {
         if ($tag = Tag::where('id', $id)->first()) {
-            $tag->deleted = 1;
+            $tag->status = 3;
             $tag->deleted_at = date('Y-m-d H:i:s');
             if ($tag->save()) {
-                Tag::where('status', 1)->where('deleted', 0)->where('parent_id', $id)->update(['parent_id', 0]);
+                Tag::where('status', 1)->where('parent_id', $id)->update(['parent_id', 0]);
                 return $this->response->withStatus(201);
             } else {
                 return $this->response->withErrors(500, ['Something Wrong !!!']);

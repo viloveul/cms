@@ -47,7 +47,6 @@ class SchemaInstaller
                 $builder->hasColumn($name, 'email') or $table->string('email')->unique();
                 $builder->hasColumn($name, 'password') or $table->string('password')->index();
                 $builder->hasColumn($name, 'status') or $table->integer('status')->default(0)->index();
-                $builder->hasColumn($name, 'deleted') or $table->integer('deleted')->default(0)->index();
                 $builder->hasColumn($name, 'created_at') or $table->timestamp('created_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
                 $builder->hasColumn($name, 'updated_at') or $table->timestamp('updated_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
                 $builder->hasColumn($name, 'deleted_at') or $table->timestamp('deleted_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
@@ -68,7 +67,6 @@ class SchemaInstaller
                 $builder->hasColumn($name, 'type') or $table->string('type')->default('access')->index();
                 $builder->hasColumn($name, 'description') or $table->text('description')->nullable();
                 $builder->hasColumn($name, 'status') or $table->integer('status')->default(1)->index();
-                $builder->hasColumn($name, 'deleted') or $table->integer('deleted')->default(0)->index();
                 $builder->hasColumn($name, 'created_at') or $table->timestamp('created_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
                 $builder->hasColumn($name, 'updated_at') or $table->timestamp('updated_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
                 $builder->hasColumn($name, 'deleted_at') or $table->timestamp('deleted_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
@@ -100,7 +98,6 @@ class SchemaInstaller
                 $builder->hasColumn($name, 'slug') or $table->string('slug')->unique();
                 $builder->hasColumn($name, 'type') or $table->string('type')->default('tag')->index();
                 $builder->hasColumn($name, 'status') or $table->integer('status')->default(1)->index();
-                $builder->hasColumn($name, 'deleted') or $table->integer('deleted')->default(0)->index();
                 $builder->hasColumn($name, 'created_at') or $table->timestamp('created_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
                 $builder->hasColumn($name, 'updated_at') or $table->timestamp('updated_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
                 $builder->hasColumn($name, 'deleted_at') or $table->timestamp('deleted_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
@@ -119,7 +116,6 @@ class SchemaInstaller
                 $builder->hasColumn($name, 'content') or $table->text('content')->nullable();
                 $builder->hasColumn($name, 'comment_enabled') or $table->integer('comment_enabled')->default(0)->index();
                 $builder->hasColumn($name, 'status') or $table->integer('status')->default(0)->index();
-                $builder->hasColumn($name, 'deleted') or $table->integer('deleted')->default(0)->index();
                 $builder->hasColumn($name, 'created_at') or $table->timestamp('created_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
                 $builder->hasColumn($name, 'updated_at') or $table->timestamp('updated_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
                 $builder->hasColumn($name, 'deleted_at') or $table->timestamp('deleted_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
@@ -145,7 +141,6 @@ class SchemaInstaller
                 $builder->hasColumn($name, 'website') or $table->string('website')->nullable()->index();
                 $builder->hasColumn($name, 'content') or $table->text('content')->nullable();
                 $builder->hasColumn($name, 'status') or $table->integer('status')->default(0)->index();
-                $builder->hasColumn($name, 'deleted') or $table->integer('deleted')->default(0)->index();
                 $builder->hasColumn($name, 'created_at') or $table->timestamp('created_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
                 $builder->hasColumn($name, 'updated_at') or $table->timestamp('updated_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
                 $builder->hasColumn($name, 'deleted_at') or $table->timestamp('deleted_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
@@ -163,7 +158,6 @@ class SchemaInstaller
                 $builder->hasColumn($name, 'month') or $table->string('month')->index();
                 $builder->hasColumn($name, 'day') or $table->string('day')->index();
                 $builder->hasColumn($name, 'status') or $table->integer('status')->default(0)->index();
-                $builder->hasColumn($name, 'deleted') or $table->integer('deleted')->default(0)->index();
                 $builder->hasColumn($name, 'created_at') or $table->timestamp('created_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
                 $builder->hasColumn($name, 'updated_at') or $table->timestamp('updated_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
                 $builder->hasColumn($name, 'deleted_at') or $table->timestamp('deleted_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
@@ -196,7 +190,6 @@ class SchemaInstaller
                 $table->string('email')->unique();
                 $table->string('password')->index();
                 $table->integer('status')->default(0)->index();
-                $table->integer('deleted')->default(0)->index();
                 $table->timestamp('created_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
                 $table->timestamp('updated_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
                 $table->timestamp('deleted_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
@@ -220,7 +213,6 @@ class SchemaInstaller
                 $table->string('type')->default('access')->index();
                 $table->text('description')->nullable();
                 $table->integer('status')->default(1)->index();
-                $table->integer('deleted')->default(0)->index();
                 $table->timestamp('created_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
                 $table->timestamp('updated_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
                 $table->timestamp('deleted_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
@@ -256,7 +248,6 @@ class SchemaInstaller
                 $table->string('slug')->unique();
                 $table->string('type')->default('tag')->index();
                 $table->integer('status')->default(1)->index();
-                $table->integer('deleted')->default(0)->index();
                 $table->timestamp('created_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
                 $table->timestamp('updated_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
                 $table->timestamp('deleted_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
@@ -276,7 +267,6 @@ class SchemaInstaller
                 $table->text('content')->nullable();
                 $table->integer('comment_enabled')->default(1)->index();
                 $table->integer('status')->default(0)->index();
-                $table->integer('deleted')->default(0)->index();
                 $table->timestamp('created_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
                 $table->timestamp('updated_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
                 $table->timestamp('deleted_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
@@ -305,7 +295,6 @@ class SchemaInstaller
                 $table->string('website')->nullable()->index();
                 $table->text('content')->nullable();
                 $table->integer('status')->default(0)->index();
-                $table->integer('deleted')->default(0)->index();
                 $table->timestamp('created_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
                 $table->timestamp('updated_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
                 $table->timestamp('deleted_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
@@ -324,7 +313,6 @@ class SchemaInstaller
                 $table->string('month')->index();
                 $table->string('day')->index();
                 $table->integer('status')->default(0)->index();
-                $table->integer('deleted')->default(0)->index();
                 $table->timestamp('created_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
                 $table->timestamp('updated_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
                 $table->timestamp('deleted_at')->default(date('Y-m-d H:i:s'))->nullable()->index();

@@ -22,7 +22,6 @@ class Post extends Model
         'content',
         'comment_enabled',
         'status',
-        'deleted',
         'created_at',
         'updated_at',
         'deleted_at',
@@ -46,7 +45,7 @@ class Post extends Model
      */
     public function comments()
     {
-        return $this->hasMany(Comment::class)->where('deleted', 0)->where('status', 1);
+        return $this->hasMany(Comment::class);
     }
 
     /**
@@ -55,14 +54,6 @@ class Post extends Model
     public function setCommentEnabledAttribute($value)
     {
         $this->attributes['comment_enabled'] = abs($value);
-    }
-
-    /**
-     * @param $value
-     */
-    public function setDeletedAttribute($value)
-    {
-        $this->attributes['deleted'] = abs($value);
     }
 
     /**
@@ -86,6 +77,6 @@ class Post extends Model
      */
     public function tags()
     {
-        return $this->belongsToMany(Tag::class, 'post_tag')->where('deleted', 0)->where('status', 1);
+        return $this->belongsToMany(Tag::class, 'post_tag')->where('status', 1);
     }
 }

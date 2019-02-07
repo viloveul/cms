@@ -43,7 +43,6 @@ class RoleController
             $role->where($key, $value);
         }
         $role->where('status', 1);
-        $role->where('deleted', 0);
         return $this->response->withPayload([
             'data' => $role->get(),
         ]);
@@ -54,7 +53,7 @@ class RoleController
      */
     public function assign($id)
     {
-        if ($role = Role::where('id', $id)->where('deleted', 0)->where('status', 1)->first()) {
+        if ($role = Role::where('id', $id)->where('status', 1)->first()) {
             $ids = (array) $this->request->getPost('child') ?: [];
             $childs = [];
             foreach ($ids as $child_id) {
@@ -147,7 +146,7 @@ class RoleController
      */
     public function unassign($id)
     {
-        if ($role = Role::where('id', $id)->where('deleted', 0)->where('status', 1)->first()) {
+        if ($role = Role::where('id', $id)->where('status', 1)->first()) {
             $ids = (array) $this->request->getPost('child') ?: [];
             $childs = [];
             foreach ($ids as $child_id) {
