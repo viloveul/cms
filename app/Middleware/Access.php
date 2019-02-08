@@ -28,7 +28,7 @@ class Access implements MiddlewareInterface, ContainerAware
         $routeIgnores = ['auth.login', 'auth.register', 'auth.validate', 'setting.get'];
         if (!in_array($route->getName(), $routeIgnores) && 0 !== stripos($route->getName(), 'blog.')) {
             if (!$privilege->check($route->getName())) {
-                return $container->get(Response::class)->withErrors(401, [
+                return $container->get(Response::class)->withErrors(403, [
                     "No direct access for route: {$route->getName()}",
                 ]);
             }
