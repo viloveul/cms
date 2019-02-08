@@ -69,7 +69,7 @@ class CommentController
     public function delete(int $id)
     {
         if ($comment = Comment::where('id', $id)->first()) {
-            $comment->deleted = 1;
+            $comment->status = 3;
             $comment->deleted_at = date('Y-m-d H:i:s');
             if ($comment->save()) {
                 return $this->response->withStatus(201);
@@ -131,7 +131,7 @@ class CommentController
             $attr = $this->request->loadPostTo(new AttrAssignment);
             $validator = new CommentValidation($attr->getAttributes());
             if ($validator->validate('update')) {
-                $data = array_only($attr->getAttributes(), ['parent_id', 'post_id', 'author_id', 'name', 'nickname', 'email', 'website', 'content', 'status', 'deleted']);
+                $data = array_only($attr->getAttributes(), ['parent_id', 'post_id', 'author_id', 'name', 'nickname', 'email', 'website', 'content', 'status']);
                 foreach ($data as $key => $value) {
                     $comment->{$key} = $value;
                 }

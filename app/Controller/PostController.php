@@ -47,7 +47,7 @@ class PostController
         $validator = new PostValidation($attr->getAttributes());
         if ($validator->validate('insert')) {
             $post = new Post();
-            $data = array_only($attr->getAttributes(), ['title', 'cover', 'slug', 'type', 'status', 'deleted', 'content', 'description', 'comment_enabled']);
+            $data = array_only($attr->getAttributes(), ['title', 'cover', 'slug', 'type', 'status', 'content', 'description', 'comment_enabled']);
             foreach ($data as $key => $value) {
                 $post->{$key} = $value;
             }
@@ -84,7 +84,7 @@ class PostController
     public function delete(int $id)
     {
         if ($post = Post::where('id', $id)->first()) {
-            $post->deleted = 1;
+            $post->status = 3;
             $post->deleted_at = date('Y-m-d H:i:s');
             if ($post->save()) {
                 return $this->response->withStatus(201);
@@ -145,7 +145,7 @@ class PostController
             $attr = $this->request->loadPostTo(new AttrAssignment);
             $validator = new PostValidation($attr->getAttributes(), compact('id'));
             if ($validator->validate('update')) {
-                $data = array_only($attr->getAttributes(), ['title', 'cover', 'slug', 'type', 'status', 'deleted', 'content', 'description', 'comment_enabled']);
+                $data = array_only($attr->getAttributes(), ['title', 'cover', 'slug', 'type', 'status', 'content', 'description', 'comment_enabled']);
                 foreach ($data as $key => $value) {
                     $post->{$key} = $value;
                 }

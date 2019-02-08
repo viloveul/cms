@@ -44,8 +44,8 @@ class AuthController
         $validator = new UserValidation($attr->getAttributes());
         if ($validator->validate('login')) {
             $data = array_only($attr->getAttributes(), ['email', 'password']);
-            $user = User::where('email', $data['email'])->where('deleted', 0)->first();
-            if ($user && $user->status == 1 && password_verify($data['password'], $user->password)) {
+            $user = User::where('email', $data['email'])->where('status', 1)->with('roles')->first();
+            if ($user && password_verify($data['password'], $user->password)) {
                 if (!$user->photo) {
                     $uri = $this->request->getUri();
                     $user->photo = sprintf(
@@ -115,7 +115,7 @@ class AuthController
     public function validate(Authentication $auth)
     {
         if ($id = $auth->getUser()->get('sub')) {
-            if ($user = User::where('id', $id)->where('status', 1)->where('deleted', 0)->first()) {
+            if ($user = User::where('id', $id)->where('status', 1)->with('roles')->first()) {
                 if (!$user->photo) {
                     $uri = $this->request->getUri();
                     $user->photo = sprintf(

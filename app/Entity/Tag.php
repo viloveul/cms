@@ -14,7 +14,6 @@ class Tag extends Model
         'title',
         'type',
         'slug',
-        'deleted',
         'status',
     ];
 
@@ -28,7 +27,7 @@ class Tag extends Model
      */
     public function childs()
     {
-        return $this->hasMany(Tag::class, 'parent_id', 'id')->where('deleted', 0)->where('status', 1);
+        return $this->hasMany(Tag::class, 'parent_id', 'id')->where('status', 1);
     }
 
     /**
@@ -36,15 +35,7 @@ class Tag extends Model
      */
     public function posts()
     {
-        return $this->belongsToMany(Post::class, 'post_tag')->where('deleted', 0)->where('status', 1);
-    }
-
-    /**
-     * @param $value
-     */
-    public function setDeletedAttribute($value)
-    {
-        $this->attributes['deleted'] = abs($value);
+        return $this->belongsToMany(Post::class, 'post_tag')->where('status', 1);
     }
 
     /**

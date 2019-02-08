@@ -20,7 +20,6 @@ class Comment extends Model
         'website',
         'content',
         'status',
-        'deleted',
         'created_at',
         'updated_at',
         'deleted_at',
@@ -45,14 +44,6 @@ class Comment extends Model
     public function post()
     {
         return $this->belongsTo(Post::class);
-    }
-
-    /**
-     * @param $value
-     */
-    public function setDeletedAttribute($value)
-    {
-        $this->attributes['deleted'] = abs($value);
     }
 
     /**

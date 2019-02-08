@@ -7,7 +7,6 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use RuntimeException;
 use Viloveul\Container\ContainerAwareTrait;
 use Viloveul\Container\Contracts\ContainerAware;
 use Viloveul\Router\Contracts\Dispatcher;
@@ -29,7 +28,9 @@ class Access implements MiddlewareInterface, ContainerAware
         $routeIgnores = ['auth.login', 'auth.register', 'auth.validate', 'setting.get'];
         if (!in_array($route->getName(), $routeIgnores) && 0 !== stripos($route->getName(), 'blog.')) {
             if (!$privilege->check($route->getName())) {
-                throw new RuntimeException("No direct access for route: {$route->getName()}");
+                return $container->get(Response::class)->withErrors(401, [
+                    "No direct access for route: {$route->getName()}",
+                ]);
             }
         }
 

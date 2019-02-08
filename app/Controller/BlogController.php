@@ -9,7 +9,7 @@ use App\Entity\Post;
 use App\Entity\Tag;
 use App\Entity\User;
 use App\Validation\Comment as CommentValidation;
-use Viloveul\Auth\Contracts\UserData;
+use Viloveul\Auth\Contracts\Authentication;
 use Viloveul\Http\Contracts\Response;
 use Viloveul\Http\Contracts\ServerRequest;
 use Viloveul\Pagination\Builder as Pagination;
@@ -60,7 +60,6 @@ class BlogController
                     $model->where($key, 'like', "%{$value}%");
                 }
                 $model->where('type', 'post');
-                $model->where('deleted', 0);
                 $model->where('status', 1);
 
                 $model->withCount('comments');
@@ -77,7 +76,6 @@ class BlogController
                 $model->whereHas('tags', function ($query) use ($slug) {
                     $query->where('slug', $slug);
                     $query->where('status', 1);
-                    $query->where('deleted', 0);
                 });
 
                 $this->total = $model->count();
@@ -110,7 +108,6 @@ class BlogController
                     $model->where($key, 'like', "%{$value}%");
                 }
                 $model->where('type', 'post');
-                $model->where('deleted', 0);
                 $model->where('status', 1);
                 $model->where('author_id', $author->id);
 
@@ -140,18 +137,21 @@ class BlogController
     }
 
     /**
-     * @param int $post_id
+     * @param  int            $post_id
+     * @param  Authentication $auth
+     * @return mixed
      */
-    public function comment(int $post_id, UserData $user)
+    public function comment(int $post_id, Authentication $auth)
     {
-        if ($post = Post::where('status', 1)->where('deleted', 0)->where('id', $post_id)->where('comment_enabled', 1)->first()) {
+        if ($post = Post::where('status', 1)->where('id', $post_id)->where('comment_enabled', 1)->first()) {
             $attributes = new AttrAssignment();
             $this->request->loadPostTo($attributes);
+            $user = $auth->getUser();
             if ($id = $user->get('sub')) {
                 $attributes['author_id'] = $id;
-                $attributes['name'] = $name;
-                $attributes['nickname'] = $nickname;
-                $attributes['email'] = $email;
+                $attributes['name'] = $user->get('name');
+                $attributes['nickname'] = $user->get('nickname');
+                $attributes['email'] = $user->get('email');
             }
             $attributes['post_id'] = $post_id;
             $validator = new CommentValidation($attributes->getAttributes());
@@ -161,6 +161,7 @@ class BlogController
                 foreach ($data as $key => $value) {
                     $comment->{$key} = $value;
                 }
+                $comment->status = !$this->setting->get('moderations.comment');
                 $comment->created_at = date('Y-m-d H:i:s');
                 if ($comment->save()) {
                     return $this->response->withPayload([
@@ -186,31 +187,33 @@ class BlogController
      */
     public function comments(int $post_id)
     {
-        $model = Comment::query();
-        $parameter = new Parameter('search', $_GET);
-        $parameter->setBaseUrl("/api/v1/blog/comments/{$post_id}");
-        $pagination = new Pagination($parameter);
-        $pagination->prepare(function () use ($model, $post_id) {
-            $parameter = $this->getParameter();
-            foreach ($parameter->getConditions() as $key => $value) {
-                $model->where($key, 'like', "%{$value}%");
-            }
-            $model->where('deleted', 0);
-            $model->where('status', 1);
-            $model->where('post_id', $post_id);
+        if ($post = Post::where('id', $post_id)->where('status', 1)->where('comment_enabled', 1)->first()) {
+            $model = Comment::query();
+            $parameter = new Parameter('search', $_GET);
+            $parameter->setBaseUrl("/api/v1/blog/comments/{$post_id}");
+            $pagination = new Pagination($parameter);
+            $pagination->prepare(function () use ($model, $post_id) {
+                $parameter = $this->getParameter();
+                foreach ($parameter->getConditions() as $key => $value) {
+                    $model->where($key, 'like', "%{$value}%");
+                }
+                $model->where('status', 1);
+                $model->where('post_id', $post_id);
 
-            $model->with('author');
+                $model->with('author');
 
-            $this->total = $model->count();
-            $this->data = $model->orderBy($parameter->getOrderBy(), $parameter->getSortOrder())
-                ->skip(($parameter->getCurrentPage() * $parameter->getPageSize()) - $parameter->getPageSize())
-                ->take($parameter->getPageSize())
-                ->get()
-                ->toArray();
-        });
-        $results = $pagination->getResults();
-
-        return $this->response->withPayload($results);
+                $this->total = $model->count();
+                $this->data = $model->orderBy($parameter->getOrderBy(), $parameter->getSortOrder())
+                    ->skip(($parameter->getCurrentPage() * $parameter->getPageSize()) - $parameter->getPageSize())
+                    ->take($parameter->getPageSize())
+                    ->get()
+                    ->toArray();
+            });
+            $results = $pagination->getResults();
+            return $this->response->withPayload($results);
+        } else {
+            return $this->response->withErrors(404, ['Comments not found or not enabled.']);
+        }
     }
 
     /**
@@ -219,7 +222,7 @@ class BlogController
      */
     public function detail(string $slug)
     {
-        if ($post = Post::where('slug', $slug)->where('deleted', 0)->where('status', 1)->with(['author', 'tags'])->first()) {
+        if ($post = Post::where('slug', $slug)->where('status', 1)->with(['author', 'tags'])->first()) {
             return $this->response->withPayload([
                 'data' => [
                     'id' => $post->id,
@@ -243,7 +246,6 @@ class BlogController
                 $model->where($key, 'like', "%{$value}%");
             }
             $model->where('type', 'post');
-            $model->where('deleted', 0);
             $model->where('status', 1);
 
             $model->withCount('comments');

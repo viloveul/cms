@@ -20,7 +20,6 @@ class Media extends Model
         'month',
         'day',
         'status',
-        'deleted',
         'created_at',
         'updated_at',
         'deleted_at',
@@ -37,14 +36,6 @@ class Media extends Model
     public function author()
     {
         return $this->belongsTo(User::class);
-    }
-
-    /**
-     * @param $value
-     */
-    public function setDeletedAttribute($value)
-    {
-        $this->attributes['deleted'] = abs($value);
     }
 
     /**

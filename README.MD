@@ -4,7 +4,7 @@
 need php 7
 
 ```bash
-$ composer create-project zafex/viloveul-cms your-project-name
+$ composer create-project zafex/viloveul-cms-api your-project-name
 $ cd your-project-name
 ```
 
