@@ -24,11 +24,6 @@ class Comment extends Validator
                     ['lengthMin', 5],
                     ['lengthMax', 250],
                 ],
-                'nickname' => [
-                    ['optional'],
-                    ['lengthMin', 5],
-                    ['lengthMax', 250],
-                ],
                 'email' => [
                     'required',
                     'email',
@@ -49,11 +44,6 @@ class Comment extends Validator
                     ['optional'],
                 ],
                 'name' => [
-                    ['optional'],
-                    ['lengthMin', 5],
-                    ['lengthMax', 250],
-                ],
-                'nickname' => [
                     ['optional'],
                     ['lengthMin', 5],
                     ['lengthMax', 250],

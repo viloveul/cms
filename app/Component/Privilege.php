@@ -56,14 +56,11 @@ class Privilege
     public function check(string $name, $type = 'access', $object_id = 0): bool
     {
         try {
-            if ($id = $this->user->get('sub')) {
-                if (array_key_exists($id, $this->users)) {
-                    if (in_array($name . '/' . $type, $this->users[$id])) {
-                        return true;
-                    } else {
-                        return in_array($name . '/' . $type, $this->users[$id]);
-                    }
-                }
+            $me = $this->mine();
+            if (in_array($name . '#' . $type, $me)) {
+                return true;
+            } else {
+                return in_array($name . '#' . $type, $me);
             }
         } catch (Exception $e) {
 
@@ -86,7 +83,7 @@ class Privilege
     public function load(): void
     {
         foreach (Role::all() ?: [] as $role) {
-            $this->roles[$role->id][] = $role->name . '/' . $role->type;
+            $this->roles[$role->id][] = $role->name . '#' . $role->type;
         }
         $relations = [];
         foreach (RoleChild::all() ?: [] as $child) {
@@ -106,6 +103,19 @@ class Privilege
         }
         $this->cache->set('privilege.roles', $this->roles);
         $this->cache->set('privilege.users', $this->users);
+    }
+
+    /**
+     * @return mixed
+     */
+    public function mine()
+    {
+        if ($id = $this->user->get('sub')) {
+            if (array_key_exists($id, $this->users)) {
+                return $this->users[$id];
+            }
+        }
+        return [];
     }
 
     /**

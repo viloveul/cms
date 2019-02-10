@@ -98,6 +98,15 @@ class InstallCommand extends Command implements ContainerAware
         }
         $this->writeNormal('--------------------------------------------------------------');
 
+        if (!$installer->check('user_profile')) {
+            $this->writeInfo('check and create table user_profile if not exists.');
+            $installer->install('user_profile');
+        } else {
+            $this->writeInfo('Table exist. alter table user_profile.');
+            $installer->alter('user_profile');
+        }
+        $this->writeNormal('--------------------------------------------------------------');
+
         if (!$installer->check('user_role')) {
             $this->writeInfo('check and create table user_role if not exists.');
             $installer->install('user_role');
@@ -181,12 +190,12 @@ class InstallCommand extends Command implements ContainerAware
 
         $this->writeInfo('Create user admin');
         $user = User::updateOrCreate(
-            ['email' => $email],
+            ['username' => 'admin'],
             [
+                'name' => 'Administrator',
+                'email' => $email,
                 'password' => password_hash($password, PASSWORD_DEFAULT),
                 'status' => 1,
-                'name' => 'Administrator',
-                'nickname' => 'admin',
             ]
         );
         $this->writeNormal('--------------------------------------------------------------');

@@ -4,10 +4,11 @@ namespace App\Controller;
 
 use App\Component\AttrAssignment;
 use App\Component\SlugCreation;
+use App\Component\Setting;
+use App\Component\Privilege;
 use App\Entity\Post;
-use App\Entity\PostTag;
-use App\Entity\Tag;
 use App\Validation\Post as PostValidation;
+use Viloveul\Auth\Contracts\Authentication;
 use Viloveul\Http\Contracts\Response;
 use Viloveul\Http\Contracts\ServerRequest;
 use Viloveul\Pagination\Builder as Pagination;
@@ -26,19 +27,26 @@ class PostController
     protected $response;
 
     /**
-     * @param ServerRequest $request
-     * @param Response      $response
+     * @var mixed
      */
-    public function __construct(ServerRequest $request, Response $response)
+    protected $user;
+
+    /**
+     * @param ServerRequest  $request
+     * @param Response       $response
+     * @param Authentication $auth
+     */
+    public function __construct(ServerRequest $request, Response $response, Authentication $auth)
     {
         $this->request = $request;
         $this->response = $response;
+        $this->user = $auth->getUser();
     }
 
     /**
      * @return mixed
      */
-    public function create()
+    public function create(Setting $setting, Privilege $privilege)
     {
         $attr = $this->request->loadPostTo(new AttrAssignment);
         if (!$attr->has('slug')) {
@@ -52,22 +60,22 @@ class PostController
                 $post->{$key} = $value;
             }
             $post->created_at = date('Y-m-d H:i:s');
+            $post->author_id = $this->user->get('sub');
             if (!$post->description) {
                 $post->description = $post->content;
             }
+            if ($post->status == 1 && !$privilege->check('post.publish')) {
+                $post->status = !$setting->get('moderations.post');
+            }
             if ($post->save()) {
-                $tags = [];
-                $tagIds = $attr->get('tags');
-                foreach (Tag::whereIn('id', $tagIds)->get() as $tag) {
-                    if (PostTag::create(['post_id' => $post->id, 'tag_id' => $tag->id, 'created_at' => date('Y-m-d H:i:s')])) {
-                        $tags[] = $tag;
-                    }
-                }
+                $tags = $attr->get('relations') ?: [];
+                $post->tags()->sync($tags);
+                $post->load('tags');
                 return $this->response->withPayload([
                     'data' => [
                         'id' => $post->id,
                         'type' => 'post',
-                        'attributes' => array_merge($post->toArray(), compact('tags')),
+                        'attributes' => $post,
                     ],
                 ]);
             } else {
@@ -137,9 +145,27 @@ class PostController
     }
 
     /**
+     * @param  int     $id
+     * @return mixed
+     */
+    public function publish(int $id)
+    {
+        if ($post = Post::where('id', $id)->first()) {
+            $post->status = 1;
+            if ($post->save()) {
+                return $this->response->withStatus(201);
+            } else {
+                return $this->response->withErrors(500, ['Something Wrong !!!']);
+            }
+        } else {
+            return $this->response->withErrors(404, ['Post not found']);
+        }
+    }
+
+    /**
      * @param $id
      */
-    public function update(int $id)
+    public function update(int $id, Setting $setting, Privilege $privilege)
     {
         if ($post = Post::where('id', $id)->first()) {
             $attr = $this->request->loadPostTo(new AttrAssignment);
@@ -153,20 +179,18 @@ class PostController
                 if (!$post->description) {
                     $post->description = $post->content;
                 }
+                if ($post->status == 1 && !$privilege->check('post.publish')) {
+                    $post->status = !$setting->get('moderations.post');
+                }
                 if ($post->save()) {
-                    $tags = [];
-                    $tagIds = $attr->get('tags') ?: [];
-                    PostTag::where('post_id', $id)->whereNotIn('tag_id', $tagIds)->delete();
-                    foreach (Tag::whereIn('id', $tagIds)->get() as $tag) {
-                        if (PostTag::firstOrCreate(['post_id' => $post->id, 'tag_id' => $tag->id], ['created_at' => date('Y-m-d H:i:s')])) {
-                            $tags[] = $tag;
-                        }
-                    }
+                    $tags = $attr->get('relations') ?: [];
+                    $post->tags()->sync($tags);
+                    $post->load('tags');
                     return $this->response->withPayload([
                         'data' => [
                             'id' => $post->id,
                             'type' => 'post',
-                            'attributes' => array_merge($post->toArray(), compact('tags')),
+                            'attributes' => $post,
                         ],
                     ]);
                 } else {

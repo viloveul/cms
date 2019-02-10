@@ -9,6 +9,7 @@ use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Viloveul\Container\ContainerAwareTrait;
 use Viloveul\Container\Contracts\ContainerAware;
+use Viloveul\Http\Contracts\Response;
 use Viloveul\Router\Contracts\Dispatcher;
 
 class Access implements MiddlewareInterface, ContainerAware
@@ -25,7 +26,7 @@ class Access implements MiddlewareInterface, ContainerAware
         $privilege = $container->get(Privilege::class);
         $route = $container->get(Dispatcher::class)->routed();
 
-        $routeIgnores = ['auth.login', 'auth.register', 'auth.validate', 'setting.get'];
+        $routeIgnores = ['auth.login', 'auth.register', 'user.me', 'setting.get'];
         if (!in_array($route->getName(), $routeIgnores) && 0 !== stripos($route->getName(), 'blog.')) {
             if (!$privilege->check($route->getName())) {
                 return $container->get(Response::class)->withErrors(403, [

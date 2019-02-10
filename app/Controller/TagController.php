@@ -6,6 +6,7 @@ use App\Component\AttrAssignment;
 use App\Component\SlugCreation;
 use App\Entity\Tag;
 use App\Validation\Tag as TagValidation;
+use Viloveul\Auth\Contracts\Authentication;
 use Viloveul\Http\Contracts\Response;
 use Viloveul\Http\Contracts\ServerRequest;
 use Viloveul\Pagination\Builder as Pagination;
@@ -13,6 +14,11 @@ use Viloveul\Pagination\Parameter;
 
 class TagController
 {
+    /**
+     * @var mixed
+     */
+    protected $auth;
+
     /**
      * @var mixed
      */
@@ -24,13 +30,15 @@ class TagController
     protected $response;
 
     /**
-     * @param ServerRequest $request
-     * @param Response      $response
+     * @param ServerRequest  $request
+     * @param Response       $response
+     * @param Authentication $auth
      */
-    public function __construct(ServerRequest $request, Response $response)
+    public function __construct(ServerRequest $request, Response $response, Authentication $auth)
     {
         $this->request = $request;
         $this->response = $response;
+        $this->user = $auth->getUser();
     }
 
     /**
@@ -64,6 +72,7 @@ class TagController
             foreach ($data as $key => $value) {
                 $tag->{$key} = $value;
             }
+            $tag->author_id = $this->user->get('sub');
             $tag->created_at = date('Y-m-d H:i:s');
             if ($tag->save()) {
                 return $this->response->withPayload([
@@ -151,7 +160,7 @@ class TagController
             $attr = $this->request->loadPostTo(new AttrAssignment);
             $validator = new TagValidation($attr->getAttributes(), compact('id'));
             if ($validator->validate('update')) {
-                $data = array_only($attr->getAttributes(), ['title', 'slug', 'type', 'parent_id', 'author_id']);
+                $data = array_only($attr->getAttributes(), ['title', 'slug', 'type', 'parent_id']);
                 foreach ($data as $key => $value) {
                     $tag->{$key} = $value;
                 }

@@ -3,8 +3,8 @@
 namespace App\Controller;
 
 use App\Component\AttrAssignment;
+use App\Component\Privilege;
 use App\Entity\Role;
-use App\Entity\RoleChild;
 use App\Validation\Role as RoleValidation;
 use Viloveul\Http\Contracts\Response;
 use Viloveul\Http\Contracts\ServerRequest;
@@ -51,21 +51,20 @@ class RoleController
     /**
      * @param $id
      */
-    public function assign($id)
+    public function assign($id, Privilege $privilege)
     {
         if ($role = Role::where('id', $id)->where('status', 1)->first()) {
-            $ids = (array) $this->request->getPost('child') ?: [];
-            $childs = [];
-            foreach ($ids as $child_id) {
-                $child = RoleChild::firstOrCreate(
-                    ['role_id' => $role->id, 'child_id' => $child_id],
-                    ['created_at' => date('Y-m-d H:i:s')]
-                );
-                if ($child) {
-                    $childs[] = $child_id;
-                }
-            }
-            return $this->response->withStatus(201)->withPayload(['data' => $childs]);
+            $ids = (array) $this->request->getPost('childs') ?: [];
+            $role->childs()->attach($ids);
+            $role->load('childs');
+            $privilege->clear();
+            return $this->response->withStatus(201)->withPayload([
+                'data' => [
+                    'id' => $role->id,
+                    'type' => 'role',
+                    'attributes' => $role,
+                ],
+            ]);
         }
         return $this->response->withErrors(404, ['Role not found']);
     }
@@ -144,17 +143,20 @@ class RoleController
     /**
      * @param $id
      */
-    public function unassign($id)
+    public function unassign($id, Privilege $privilege)
     {
         if ($role = Role::where('id', $id)->where('status', 1)->first()) {
-            $ids = (array) $this->request->getPost('child') ?: [];
-            $childs = [];
-            foreach ($ids as $child_id) {
-                if (RoleChild::where('role_id', $id)->where('child_id', $child_id)->delete()) {
-                    $childs[] = $child_id;
-                }
-            }
-            return $this->response->withStatus(201)->withPayload(['data' => $childs]);
+            $ids = (array) $this->request->getPost('childs') ?: [];
+            $role->childs()->detach($ids);
+            $role->load('childs');
+            $privilege->clear();
+            return $this->response->withStatus(201)->withPayload([
+                'data' => [
+                    'id' => $role->id,
+                    'type' => 'role',
+                    'attributes' => $role,
+                ],
+            ]);
         }
         return $this->response->withErrors(404, ['Role not found']);
     }

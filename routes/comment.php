@@ -3,16 +3,6 @@
 use Viloveul\Router\Route;
 
 /**
- * Create new comment
- */
-$router->add(
-    'comment.create',
-    new Route('POST /comment/create', [
-        App\Controller\CommentController::class, 'create',
-    ])
-);
-
-/**
  * get comment
  */
 $router->add(
@@ -29,6 +19,16 @@ $router->add(
     'comment.detail',
     new Route('GET /comment/detail/{:id}', [
         App\Controller\CommentController::class, 'detail',
+    ])
+);
+
+/**
+ * publish comment
+ */
+$router->add(
+    'comment.publish',
+    new Route('POST /comment/publish/{:id}', [
+        App\Controller\CommentController::class, 'publish',
     ])
 );
 

@@ -33,36 +33,6 @@ class CommentController
     }
 
     /**
-     * @return mixed
-     */
-    public function create()
-    {
-        $attr = $this->request->loadPostTo(new AttrAssignment);
-        $validator = new CommentValidation($attr->getAttributes());
-        if ($validator->validate('insert')) {
-            $comment = new Comment();
-            $data = array_only($attr->getAttributes(), ['parent_id', 'post_id', 'author_id', 'name', 'nickname', 'email', 'website', 'content']);
-            foreach ($data as $key => $value) {
-                $comment->{$key} = $value;
-            }
-            $comment->created_at = date('Y-m-d H:i:s');
-            if ($comment->save()) {
-                return $this->response->withPayload([
-                    'data' => [
-                        'id' => $comment->id,
-                        'type' => 'comment',
-                        'attributes' => $comment,
-                    ],
-                ]);
-            } else {
-                return $this->response->withErrors(500, ['Something Wrong !!!']);
-            }
-        } else {
-            return $this->response->withErrors(400, $validator->errors());
-        }
-    }
-
-    /**
      * @param  int     $id
      * @return mixed
      */
@@ -125,13 +95,31 @@ class CommentController
      * @param  int     $id
      * @return mixed
      */
+    public function publish(int $id)
+    {
+        if ($comment = Comment::where('id', $id)->first()) {
+            $comment->status = 1;
+            if ($comment->save()) {
+                return $this->response->withStatus(201);
+            } else {
+                return $this->response->withErrors(500, ['Something Wrong !!!']);
+            }
+        } else {
+            return $this->response->withErrors(404, ['Comment not found']);
+        }
+    }
+
+    /**
+     * @param  int     $id
+     * @return mixed
+     */
     public function update(int $id)
     {
         if ($comment = Comment::where('id', $id)->first()) {
             $attr = $this->request->loadPostTo(new AttrAssignment);
             $validator = new CommentValidation($attr->getAttributes());
             if ($validator->validate('update')) {
-                $data = array_only($attr->getAttributes(), ['parent_id', 'post_id', 'author_id', 'name', 'nickname', 'email', 'website', 'content', 'status']);
+                $data = array_only($attr->getAttributes(), ['parent_id', 'post_id', 'name', 'email', 'website', 'content', 'status']);
                 foreach ($data as $key => $value) {
                     $comment->{$key} = $value;
                 }

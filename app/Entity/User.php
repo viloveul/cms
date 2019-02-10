@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Entity\Role;
+use App\Entity\UserProfile;
 use Viloveul\Kernel\Model;
 
 class User extends Model
@@ -11,11 +12,11 @@ class User extends Model
      * @var array
      */
     protected $fillable = [
-        'email',
-        'photo',
-        'password',
         'name',
-        'nickname',
+        'picture',
+        'email',
+        'username',
+        'password',
         'status',
         'created_at',
         'updated_at',
@@ -31,6 +32,14 @@ class User extends Model
      * @var string
      */
     protected $table = 'user';
+
+    /**
+     * @return mixed
+     */
+    public function profile()
+    {
+        return $this->hasMany(UserProfile::class);
+    }
 
     /**
      * @return mixed
