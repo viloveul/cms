@@ -3,9 +3,9 @@
 namespace App\Controller;
 
 use App\Component\AttrAssignment;
-use App\Component\SlugCreation;
-use App\Component\Setting;
 use App\Component\Privilege;
+use App\Component\Setting;
+use App\Component\SlugCreation;
 use App\Entity\Post;
 use App\Validation\Post as PostValidation;
 use Viloveul\Auth\Contracts\Authentication;
@@ -13,9 +13,15 @@ use Viloveul\Http\Contracts\Response;
 use Viloveul\Http\Contracts\ServerRequest;
 use Viloveul\Pagination\Builder as Pagination;
 use Viloveul\Pagination\Parameter;
+use Viloveul\Router\Contracts\Dispatcher;
 
 class PostController
 {
+    /**
+     * @var mixed
+     */
+    protected $privilege;
+
     /**
      * @var mixed
      */
@@ -29,25 +35,30 @@ class PostController
     /**
      * @var mixed
      */
-    protected $user;
+    protected $route;
 
     /**
-     * @param ServerRequest  $request
-     * @param Response       $response
-     * @param Authentication $auth
+     * @param ServerRequest $request
+     * @param Response      $response
+     * @param Privilege     $privilege
+     * @param Dispatcher    $router
      */
-    public function __construct(ServerRequest $request, Response $response, Authentication $auth)
+    public function __construct(ServerRequest $request, Response $response, Privilege $privilege, Dispatcher $router)
     {
         $this->request = $request;
         $this->response = $response;
-        $this->user = $auth->getUser();
+        $this->privilege = $privilege;
+        $this->route = $router->routed();
     }
 
     /**
      * @return mixed
      */
-    public function create(Setting $setting, Privilege $privilege)
+    public function create(Setting $setting, Authentication $auth)
     {
+        if ($this->privilege->check($this->route->getName(), 'access') !== true) {
+            return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+        }
         $attr = $this->request->loadPostTo(new AttrAssignment);
         if (!$attr->has('slug')) {
             $attr->slug = SlugCreation::create()->generate(Post::class, 'slug', $attr->get('title'), null);
@@ -60,11 +71,11 @@ class PostController
                 $post->{$key} = $value;
             }
             $post->created_at = date('Y-m-d H:i:s');
-            $post->author_id = $this->user->get('sub');
+            $post->author_id = $auth->getUser()->get('sub');
             if (!$post->description) {
                 $post->description = $post->content;
             }
-            if ($post->status == 1 && !$privilege->check('post.publish')) {
+            if ($post->status == 1 && !$this->privilege->check('post.publish')) {
                 $post->status = !$setting->get('moderations.post');
             }
             if ($post->save()) {
@@ -92,6 +103,9 @@ class PostController
     public function delete(int $id)
     {
         if ($post = Post::where('id', $id)->first()) {
+            if ($this->privilege->check($this->route->getName(), 'access', $post->author_id) !== true) {
+                return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+            }
             $post->status = 3;
             $post->deleted_at = date('Y-m-d H:i:s');
             if ($post->save()) {
@@ -110,6 +124,9 @@ class PostController
     public function detail(int $id)
     {
         if ($post = Post::where('id', $id)->with(['author', 'tags'])->first()) {
+            if ($this->privilege->check($this->route->getName(), 'access', $post->author_id) !== true) {
+                return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+            }
             return $this->response->withPayload([
                 'data' => [
                     'id' => $post->id,
@@ -122,8 +139,14 @@ class PostController
         }
     }
 
+    /**
+     * @return mixed
+     */
     public function index()
     {
+        if ($this->privilege->check($this->route->getName(), 'access') !== true) {
+            return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+        }
         $parameter = new Parameter('search', $_GET);
         $parameter->setBaseUrl('/api/v1/post/index');
         $pagination = new Pagination($parameter);
@@ -150,6 +173,9 @@ class PostController
      */
     public function publish(int $id)
     {
+        if ($this->privilege->check($this->route->getName(), 'access') !== true) {
+            return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+        }
         if ($post = Post::where('id', $id)->first()) {
             $post->status = 1;
             if ($post->save()) {
@@ -165,9 +191,12 @@ class PostController
     /**
      * @param $id
      */
-    public function update(int $id, Setting $setting, Privilege $privilege)
+    public function update(int $id, Setting $setting)
     {
         if ($post = Post::where('id', $id)->first()) {
+            if ($this->privilege->check($this->route->getName(), 'access', $post->author_id) !== true) {
+                return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+            }
             $attr = $this->request->loadPostTo(new AttrAssignment);
             $validator = new PostValidation($attr->getAttributes(), compact('id'));
             if ($validator->validate('update')) {
@@ -179,7 +208,7 @@ class PostController
                 if (!$post->description) {
                     $post->description = $post->content;
                 }
-                if ($post->status == 1 && !$privilege->check('post.publish')) {
+                if ($post->status == 1 && !$this->privilege->check('post.publish')) {
                     $post->status = !$setting->get('moderations.post');
                 }
                 if ($post->save()) {

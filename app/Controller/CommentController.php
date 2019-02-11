@@ -3,15 +3,22 @@
 namespace App\Controller;
 
 use App\Component\AttrAssignment;
+use App\Component\Privilege;
 use App\Entity\Comment;
 use App\Validation\Comment as CommentValidation;
 use Viloveul\Http\Contracts\Response;
 use Viloveul\Http\Contracts\ServerRequest;
 use Viloveul\Pagination\Builder as Pagination;
 use Viloveul\Pagination\Parameter;
+use Viloveul\Router\Contracts\Dispatcher;
 
 class CommentController
 {
+    /**
+     * @var mixed
+     */
+    protected $privilege;
+
     /**
      * @var mixed
      */
@@ -23,13 +30,20 @@ class CommentController
     protected $response;
 
     /**
+     * @var mixed
+     */
+    protected $route;
+
+    /**
      * @param ServerRequest $request
      * @param Response      $response
      */
-    public function __construct(ServerRequest $request, Response $response)
+    public function __construct(ServerRequest $request, Response $response, Privilege $privilege, Dispatcher $router)
     {
         $this->request = $request;
         $this->response = $response;
+        $this->privilege = $privilege;
+        $this->route = $router->routed();
     }
 
     /**
@@ -39,6 +53,9 @@ class CommentController
     public function delete(int $id)
     {
         if ($comment = Comment::where('id', $id)->first()) {
+            if ($this->privilege->check($this->route->getName(), 'access', $comment->author_id) !== true) {
+                return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+            }
             $comment->status = 3;
             $comment->deleted_at = date('Y-m-d H:i:s');
             if ($comment->save()) {
@@ -58,6 +75,9 @@ class CommentController
     public function detail(int $id)
     {
         if ($comment = Comment::where('id', $id)->first()) {
+            if ($this->privilege->check($this->route->getName(), 'access', $comment->author_id) !== true) {
+                return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+            }
             return $this->response->withPayload([
                 'data' => [
                     'id' => $comment->id,
@@ -70,8 +90,14 @@ class CommentController
         }
     }
 
+    /**
+     * @return mixed
+     */
     public function index()
     {
+        if ($this->privilege->check($this->route->getName(), 'access') !== true) {
+            return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+        }
         $parameter = new Parameter('search', $_GET);
         $parameter->setBaseUrl('/api/v1/comment/index');
         $pagination = new Pagination($parameter);
@@ -97,6 +123,9 @@ class CommentController
      */
     public function publish(int $id)
     {
+        if ($this->privilege->check($this->route->getName(), 'access') !== true) {
+            return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+        }
         if ($comment = Comment::where('id', $id)->first()) {
             $comment->status = 1;
             if ($comment->save()) {
@@ -116,6 +145,9 @@ class CommentController
     public function update(int $id)
     {
         if ($comment = Comment::where('id', $id)->first()) {
+            if ($this->privilege->check($this->route->getName(), 'access', $comment->author_id) !== true) {
+                return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+            }
             $attr = $this->request->loadPostTo(new AttrAssignment);
             $validator = new CommentValidation($attr->getAttributes());
             if ($validator->validate('update')) {

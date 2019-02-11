@@ -10,9 +10,15 @@ use Viloveul\Http\Contracts\Response;
 use Viloveul\Http\Contracts\ServerRequest;
 use Viloveul\Pagination\Builder as Pagination;
 use Viloveul\Pagination\Parameter;
+use Viloveul\Router\Contracts\Dispatcher;
 
 class RoleController
 {
+    /**
+     * @var mixed
+     */
+    protected $privilege;
+
     /**
      * @var mixed
      */
@@ -24,13 +30,20 @@ class RoleController
     protected $response;
 
     /**
+     * @var mixed
+     */
+    protected $route;
+
+    /**
      * @param ServerRequest $request
      * @param Response      $response
      */
-    public function __construct(ServerRequest $request, Response $response)
+    public function __construct(ServerRequest $request, Response $response, Privilege $privilege, Dispatcher $router)
     {
         $this->request = $request;
         $this->response = $response;
+        $this->privilege = $privilege;
+        $this->route = $router->routed();
     }
 
     /**
@@ -51,13 +64,16 @@ class RoleController
     /**
      * @param $id
      */
-    public function assign($id, Privilege $privilege)
+    public function assign($id)
     {
+        if ($this->privilege->check($this->route->getName(), 'access') !== true) {
+            return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+        }
         if ($role = Role::where('id', $id)->where('status', 1)->first()) {
             $ids = (array) $this->request->getPost('childs') ?: [];
             $role->childs()->attach($ids);
             $role->load('childs');
-            $privilege->clear();
+            $this->privilege->clear();
             return $this->response->withStatus(201)->withPayload([
                 'data' => [
                     'id' => $role->id,
@@ -74,6 +90,9 @@ class RoleController
      */
     public function create()
     {
+        if ($this->privilege->check($this->route->getName(), 'access') !== true) {
+            return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+        }
         $attr = $this->request->loadPostTo(new AttrAssignment);
         $attr->set('name', preg_replace('/[^a-z0-9\-\.\_]+/', '-', strtolower($attr->get('name'))), true);
         $validator = new RoleValidation($attr->getAttributes());
@@ -106,6 +125,9 @@ class RoleController
      */
     public function detail(int $id)
     {
+        if ($this->privilege->check($this->route->getName(), 'access') !== true) {
+            return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+        }
         if ($role = Role::where('id', $id)->with('childs')->first()) {
             return $this->response->withPayload([
                 'data' => [
@@ -119,8 +141,14 @@ class RoleController
         }
     }
 
+    /**
+     * @return mixed
+     */
     public function index()
     {
+        if ($this->privilege->check($this->route->getName(), 'access') !== true) {
+            return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+        }
         $parameter = new Parameter('search', $_GET);
         $parameter->setBaseUrl('/api/v1/role/index');
         $pagination = new Pagination($parameter);
@@ -145,6 +173,9 @@ class RoleController
      */
     public function unassign($id, Privilege $privilege)
     {
+        if ($this->privilege->check($this->route->getName(), 'access') !== true) {
+            return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+        }
         if ($role = Role::where('id', $id)->where('status', 1)->first()) {
             $ids = (array) $this->request->getPost('childs') ?: [];
             $role->childs()->detach($ids);
@@ -167,6 +198,9 @@ class RoleController
      */
     public function update(int $id)
     {
+        if ($this->privilege->check($this->route->getName(), 'access') !== true) {
+            return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+        }
         if ($role = Role::where('id', $id)->first()) {
             $attr = $this->request->loadPostTo(new AttrAssignment);
             $attr->set('name', preg_replace('/[^a-z0-9\-\.\_]+/', '-', strtolower($attr->get('name') ?: $role->name)), true);

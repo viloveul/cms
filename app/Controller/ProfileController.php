@@ -3,17 +3,18 @@
 namespace App\Controller;
 
 use App\Component\AttrAssignment;
+use App\Component\Privilege;
 use App\Entity\User;
-use Viloveul\Event\Contracts\Dispatcher as Event;
 use Viloveul\Http\Contracts\Response;
 use Viloveul\Http\Contracts\ServerRequest;
+use Viloveul\Router\Contracts\Dispatcher;
 
 class ProfileController
 {
     /**
      * @var mixed
      */
-    protected $event;
+    protected $privilege;
 
     /**
      * @var mixed
@@ -26,14 +27,22 @@ class ProfileController
     protected $response;
 
     /**
+     * @var mixed
+     */
+    protected $route;
+
+    /**
      * @param ServerRequest $request
      * @param Response      $response
+     * @param Privilege     $privilege
+     * @param Dispatcher    $router
      */
-    public function __construct(ServerRequest $request, Response $response, Event $event)
+    public function __construct(ServerRequest $request, Response $response, Privilege $privilege, Dispatcher $router)
     {
         $this->request = $request;
         $this->response = $response;
-        $this->event = $event;
+        $this->privilege = $privilege;
+        $this->route = $router->routed();
     }
 
     /**
@@ -61,6 +70,9 @@ class ProfileController
      */
     public function update(int $id)
     {
+        if ($this->privilege->check($this->route->getName(), 'access', $id) !== true) {
+            return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+        }
         if ($user = User::where('id', $id)->where('status', 1)->first()) {
             $attr = $this->request->loadPostTo(new AttrAssignment);
             foreach ($attr->getAttributes() as $name => $value) {

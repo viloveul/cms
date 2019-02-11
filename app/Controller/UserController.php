@@ -8,18 +8,18 @@ use App\Component\Setting;
 use App\Entity\User;
 use App\Validation\User as UserValidation;
 use Viloveul\Auth\Contracts\Authentication;
-use Viloveul\Event\Contracts\Dispatcher as Event;
 use Viloveul\Http\Contracts\Response;
 use Viloveul\Http\Contracts\ServerRequest;
 use Viloveul\Pagination\Builder as Pagination;
 use Viloveul\Pagination\Parameter;
+use Viloveul\Router\Contracts\Dispatcher;
 
 class UserController
 {
     /**
      * @var mixed
      */
-    protected $event;
+    protected $privilege;
 
     /**
      * @var mixed
@@ -32,14 +32,22 @@ class UserController
     protected $response;
 
     /**
+     * @var mixed
+     */
+    protected $route;
+
+    /**
      * @param ServerRequest $request
      * @param Response      $response
+     * @param Privilege     $privilege
+     * @param Dispatcher    $router
      */
-    public function __construct(ServerRequest $request, Response $response, Event $event)
+    public function __construct(ServerRequest $request, Response $response, Privilege $privilege, Dispatcher $router)
     {
         $this->request = $request;
         $this->response = $response;
-        $this->event = $event;
+        $this->privilege = $privilege;
+        $this->route = $router->routed();
     }
 
     /**
@@ -47,6 +55,9 @@ class UserController
      */
     public function create()
     {
+        if ($this->privilege->check($this->route->getName(), 'access') !== true) {
+            return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+        }
         $attr = $this->request->loadPostTo(new AttrAssignment);
         $validator = new UserValidation($attr->getAttributes());
         if ($validator->validate('insert')) {
@@ -80,6 +91,9 @@ class UserController
      */
     public function delete(int $id)
     {
+        if ($this->privilege->check($this->route->getName(), 'access') !== true) {
+            return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+        }
         if ($user = User::where('id', $id)->first()) {
             $user->status = 3;
             $user->deleted_at = date('Y-m-d H:i:s');
@@ -98,6 +112,9 @@ class UserController
      */
     public function detail(int $id)
     {
+        if ($this->privilege->check($this->route->getName(), 'access', $id) !== true) {
+            return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+        }
         if ($user = User::where('id', $id)->with('roles')->first()) {
             if (!$user->picture) {
                 $uri = $this->request->getUri();
@@ -125,6 +142,9 @@ class UserController
      */
     public function index(ServerRequest $request)
     {
+        if ($this->privilege->check($this->route->getName(), 'access') !== true) {
+            return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+        }
         $parameter = new Parameter('search', $_GET);
         $parameter->setBaseUrl('/api/v1/user/index');
         $pagination = new Pagination($parameter);
@@ -147,11 +167,10 @@ class UserController
 
     /**
      * @param  Authentication $auth
-     * @param  Privilege      $privilege
      * @param  Setting        $setting
      * @return mixed
      */
-    public function me(Authentication $auth, Privilege $privilege, Setting $setting)
+    public function me(Authentication $auth, Setting $setting)
     {
         if ($id = $auth->getUser()->get('sub')) {
             if ($user = User::where('id', $id)->where('status', 1)->first()) {
@@ -172,7 +191,7 @@ class UserController
                     ],
                     'meta' => [
                         'token' => $auth->getToken(),
-                        'privileges' => $privilege->mine()
+                        'privileges' => $this->privilege->mine(),
                     ],
                 ]);
             } else {
@@ -189,6 +208,9 @@ class UserController
      */
     public function publish(int $id)
     {
+        if ($this->privilege->check($this->route->getName(), 'access') !== true) {
+            return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+        }
         if ($user = User::where('id', $id)->first()) {
             $user->status = 1;
             if ($user->save()) {
@@ -206,6 +228,9 @@ class UserController
      */
     public function update(int $id)
     {
+        if ($this->privilege->check($this->route->getName(), 'access', $id) !== true) {
+            return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+        }
         if ($user = User::where('id', $id)->first()) {
             $attr = $this->request->loadPostTo(new AttrAssignment);
             $attr->get('password') or $attr->forget('password');

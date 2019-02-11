@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Component\AttrAssignment;
+use App\Component\Privilege;
 use App\Component\SlugCreation;
 use App\Entity\Tag;
 use App\Validation\Tag as TagValidation;
@@ -11,13 +12,14 @@ use Viloveul\Http\Contracts\Response;
 use Viloveul\Http\Contracts\ServerRequest;
 use Viloveul\Pagination\Builder as Pagination;
 use Viloveul\Pagination\Parameter;
+use Viloveul\Router\Contracts\Dispatcher;
 
 class TagController
 {
     /**
      * @var mixed
      */
-    protected $auth;
+    protected $privilege;
 
     /**
      * @var mixed
@@ -30,15 +32,22 @@ class TagController
     protected $response;
 
     /**
-     * @param ServerRequest  $request
-     * @param Response       $response
-     * @param Authentication $auth
+     * @var mixed
      */
-    public function __construct(ServerRequest $request, Response $response, Authentication $auth)
+    protected $route;
+
+    /**
+     * @param ServerRequest $request
+     * @param Response      $response
+     * @param Privilege     $privilege
+     * @param Dispatcher    $router
+     */
+    public function __construct(ServerRequest $request, Response $response, Privilege $privilege, Dispatcher $router)
     {
         $this->request = $request;
         $this->response = $response;
-        $this->user = $auth->getUser();
+        $this->privilege = $privilege;
+        $this->route = $router->routed();
     }
 
     /**
@@ -57,10 +66,14 @@ class TagController
     }
 
     /**
+     * @param  Authentication $auth
      * @return mixed
      */
-    public function create()
+    public function create(Authentication $auth)
     {
+        if ($this->privilege->check($this->route->getName(), 'access') !== true) {
+            return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+        }
         $attr = $this->request->loadPostTo(new AttrAssignment);
         if (!$attr->has('slug')) {
             $attr->slug = SlugCreation::create()->generate(Tag::class, 'slug', $attr->get('title'), null);
@@ -72,7 +85,7 @@ class TagController
             foreach ($data as $key => $value) {
                 $tag->{$key} = $value;
             }
-            $tag->author_id = $this->user->get('sub');
+            $tag->author_id = $auth->getUser()->get('sub');
             $tag->created_at = date('Y-m-d H:i:s');
             if ($tag->save()) {
                 return $this->response->withPayload([
@@ -97,6 +110,9 @@ class TagController
     public function delete(int $id)
     {
         if ($tag = Tag::where('id', $id)->first()) {
+            if ($this->privilege->check($this->route->getName(), 'access', $tag->author_id) !== true) {
+                return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+            }
             $tag->status = 3;
             $tag->deleted_at = date('Y-m-d H:i:s');
             if ($tag->save()) {
@@ -117,6 +133,9 @@ class TagController
     public function detail(int $id)
     {
         if ($tag = Tag::where('id', $id)->with('childs')->first()) {
+            if ($this->privilege->check($this->route->getName(), 'access', $tag->author_id) !== true) {
+                return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+            }
             return $this->response->withPayload([
                 'data' => [
                     'id' => $tag->id,
@@ -129,8 +148,14 @@ class TagController
         }
     }
 
+    /**
+     * @return mixed
+     */
     public function index()
     {
+        if ($this->privilege->check($this->route->getName(), 'access') !== true) {
+            return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+        }
         $parameter = new Parameter('search', $_GET);
         $parameter->setBaseUrl('/api/v1/tag/index');
         $pagination = new Pagination($parameter);
@@ -157,6 +182,9 @@ class TagController
     public function update(int $id)
     {
         if ($tag = Tag::where('id', $id)->first()) {
+            if ($this->privilege->check($this->route->getName(), 'access', $tag->author_id) !== true) {
+                return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+            }
             $attr = $this->request->loadPostTo(new AttrAssignment);
             $validator = new TagValidation($attr->getAttributes(), compact('id'));
             if ($validator->validate('update')) {

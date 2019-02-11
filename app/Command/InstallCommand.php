@@ -4,9 +4,7 @@ namespace App\Command;
 
 use App\Component\SchemaInstaller;
 use App\Entity\Role;
-use App\Entity\RoleChild;
 use App\Entity\User;
-use App\Entity\UserRole;
 use RuntimeException;
 use Symfony\Component\Console\Question\Question;
 use Viloveul\Console\Command;
@@ -200,32 +198,28 @@ class InstallCommand extends Command implements ContainerAware
         );
         $this->writeNormal('--------------------------------------------------------------');
         $this->writeInfo('Create role group admin');
-        $role = Role::updateOrCreate(
+        $role = Role::firstOrCreate(
             ['name' => 'admin', 'type' => 'group'],
             ['type' => 'group']
         );
         $this->writeNormal('--------------------------------------------------------------');
         $this->writeInfo('assign user admin to role group admin');
-        $userRole = UserRole::updateOrCreate(
-            ['user_id' => $user->id, 'role_id' => $role->id],
-            ['created_at' => date('Y-m-d H:i:s')]
-        );
+        $user->roles()->sync([$role->id]);
         $this->writeNormal('--------------------------------------------------------------');
         $this->writeInfo('Create access role admin');
+        $accessors = [];
         foreach ($container->get(Collection::class)->all() as $key => $value) {
             $this->writeNormal('--------------------------------------------------------------');
             $this->writeInfo('Create access : ' . $key);
-            $access = Role::updateOrCreate(
+            $access = Role::firstOrCreate(
                 ['name' => $key],
                 ['type' => 'access']
             );
+            $accessors[] = $access->id;
             $this->writeNormal('--------------------------------------------------------------');
             $this->writeInfo('Assign access : ' . $key);
-            RoleChild::updateOrCreate(
-                ['role_id' => $role->id, 'child_id' => $access->id],
-                ['created_at' => date('Y-m-d H:i:s')]
-            );
         }
+        $role->childs()->sync($accessors);
         $this->writeNormal('--------------------------------------------------------------');
         $this->writeInfo('Installation complete.');
     }

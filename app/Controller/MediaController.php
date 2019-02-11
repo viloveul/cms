@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Component\Privilege;
 use App\Entity\Media;
 use Viloveul\Auth\Contracts\Authentication;
 use Viloveul\Http\Contracts\Response;
@@ -9,9 +10,15 @@ use Viloveul\Http\Contracts\ServerRequest;
 use Viloveul\Media\Contracts\Uploader;
 use Viloveul\Pagination\Builder as Pagination;
 use Viloveul\Pagination\Parameter;
+use Viloveul\Router\Contracts\Dispatcher;
 
 class MediaController
 {
+    /**
+     * @var mixed
+     */
+    protected $privilege;
+
     /**
      * @var mixed
      */
@@ -23,13 +30,22 @@ class MediaController
     protected $response;
 
     /**
+     * @var mixed
+     */
+    protected $route;
+
+    /**
      * @param ServerRequest $request
      * @param Response      $response
+     * @param Privilege     $privilege
+     * @param Dispatcher    $router
      */
-    public function __construct(ServerRequest $request, Response $response)
+    public function __construct(ServerRequest $request, Response $response, Privilege $privilege, Dispatcher $router)
     {
         $this->request = $request;
         $this->response = $response;
+        $this->privilege = $privilege;
+        $this->route = $router->routed();
     }
 
     /**
@@ -39,6 +55,9 @@ class MediaController
     public function delete(int $id)
     {
         if ($media = Media::where('id', $id)->first()) {
+            if ($this->privilege->check($this->route->getName(), 'access', $media->author_id) !== true) {
+                return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+            }
             $media->status = 3;
             $media->deleted_at = date('Y-m-d H:i:s');
             if ($media->save()) {
@@ -57,11 +76,14 @@ class MediaController
      */
     public function detail(int $id)
     {
-        if ($file = Media::where('id', $id)->with('author')->first()) {
+        if ($media = Media::where('id', $id)->with('author')->first()) {
+            if ($this->privilege->check($this->route->getName(), 'access', $media->author_id) !== true) {
+                return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+            }
             return $this->response->withPayload([
                 'id' => $id,
                 'type' => 'media',
-                'attributes' => $file,
+                'attributes' => $media,
             ]);
         } else {
             return $this->response->withErrors(404, ['Media not found']);
@@ -73,6 +95,9 @@ class MediaController
      */
     public function index()
     {
+        if ($this->privilege->check($this->route->getName(), 'access') !== true) {
+            return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+        }
         $parameter = new Parameter('search', $_GET);
         $parameter->setBaseUrl('/api/v1/media/index');
         $pagination = new Pagination($parameter);
@@ -120,6 +145,9 @@ class MediaController
      */
     public function upload(Uploader $uploader, Response $response, Authentication $auth)
     {
+        if ($this->privilege->check($this->route->getName(), 'access') !== true) {
+            return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+        }
         return $uploader->upload('*', function ($uploadedFiles, $errors, $files) use ($response, $auth) {
             $results = [];
             foreach ($uploadedFiles as $uploadedFile) {

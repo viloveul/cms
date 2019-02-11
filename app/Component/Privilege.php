@@ -5,7 +5,6 @@ namespace App\Component;
 use App\Entity\Role;
 use App\Entity\RoleChild;
 use App\Entity\UserRole;
-use Exception;
 use Viloveul\Auth\Contracts\Authentication;
 use Viloveul\Cache\Contracts\Cache;
 
@@ -49,23 +48,21 @@ class Privilege
     }
 
     /**
-     * @param string       $name
-     * @param $type
-     * @param $object_id
+     * @param string $name
+     * @param string $type
+     * @param int    $author_id
      */
-    public function check(string $name, $type = 'access', $object_id = 0): bool
+    public function check(string $name, string $type = 'access', int $author_id = 0): bool
     {
-        try {
-            $me = $this->mine();
-            if (in_array($name . '#' . $type, $me)) {
-                return true;
-            } else {
-                return in_array($name . '#' . $type, $me);
-            }
-        } catch (Exception $e) {
-
+        if ($author_id > 0 && $author_id == $this->user->get('sub')) {
+            return true;
         }
-        return false;
+        $me = $this->mine();
+        if (in_array($name . '#' . $type, $me)) {
+            return true;
+        } else {
+            return in_array($name . '#' . $type, $me);
+        }
     }
 
     public function clear(): void
