@@ -69,7 +69,6 @@ class BlogController
                     },
                     'tags' => function ($query) {
                         $query->select(['tag_id', 'post_id', 'title', 'type', 'slug']);
-                        $query->where('type', 'tag');
                     },
                 ]);
 
@@ -83,7 +82,21 @@ class BlogController
                     ->skip(($parameter->getCurrentPage() * $parameter->getPageSize()) - $parameter->getPageSize())
                     ->take($parameter->getPageSize())
                     ->get()
-                    ->toArray();
+                    ->map(function ($post) {
+                        return [
+                            'id' => $post->id,
+                            'type' => 'post',
+                            'attributes' => $post->getAttributes(),
+                            'relationships' => [
+                                'tags' => [
+                                    'data' => $post->tags,
+                                ],
+                                'author' => [
+                                    'data' => $post->author,
+                                ],
+                            ],
+                        ];
+                    })->toArray();
             });
             $results = $pagination->getResults();
             $results['meta']['archive'] = $archive;
@@ -107,7 +120,6 @@ class BlogController
                 foreach ($parameter->getConditions() as $key => $value) {
                     $model->where($key, 'like', "%{$value}%");
                 }
-                $model->where('type', 'post');
                 $model->where('status', 1);
                 $model->where('author_id', $author->id);
 
@@ -118,7 +130,6 @@ class BlogController
                     },
                     'tags' => function ($query) {
                         $query->select(['tag_id', 'post_id', 'title', 'type', 'slug']);
-                        $query->where('type', 'tag');
                     },
                 ]);
 
@@ -127,7 +138,21 @@ class BlogController
                     ->skip(($parameter->getCurrentPage() * $parameter->getPageSize()) - $parameter->getPageSize())
                     ->take($parameter->getPageSize())
                     ->get()
-                    ->toArray();
+                    ->map(function ($post) {
+                        return [
+                            'id' => $post->id,
+                            'type' => 'post',
+                            'attributes' => $post->getAttributes(),
+                            'relationships' => [
+                                'tags' => [
+                                    'data' => $post->tags,
+                                ],
+                                'author' => [
+                                    'data' => $post->author,
+                                ],
+                            ],
+                        ];
+                    })->toArray();
             });
             $results = $pagination->getResults();
             $results['meta']['author'] = $author;
@@ -164,11 +189,17 @@ class BlogController
                 $comment->status = !$this->setting->get('moderations.comment');
                 $comment->created_at = date('Y-m-d H:i:s');
                 if ($comment->save()) {
+                    $comment->load('author');
                     return $this->response->withPayload([
                         'data' => [
                             'id' => $comment->id,
                             'type' => 'comment',
-                            'attributes' => $comment,
+                            'attributes' => $comment->getAttributes(),
+                            'relationships' => [
+                                'author' => [
+                                    'data' => $comment->author,
+                                ],
+                            ],
                         ],
                     ]);
                 } else {
@@ -210,7 +241,18 @@ class BlogController
                     ->skip(($parameter->getCurrentPage() * $parameter->getPageSize()) - $parameter->getPageSize())
                     ->take($parameter->getPageSize())
                     ->get()
-                    ->toArray();
+                    ->map(function ($comment) {
+                        return [
+                            'id' => $comment->id,
+                            'type' => 'comment',
+                            'attributes' => $comment->getAttributes(),
+                            'relationships' => [
+                                'author' => [
+                                    'data' => $comment->author,
+                                ],
+                            ],
+                        ];
+                    })->toArray();
             });
             $results = $pagination->getResults();
             return $this->response->withPayload($results);
@@ -230,7 +272,15 @@ class BlogController
                 'data' => [
                     'id' => $post->id,
                     'type' => 'post',
-                    'attributes' => $post,
+                    'attributes' => $post->getAttributes(),
+                    'relationships' => [
+                        'tags' => [
+                            'data' => $post->tags,
+                        ],
+                        'author' => [
+                            'data' => $post->author,
+                        ],
+                    ],
                 ],
             ]);
         }
@@ -258,7 +308,6 @@ class BlogController
                 },
                 'tags' => function ($query) {
                     $query->select(['tag_id', 'post_id', 'title', 'type', 'slug']);
-                    $query->where('type', 'tag');
                 },
             ]);
 
@@ -267,7 +316,21 @@ class BlogController
                 ->skip(($parameter->getCurrentPage() * $parameter->getPageSize()) - $parameter->getPageSize())
                 ->take($parameter->getPageSize())
                 ->get()
-                ->toArray();
+                ->map(function ($post) {
+                    return [
+                        'id' => $post->id,
+                        'type' => 'post',
+                        'attributes' => $post->getAttributes(),
+                        'relationships' => [
+                            'tags' => [
+                                'data' => $post->tags,
+                            ],
+                            'author' => [
+                                'data' => $post->author,
+                            ],
+                        ],
+                    ];
+                })->toArray();
         });
 
         return $this->response->withPayload($pagination->getResults());

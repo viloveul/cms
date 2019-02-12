@@ -83,7 +83,12 @@ class MediaController
             return $this->response->withPayload([
                 'id' => $id,
                 'type' => 'media',
-                'attributes' => $media,
+                'attributes' => $media->getAttributes(),
+                'relationships' => [
+                    'author' => [
+                        'data' => $media->author,
+                    ],
+                ],
             ]);
         } else {
             return $this->response->withErrors(404, ['Media not found']);
@@ -113,24 +118,33 @@ class MediaController
                 ->skip(($parameter->getCurrentPage() * $parameter->getPageSize()) - $parameter->getPageSize())
                 ->take($parameter->getPageSize())
                 ->get()
-                ->toArray();
+                ->map(function ($media) {
+                    return [
+                        'id' => $media->id,
+                        'type' => 'media',
+                        'attributes' => $media->getAttributes(),
+                        'relationships' => [
+                            'author' => [
+                                'data' => $media->author,
+                            ],
+                        ],
+                    ];
+                })->toArray();
+
             $schema = $uri->getScheme();
             $host = $uri->getHost();
             $port = $uri->getPort();
             $this->data = array_map(function ($o) use ($schema, $host, $port) {
-                $media = array_merge($o, [
-                    'url' => sprintf(
-                        '%s://%s:%s/uploads/%s/%s/%s/%s',
-                        $schema,
-                        $host,
-                        $port,
-                        $o['year'],
-                        $o['month'],
-                        $o['day'],
-                        $o['filename']
-                    ),
+                $o['attributes']['url'] = vsprintf('%s://%s:%s/uploads/%s/%s/%s/%s', [
+                    $schema,
+                    $host,
+                    $port,
+                    $o['attributes']['year'],
+                    $o['attributes']['month'],
+                    $o['attributes']['day'],
+                    $o['attributes']['filename'],
                 ]);
-                return $media;
+                return $o;
             }, $data);
         });
 
@@ -151,7 +165,7 @@ class MediaController
         return $uploader->upload('*', function ($uploadedFiles, $errors, $files) use ($response, $auth) {
             $results = [];
             foreach ($uploadedFiles as $uploadedFile) {
-                $results[] = Media::create([
+                $media = Media::create([
                     'author_id' => $auth->getUser()->get('sub') ?: 0,
                     'name' => $uploadedFile['name'],
                     'filename' => $uploadedFile['filename'],
@@ -163,6 +177,11 @@ class MediaController
                     'status' => 1,
                     'created_at' => date('Y-m-d H:i:s'),
                 ]);
+                $results[] = [
+                    'id' => $media->id,
+                    'type' => 'media',
+                    'attributes' => $media->getAttributes(),
+                ];
             }
             return $this->response->withPayload([
                 'data' => $results,

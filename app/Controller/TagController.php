@@ -61,7 +61,12 @@ class TagController
         }
         $tag->where('status', 1);
         return $this->response->withPayload([
-            'data' => $tag->get(),
+            'data' => $tag->get()->map(function ($tag) {
+                return [
+                    'id' => $tag->id,
+                    'attributes' => $tag->getAttributes(),
+                ];
+            }),
         ]);
     }
 
@@ -92,7 +97,7 @@ class TagController
                     'data' => [
                         'id' => $tag->id,
                         'type' => 'tag',
-                        'attributes' => $tag,
+                        'attributes' => $tag->getAttributes(),
                     ],
                 ]);
             } else {
@@ -140,7 +145,12 @@ class TagController
                 'data' => [
                     'id' => $tag->id,
                     'type' => 'tag',
-                    'attributes' => $tag,
+                    'attributes' => $tag->getAttributes(),
+                    'relationships' => [
+                        'childs' => [
+                            'data' => $tag->childs,
+                        ],
+                    ],
                 ],
             ]);
         } else {
@@ -170,7 +180,13 @@ class TagController
                 ->skip(($parameter->getCurrentPage() * $parameter->getPageSize()) - $parameter->getPageSize())
                 ->take($parameter->getPageSize())
                 ->get()
-                ->toArray();
+                ->map(function ($tag) {
+                    return [
+                        'id' => $tag->id,
+                        'type' => 'tag',
+                        'attributes' => $tag->getAttributes(),
+                    ];
+                })->toArray();
         });
         return $this->response->withPayload($pagination->getResults());
     }
@@ -198,7 +214,7 @@ class TagController
                         'data' => [
                             'id' => $id,
                             'type' => 'tag',
-                            'attributes' => $tag,
+                            'attributes' => $tag->getAttributes(),
                         ],
                     ]);
                 } else {

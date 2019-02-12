@@ -72,9 +72,7 @@ class PostController
             }
             $post->created_at = date('Y-m-d H:i:s');
             $post->author_id = $auth->getUser()->get('sub');
-            if (!$post->description) {
-                $post->description = $post->content;
-            }
+            $post->description = $post->content;
             if ($post->status == 1 && !$this->privilege->check('post.publish')) {
                 $post->status = !$setting->get('moderations.post');
             }
@@ -86,7 +84,7 @@ class PostController
                     'data' => [
                         'id' => $post->id,
                         'type' => 'post',
-                        'attributes' => $post,
+                        'attributes' => $post->getAttributes(),
                     ],
                 ]);
             } else {
@@ -131,7 +129,15 @@ class PostController
                 'data' => [
                     'id' => $post->id,
                     'type' => 'post',
-                    'attributes' => $post,
+                    'attributes' => $post->getAttributes(),
+                    'relationships' => [
+                        'author' => [
+                            'data' => $post->author,
+                        ],
+                        'tags' => [
+                            'data' => $post->tags,
+                        ],
+                    ],
                 ],
             ]);
         } else {
@@ -161,7 +167,18 @@ class PostController
                 ->skip(($parameter->getCurrentPage() * $parameter->getPageSize()) - $parameter->getPageSize())
                 ->take($parameter->getPageSize())
                 ->get()
-                ->toArray();
+                ->map(function ($post) {
+                    return [
+                        'id' => $post->id,
+                        'type' => 'post',
+                        'attributes' => $post->getAttributes(),
+                        'relationships' => [
+                            'author' => [
+                                'data' => $post->author,
+                            ],
+                        ],
+                    ];
+                })->toArray();
         });
 
         return $this->response->withPayload($pagination->getResults());
@@ -205,9 +222,7 @@ class PostController
                     $post->{$key} = $value;
                 }
                 $post->updated_at = date('Y-m-d H:i:s');
-                if (!$post->description) {
-                    $post->description = $post->content;
-                }
+                $post->description = $post->content;
                 if ($post->status == 1 && !$this->privilege->check('post.publish')) {
                     $post->status = !$setting->get('moderations.post');
                 }
@@ -219,7 +234,7 @@ class PostController
                         'data' => [
                             'id' => $post->id,
                             'type' => 'post',
-                            'attributes' => $post,
+                            'attributes' => $post->getAttributes(),
                         ],
                     ]);
                 } else {

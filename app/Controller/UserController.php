@@ -115,7 +115,7 @@ class UserController
         if ($this->privilege->check($this->route->getName(), 'access', $id) !== true) {
             return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
         }
-        if ($user = User::where('id', $id)->with('roles')->first()) {
+        if ($user = User::where('id', $id)->first()) {
             if (!$user->picture) {
                 $uri = $this->request->getUri();
                 $user->picture = sprintf(
@@ -129,7 +129,12 @@ class UserController
                 'data' => [
                     'id' => $user->id,
                     'type' => 'user',
-                    'attributes' => $user,
+                    'attributes' => $user->toArray(),
+                    'relationships' => [
+                        'roles' => [
+                            'data' => $user->roles,
+                        ],
+                    ],
                 ],
             ]);
         } else {
@@ -159,7 +164,13 @@ class UserController
                 ->skip(($parameter->getCurrentPage() * $parameter->getPageSize()) - $parameter->getPageSize())
                 ->take($parameter->getPageSize())
                 ->get()
-                ->toArray();
+                ->map(function ($user) {
+                    return [
+                        'id' => $user->id,
+                        'type' => 'user',
+                        'attributes' => $user,
+                    ];
+                })->toArray();
         });
 
         return $this->response->withPayload($pagination->getResults());

@@ -57,7 +57,12 @@ class RoleController
         }
         $role->where('status', 1);
         return $this->response->withPayload([
-            'data' => $role->get(),
+            'data' => $role->get()->map(function ($role) {
+                return [
+                    'id' => $role->id,
+                    'attributes' => $role->getAttributes(),
+                ];
+            }),
         ]);
     }
 
@@ -78,7 +83,7 @@ class RoleController
                 'data' => [
                     'id' => $role->id,
                     'type' => 'role',
-                    'attributes' => $role,
+                    'attributes' => $role->getAttributes(),
                 ],
             ]);
         }
@@ -108,7 +113,7 @@ class RoleController
                     'data' => [
                         'id' => $role->id,
                         'type' => 'role',
-                        'attributes' => $role,
+                        'attributes' => $role->getAttributes(),
                     ],
                 ]);
             } else {
@@ -133,7 +138,12 @@ class RoleController
                 'data' => [
                     'id' => $role->id,
                     'type' => 'role',
-                    'attributes' => $role,
+                    'attributes' => $role->getAttributes(),
+                    'relationships' => [
+                        'childs' => [
+                            'data' => $role->childs,
+                        ],
+                    ],
                 ],
             ]);
         } else {
@@ -163,7 +173,13 @@ class RoleController
                 ->skip(($parameter->getCurrentPage() * $parameter->getPageSize()) - $parameter->getPageSize())
                 ->take($parameter->getPageSize())
                 ->get()
-                ->toArray();
+                ->map(function ($role) {
+                    return [
+                        'id' => $role->id,
+                        'type' => 'role',
+                        'attributes' => $role->getAttributes(),
+                    ];
+                })->toArray();
         });
         return $this->response->withPayload($pagination->getResults());
     }
@@ -185,7 +201,7 @@ class RoleController
                 'data' => [
                     'id' => $role->id,
                     'type' => 'role',
-                    'attributes' => $role,
+                    'attributes' => $role->getAttributes(),
                 ],
             ]);
         }
@@ -216,7 +232,7 @@ class RoleController
                         'data' => [
                             'id' => $id,
                             'type' => 'role',
-                            'attributes' => $role,
+                            'attributes' => $role->getAttributes(),
                         ],
                     ]);
                 } else {

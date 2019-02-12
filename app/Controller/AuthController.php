@@ -57,14 +57,18 @@ class AuthController
                 }
                 $privilege->clear();
                 return $this->response->withPayload([
-                    'data' => $auth->generate(
-                        new UserData([
-                            'sub' => $user->id,
-                            'email' => $user->email,
-                            'name' => $user->name,
-                            'picture' => $user->picture,
-                        ])
-                    ),
+                    'data' => [
+                        'token' => $auth->generate(
+                            new UserData([
+                                'sub' => $user->id,
+                                'email' => $user->email,
+                                'name' => $user->name,
+                                'picture' => $user->picture,
+                            ])
+                        ),
+                        'id' => $user->id,
+                        'type' => 'token',
+                    ],
                 ]);
             } else {
                 return $this->response->withErrors(400, ['Invalid Credentials']);
@@ -91,7 +95,11 @@ class AuthController
             $user->password = password_hash(array_get($data, 'password'), PASSWORD_DEFAULT);
             if ($user->save()) {
                 return $this->response->withPayload([
-                    'data' => $user,
+                    'data' => [
+                        'id' => $user->id,
+                        'type' => 'user',
+                        'attributes' => $user->getAttributes(),
+                    ],
                 ]);
             } else {
                 return $this->response->withErrors(500, ['Something wrong !!!']);

@@ -3,6 +3,7 @@
 namespace App\Command;
 
 use App\Component\SchemaInstaller;
+use App\Component\ContentDummy;
 use App\Entity\Role;
 use App\Entity\User;
 use RuntimeException;
@@ -220,6 +221,10 @@ class InstallCommand extends Command implements ContainerAware
             $this->writeInfo('Assign access : ' . $key);
         }
         $role->childs()->sync($accessors);
+        $this->writeNormal('--------------------------------------------------------------');
+        $this->writeInfo('Create content dummy');
+        $dummy = new ContentDummy($user);
+        $dummy->run();
         $this->writeNormal('--------------------------------------------------------------');
         $this->writeInfo('Installation complete.');
     }

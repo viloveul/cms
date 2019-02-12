@@ -1,7 +1,7 @@
 <?php
 
 error_reporting(-1);
-
+// sleep(100);
 ini_set('display_errors', 'On');
 
 defined('VILOVEUL_WORKDIR') or define('VILOVEUL_WORKDIR', __DIR__);

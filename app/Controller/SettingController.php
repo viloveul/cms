@@ -38,7 +38,10 @@ class SettingController
     public function get(string $name)
     {
         return $this->response->withPayload([
-            'data' => $this->options->get($name),
+            'data' => [
+                'name' => $name,
+                'option' => $this->options->get($name),
+            ],
         ]);
     }
 
@@ -60,7 +63,10 @@ class SettingController
         SettingModel::updateOrCreate(compact('name'), compact('option'));
         $this->options->clear();
         return $this->response->withPayload([
-            'data' => $value,
+            'data' => [
+                'name' => $name,
+                'option' => $value,
+            ],
         ]);
     }
 }

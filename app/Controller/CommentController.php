@@ -82,7 +82,7 @@ class CommentController
                 'data' => [
                     'id' => $comment->id,
                     'type' => 'comment',
-                    'attributes' => $comment,
+                    'attributes' => $comment->getAttributes(),
                 ],
             ]);
         } else {
@@ -112,7 +112,18 @@ class CommentController
                 ->skip(($parameter->getCurrentPage() * $parameter->getPageSize()) - $parameter->getPageSize())
                 ->take($parameter->getPageSize())
                 ->get()
-                ->toArray();
+                ->map(function ($comment) {
+                    return [
+                        'id' => $comment->id,
+                        'type' => 'comment',
+                        'attributes' => $comment->getAttributes(),
+                        'relationships' => [
+                            'post' => [
+                                'data' => $comment->post,
+                            ],
+                        ],
+                    ];
+                })->toArray();
         });
         return $this->response->withPayload($pagination->getResults());
     }
@@ -161,7 +172,7 @@ class CommentController
                         'data' => [
                             'id' => $id,
                             'type' => 'comment',
-                            'attributes' => $comment,
+                            'attributes' => $comment->getAttributes(),
                         ],
                     ]);
                 } else {
