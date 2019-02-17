@@ -121,7 +121,7 @@ class TagController
             $tag->status = 3;
             $tag->deleted_at = date('Y-m-d H:i:s');
             if ($tag->save()) {
-                Tag::where('status', 1)->where('parent_id', $id)->update(['parent_id', 0]);
+                Tag::where('status', 1)->where('parent_id', $id)->update(['parent_id' => 0]);
                 return $this->response->withStatus(201);
             } else {
                 return $this->response->withErrors(500, ['Something Wrong !!!']);
@@ -208,6 +208,7 @@ class TagController
                 foreach ($data as $key => $value) {
                     $tag->{$key} = $value;
                 }
+                $tag->status = 1;
                 $tag->updated_at = date('Y-m-d H:i:s');
                 if ($tag->save()) {
                     return $this->response->withPayload([

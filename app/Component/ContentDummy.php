@@ -59,7 +59,6 @@ class ContentDummy
     {
         $this->tags();
         $this->posts();
-        $this->comments();
     }
 
     public function tags()

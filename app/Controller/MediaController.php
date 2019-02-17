@@ -80,13 +80,39 @@ class MediaController
             if ($this->privilege->check($this->route->getName(), 'access', $media->author_id) !== true) {
                 return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
             }
+            $uri = $this->request->getUri();
+            $schema = $uri->getScheme();
+            $host = $uri->getHost();
+            $port = $uri->getPort();
+            $url = vsprintf('%s://%s:%s/uploads/%s/%s/%s/%s', [
+                $schema,
+                $host,
+                $port,
+                $media->year,
+                $media->month,
+                $media->day,
+                $media->filename,
+            ]);
+            $image = $url;
+            if (false === stripos($media->type, 'image')) {
+                $image = vsprintf('%s://%s:%s/images/no-image.jpg', [
+                    $schema,
+                    $host,
+                    $port,
+                ]);
+            }
             return $this->response->withPayload([
-                'id' => $id,
-                'type' => 'media',
-                'attributes' => $media->getAttributes(),
-                'relationships' => [
-                    'author' => [
-                        'data' => $media->author,
+                'data' => [
+                    'id' => $id,
+                    'type' => 'media',
+                    'attributes' => array_merge($media->getAttributes(), [
+                        'url' => $url,
+                        'image_url' => $image,
+                    ]),
+                    'relationships' => [
+                        'author' => [
+                            'data' => $media->author,
+                        ],
                     ],
                 ],
             ]);
@@ -144,6 +170,14 @@ class MediaController
                     $o['attributes']['day'],
                     $o['attributes']['filename'],
                 ]);
+                $o['attributes']['image_url'] = $o['attributes']['url'];
+                if (false === stripos($o['attributes']['type'], 'image')) {
+                    $o['attributes']['image_url'] = vsprintf('%s://%s:%s/images/no-image.jpg', [
+                        $schema,
+                        $host,
+                        $port,
+                    ]);
+                }
                 return $o;
             }, $data);
         });
