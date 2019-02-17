@@ -3,16 +3,24 @@
 namespace App\Controller;
 
 use App\Component\AttrAssignment;
+use App\Component\Privilege;
 use App\Component\SlugCreation;
 use App\Entity\Tag;
 use App\Validation\Tag as TagValidation;
+use Viloveul\Auth\Contracts\Authentication;
 use Viloveul\Http\Contracts\Response;
 use Viloveul\Http\Contracts\ServerRequest;
 use Viloveul\Pagination\Builder as Pagination;
 use Viloveul\Pagination\Parameter;
+use Viloveul\Router\Contracts\Dispatcher;
 
 class TagController
 {
+    /**
+     * @var mixed
+     */
+    protected $privilege;
+
     /**
      * @var mixed
      */
@@ -24,13 +32,22 @@ class TagController
     protected $response;
 
     /**
+     * @var mixed
+     */
+    protected $route;
+
+    /**
      * @param ServerRequest $request
      * @param Response      $response
+     * @param Privilege     $privilege
+     * @param Dispatcher    $router
      */
-    public function __construct(ServerRequest $request, Response $response)
+    public function __construct(ServerRequest $request, Response $response, Privilege $privilege, Dispatcher $router)
     {
         $this->request = $request;
         $this->response = $response;
+        $this->privilege = $privilege;
+        $this->route = $router->routed();
     }
 
     /**
@@ -44,15 +61,24 @@ class TagController
         }
         $tag->where('status', 1);
         return $this->response->withPayload([
-            'data' => $tag->get(),
+            'data' => $tag->get()->map(function ($tag) {
+                return [
+                    'id' => $tag->id,
+                    'attributes' => $tag->getAttributes(),
+                ];
+            }),
         ]);
     }
 
     /**
+     * @param  Authentication $auth
      * @return mixed
      */
-    public function create()
+    public function create(Authentication $auth)
     {
+        if ($this->privilege->check($this->route->getName(), 'access') !== true) {
+            return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+        }
         $attr = $this->request->loadPostTo(new AttrAssignment);
         if (!$attr->has('slug')) {
             $attr->slug = SlugCreation::create()->generate(Tag::class, 'slug', $attr->get('title'), null);
@@ -64,13 +90,14 @@ class TagController
             foreach ($data as $key => $value) {
                 $tag->{$key} = $value;
             }
+            $tag->author_id = $auth->getUser()->get('sub');
             $tag->created_at = date('Y-m-d H:i:s');
             if ($tag->save()) {
                 return $this->response->withPayload([
                     'data' => [
                         'id' => $tag->id,
                         'type' => 'tag',
-                        'attributes' => $tag,
+                        'attributes' => $tag->getAttributes(),
                     ],
                 ]);
             } else {
@@ -88,10 +115,13 @@ class TagController
     public function delete(int $id)
     {
         if ($tag = Tag::where('id', $id)->first()) {
+            if ($this->privilege->check($this->route->getName(), 'access', $tag->author_id) !== true) {
+                return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+            }
             $tag->status = 3;
             $tag->deleted_at = date('Y-m-d H:i:s');
             if ($tag->save()) {
-                Tag::where('status', 1)->where('parent_id', $id)->update(['parent_id', 0]);
+                Tag::where('status', 1)->where('parent_id', $id)->update(['parent_id' => 0]);
                 return $this->response->withStatus(201);
             } else {
                 return $this->response->withErrors(500, ['Something Wrong !!!']);
@@ -108,11 +138,19 @@ class TagController
     public function detail(int $id)
     {
         if ($tag = Tag::where('id', $id)->with('childs')->first()) {
+            if ($this->privilege->check($this->route->getName(), 'access', $tag->author_id) !== true) {
+                return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+            }
             return $this->response->withPayload([
                 'data' => [
                     'id' => $tag->id,
                     'type' => 'tag',
-                    'attributes' => $tag,
+                    'attributes' => $tag->getAttributes(),
+                    'relationships' => [
+                        'childs' => [
+                            'data' => $tag->childs,
+                        ],
+                    ],
                 ],
             ]);
         } else {
@@ -120,8 +158,14 @@ class TagController
         }
     }
 
+    /**
+     * @return mixed
+     */
     public function index()
     {
+        if ($this->privilege->check($this->route->getName(), 'access') !== true) {
+            return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+        }
         $parameter = new Parameter('search', $_GET);
         $parameter->setBaseUrl('/api/v1/tag/index');
         $pagination = new Pagination($parameter);
@@ -136,7 +180,13 @@ class TagController
                 ->skip(($parameter->getCurrentPage() * $parameter->getPageSize()) - $parameter->getPageSize())
                 ->take($parameter->getPageSize())
                 ->get()
-                ->toArray();
+                ->map(function ($tag) {
+                    return [
+                        'id' => $tag->id,
+                        'type' => 'tag',
+                        'attributes' => $tag->getAttributes(),
+                    ];
+                })->toArray();
         });
         return $this->response->withPayload($pagination->getResults());
     }
@@ -148,20 +198,24 @@ class TagController
     public function update(int $id)
     {
         if ($tag = Tag::where('id', $id)->first()) {
+            if ($this->privilege->check($this->route->getName(), 'access', $tag->author_id) !== true) {
+                return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+            }
             $attr = $this->request->loadPostTo(new AttrAssignment);
             $validator = new TagValidation($attr->getAttributes(), compact('id'));
             if ($validator->validate('update')) {
-                $data = array_only($attr->getAttributes(), ['title', 'slug', 'type', 'parent_id', 'author_id']);
+                $data = array_only($attr->getAttributes(), ['title', 'slug', 'type', 'parent_id']);
                 foreach ($data as $key => $value) {
                     $tag->{$key} = $value;
                 }
+                $tag->status = 1;
                 $tag->updated_at = date('Y-m-d H:i:s');
                 if ($tag->save()) {
                     return $this->response->withPayload([
                         'data' => [
                             'id' => $id,
                             'type' => 'tag',
-                            'attributes' => $tag,
+                            'attributes' => $tag->getAttributes(),
                         ],
                     ]);
                 } else {

@@ -1,7 +1,7 @@
 <?php
 
 error_reporting(-1);
-
+// sleep(100);
 ini_set('display_errors', 'On');
 
 defined('VILOVEUL_WORKDIR') or define('VILOVEUL_WORKDIR', __DIR__);
@@ -42,7 +42,6 @@ $app = new Viloveul\Kernel\Application(
  * Load all middlewares
  */
 $app->middleware($container->make(App\Middleware\Auth::class));
-$app->middleware($container->make(App\Middleware\Access::class));
 
 /**
  * Load all routes

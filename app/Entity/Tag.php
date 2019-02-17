@@ -11,6 +11,8 @@ class Tag extends Model
      * @var array
      */
     protected $fillable = [
+        'parent_id',
+        'author_id',
         'title',
         'type',
         'slug',

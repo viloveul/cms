@@ -15,7 +15,7 @@ class Comment extends Model
         'parent_id',
         'post_id',
         'author_id',
-        'fullname',
+        'name',
         'email',
         'website',
         'content',

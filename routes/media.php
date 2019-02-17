@@ -27,7 +27,7 @@ $router->add(
  */
 $router->add(
     'media.detail',
-    new Route('GET /media/detail', [
+    new Route('GET /media/detail/{:id}', [
         App\Controller\MediaController::class, 'detail',
     ])
 );

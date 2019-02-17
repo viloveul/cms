@@ -14,6 +14,16 @@ class AttrAssignment implements IServerRequestAssignment
      */
     private $attributes = [];
 
+    /**
+     * @param array $attrs
+     */
+    public function __construct(array $attrs = [])
+    {
+        foreach ($attrs as $key => $value) {
+            $this->set($key, $value);
+        }
+    }
+
     public function attrkey(): string
     {
         return 'attributes';

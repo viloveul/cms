@@ -2,10 +2,12 @@
 
 namespace App\Controller;
 
-use App\Component\Setting as SettingComponent;
-use App\Entity\Setting;
+use App\Component\Privilege;
+use App\Component\Setting;
+use App\Entity\Setting as SettingModel;
 use Viloveul\Http\Contracts\Response;
 use Viloveul\Http\Contracts\ServerRequest;
+use Viloveul\Router\Contracts\Dispatcher;
 
 class SettingController
 {
@@ -20,10 +22,10 @@ class SettingController
     protected $response;
 
     /**
-     * @param Response         $response
-     * @param SettingComponent $options
+     * @param Response $response
+     * @param Setting  $options
      */
-    public function __construct(Response $response, SettingComponent $options)
+    public function __construct(Response $response, Setting $options)
     {
         $this->response = $response;
         $this->options = $options;
@@ -36,23 +38,35 @@ class SettingController
     public function get(string $name)
     {
         return $this->response->withPayload([
-            'data' => $this->options->get($name),
+            'data' => [
+                'name' => $name,
+                'option' => $this->options->get($name),
+            ],
         ]);
     }
 
     /**
+     * @param  string        $name
      * @param  ServerRequest $request
-     * @param  $name
+     * @param  Privilege     $privilege
+     * @param  Dispatcher    $router
      * @return mixed
      */
-    public function set(ServerRequest $request, string $name)
+    public function set(string $name, ServerRequest $request, Privilege $privilege, Dispatcher $router)
     {
+        $route = $router->routed();
+        if (!$privilege->check($route->getName())) {
+            return $this->response->withErrors(401, ["No direct access for route: {$route->getName()}"]);
+        }
         $value = $request->getBody()->getContents();
         $option = is_scalar($value) ? $value : json_encode($value);
-        Setting::updateOrCreate(compact('name'), compact('option'));
+        SettingModel::updateOrCreate(compact('name'), compact('option'));
         $this->options->clear();
         return $this->response->withPayload([
-            'data' => $value,
+            'data' => [
+                'name' => $name,
+                'option' => $value,
+            ],
         ]);
     }
 }

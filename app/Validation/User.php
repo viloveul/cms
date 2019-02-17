@@ -22,11 +22,11 @@ class User extends Validator
                     ['lengthMax', 250],
                     ['notIn', ['admin']],
                 ],
-                'nickname' => [
+                'username' => [
                     'required',
-                    ['lengthMin', 5],
+                    ['lengthMin', 3],
                     ['lengthMax', 250],
-                    ['notIn', ['admin']],
+                    ['notIn', ['root', 'me']],
                     'slug',
                     'checkUnique',
                 ],
@@ -52,11 +52,11 @@ class User extends Validator
                     ['lengthMax', 250],
                     ['notIn', ['admin']],
                 ],
-                'nickname' => [
+                'username' => [
                     ['optional'],
-                    ['lengthMin', 5],
+                    ['lengthMin', 3],
                     ['lengthMax', 250],
-                    ['notIn', ['admin']],
+                    ['notIn', ['root', 'me']],
                     'slug',
                     'checkUnique',
                 ],
@@ -76,7 +76,7 @@ class User extends Validator
                 ],
             ],
             'login' => [
-                'email' => [
+                'username' => [
                     'required',
                 ],
                 'password' => [

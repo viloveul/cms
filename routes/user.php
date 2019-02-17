@@ -33,22 +33,22 @@ $router->add(
 );
 
 /**
- * assign user role
+ * publish user
  */
 $router->add(
-    'user.assign',
-    new Route('POST /user/assign/{:id}', [
-        App\Controller\UserController::class, 'assign',
+    'user.publish',
+    new Route('POST /user/publish/{:id}', [
+        App\Controller\UserController::class, 'publish',
     ])
 );
 
 /**
- * unassign user role
+ * get me
  */
 $router->add(
-    'user.unassign',
-    new Route('POST /user/unassign/{:id}', [
-        App\Controller\UserController::class, 'unassign',
+    'user.me',
+    new Route('GET /user/me', [
+        App\Controller\UserController::class, 'me',
     ])
 );
 

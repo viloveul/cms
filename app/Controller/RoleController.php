@@ -3,16 +3,22 @@
 namespace App\Controller;
 
 use App\Component\AttrAssignment;
+use App\Component\Privilege;
 use App\Entity\Role;
-use App\Entity\RoleChild;
 use App\Validation\Role as RoleValidation;
 use Viloveul\Http\Contracts\Response;
 use Viloveul\Http\Contracts\ServerRequest;
 use Viloveul\Pagination\Builder as Pagination;
 use Viloveul\Pagination\Parameter;
+use Viloveul\Router\Contracts\Dispatcher;
 
 class RoleController
 {
+    /**
+     * @var mixed
+     */
+    protected $privilege;
+
     /**
      * @var mixed
      */
@@ -24,13 +30,20 @@ class RoleController
     protected $response;
 
     /**
+     * @var mixed
+     */
+    protected $route;
+
+    /**
      * @param ServerRequest $request
      * @param Response      $response
      */
-    public function __construct(ServerRequest $request, Response $response)
+    public function __construct(ServerRequest $request, Response $response, Privilege $privilege, Dispatcher $router)
     {
         $this->request = $request;
         $this->response = $response;
+        $this->privilege = $privilege;
+        $this->route = $router->routed();
     }
 
     /**
@@ -44,7 +57,12 @@ class RoleController
         }
         $role->where('status', 1);
         return $this->response->withPayload([
-            'data' => $role->get(),
+            'data' => $role->get()->map(function ($role) {
+                return [
+                    'id' => $role->id,
+                    'attributes' => $role->getAttributes(),
+                ];
+            }),
         ]);
     }
 
@@ -53,19 +71,21 @@ class RoleController
      */
     public function assign($id)
     {
+        if ($this->privilege->check($this->route->getName(), 'access') !== true) {
+            return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+        }
         if ($role = Role::where('id', $id)->where('status', 1)->first()) {
-            $ids = (array) $this->request->getPost('child') ?: [];
-            $childs = [];
-            foreach ($ids as $child_id) {
-                $child = RoleChild::firstOrCreate(
-                    ['role_id' => $role->id, 'child_id' => $child_id],
-                    ['created_at' => date('Y-m-d H:i:s')]
-                );
-                if ($child) {
-                    $childs[] = $child_id;
-                }
-            }
-            return $this->response->withStatus(201)->withPayload(['data' => $childs]);
+            $ids = (array) $this->request->getPost('childs') ?: [];
+            $role->childs()->attach($ids);
+            $role->load('childs');
+            $this->privilege->clear();
+            return $this->response->withStatus(201)->withPayload([
+                'data' => [
+                    'id' => $role->id,
+                    'type' => 'role',
+                    'attributes' => $role->getAttributes(),
+                ],
+            ]);
         }
         return $this->response->withErrors(404, ['Role not found']);
     }
@@ -75,6 +95,9 @@ class RoleController
      */
     public function create()
     {
+        if ($this->privilege->check($this->route->getName(), 'access') !== true) {
+            return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+        }
         $attr = $this->request->loadPostTo(new AttrAssignment);
         $attr->set('name', preg_replace('/[^a-z0-9\-\.\_]+/', '-', strtolower($attr->get('name'))), true);
         $validator = new RoleValidation($attr->getAttributes());
@@ -90,7 +113,7 @@ class RoleController
                     'data' => [
                         'id' => $role->id,
                         'type' => 'role',
-                        'attributes' => $role,
+                        'attributes' => $role->getAttributes(),
                     ],
                 ]);
             } else {
@@ -107,12 +130,20 @@ class RoleController
      */
     public function detail(int $id)
     {
+        if ($this->privilege->check($this->route->getName(), 'access') !== true) {
+            return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+        }
         if ($role = Role::where('id', $id)->with('childs')->first()) {
             return $this->response->withPayload([
                 'data' => [
                     'id' => $role->id,
                     'type' => 'role',
-                    'attributes' => $role,
+                    'attributes' => $role->getAttributes(),
+                    'relationships' => [
+                        'childs' => [
+                            'data' => $role->childs,
+                        ],
+                    ],
                 ],
             ]);
         } else {
@@ -120,8 +151,14 @@ class RoleController
         }
     }
 
+    /**
+     * @return mixed
+     */
     public function index()
     {
+        if ($this->privilege->check($this->route->getName(), 'access') !== true) {
+            return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+        }
         $parameter = new Parameter('search', $_GET);
         $parameter->setBaseUrl('/api/v1/role/index');
         $pagination = new Pagination($parameter);
@@ -136,7 +173,13 @@ class RoleController
                 ->skip(($parameter->getCurrentPage() * $parameter->getPageSize()) - $parameter->getPageSize())
                 ->take($parameter->getPageSize())
                 ->get()
-                ->toArray();
+                ->map(function ($role) {
+                    return [
+                        'id' => $role->id,
+                        'type' => 'role',
+                        'attributes' => $role->getAttributes(),
+                    ];
+                })->toArray();
         });
         return $this->response->withPayload($pagination->getResults());
     }
@@ -144,17 +187,23 @@ class RoleController
     /**
      * @param $id
      */
-    public function unassign($id)
+    public function unassign($id, Privilege $privilege)
     {
+        if ($this->privilege->check($this->route->getName(), 'access') !== true) {
+            return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+        }
         if ($role = Role::where('id', $id)->where('status', 1)->first()) {
-            $ids = (array) $this->request->getPost('child') ?: [];
-            $childs = [];
-            foreach ($ids as $child_id) {
-                if (RoleChild::where('role_id', $id)->where('child_id', $child_id)->delete()) {
-                    $childs[] = $child_id;
-                }
-            }
-            return $this->response->withStatus(201)->withPayload(['data' => $childs]);
+            $ids = (array) $this->request->getPost('childs') ?: [];
+            $role->childs()->detach($ids);
+            $role->load('childs');
+            $privilege->clear();
+            return $this->response->withStatus(201)->withPayload([
+                'data' => [
+                    'id' => $role->id,
+                    'type' => 'role',
+                    'attributes' => $role->getAttributes(),
+                ],
+            ]);
         }
         return $this->response->withErrors(404, ['Role not found']);
     }
@@ -165,6 +214,9 @@ class RoleController
      */
     public function update(int $id)
     {
+        if ($this->privilege->check($this->route->getName(), 'access') !== true) {
+            return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+        }
         if ($role = Role::where('id', $id)->first()) {
             $attr = $this->request->loadPostTo(new AttrAssignment);
             $attr->set('name', preg_replace('/[^a-z0-9\-\.\_]+/', '-', strtolower($attr->get('name') ?: $role->name)), true);
@@ -180,7 +232,7 @@ class RoleController
                         'data' => [
                             'id' => $id,
                             'type' => 'role',
-                            'attributes' => $role,
+                            'attributes' => $role->getAttributes(),
                         ],
                     ]);
                 } else {

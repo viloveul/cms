@@ -35,16 +35,10 @@ class SchemaInstaller
 
         if ($name == 'user') {
             $builder->table($name, function (Blueprint $table) use ($builder, $name) {
-                $builder->hasColumn($name, 'name') or $table->string('name');
-            });
-        }
-
-        if ($name == 'user') {
-            $builder->table($name, function (Blueprint $table) use ($builder, $name) {
                 $builder->hasColumn($name, 'name') or $table->string('name')->index();
-                $builder->hasColumn($name, 'photo') or $table->string('photo')->nullable();
-                $builder->hasColumn($name, 'nickname') or $table->string('nickname')->unique();
+                $builder->hasColumn($name, 'picture') or $table->string('picture')->nullable()->index();
                 $builder->hasColumn($name, 'email') or $table->string('email')->unique();
+                $builder->hasColumn($name, 'username') or $table->string('username')->unique();
                 $builder->hasColumn($name, 'password') or $table->string('password')->index();
                 $builder->hasColumn($name, 'status') or $table->integer('status')->default(0)->index();
                 $builder->hasColumn($name, 'created_at') or $table->timestamp('created_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
@@ -53,11 +47,19 @@ class SchemaInstaller
             });
         }
 
+        if ($name == 'user_profile') {
+            $builder->table($name, function (Blueprint $table) use ($builder, $name) {
+                $builder->hasColumn($name, 'user_id') or $table->unsignedBigInteger('user_id')->index();
+                $builder->hasColumn($name, 'name') or $table->string('name')->index();
+                $builder->hasColumn($name, 'value') or $table->text('name')->nullable();
+                $builder->hasColumn($name, 'last_modified') or $table->timestamp('last_modified')->default(date('Y-m-d H:i:s'))->nullable()->index();
+            });
+        }
+
         if ($name == 'user_role') {
             $builder->table($name, function (Blueprint $table) use ($builder, $name) {
                 $builder->hasColumn($name, 'user_id') or $table->unsignedBigInteger('user_id')->index();
                 $builder->hasColumn($name, 'role_id') or $table->unsignedBigInteger('role_id')->index();
-                $builder->hasColumn($name, 'created_at') or $table->timestamp('created_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
             });
         }
 
@@ -77,7 +79,6 @@ class SchemaInstaller
             $builder->table($name, function (Blueprint $table) use ($builder, $name) {
                 $builder->hasColumn($name, 'role_id') or $table->unsignedBigInteger('role_id')->index();
                 $builder->hasColumn($name, 'child_id') or $table->unsignedBigInteger('child_id')->index();
-                $builder->hasColumn($name, 'created_at') or $table->timestamp('created_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
             });
         }
 
@@ -126,7 +127,6 @@ class SchemaInstaller
             $builder->table($name, function (Blueprint $table) use ($builder, $name) {
                 $builder->hasColumn($name, 'post_id') or $table->unsignedBigInteger('post_id')->index();
                 $builder->hasColumn($name, 'tag_id') or $table->unsignedBigInteger('tag_id')->index();
-                $builder->hasColumn($name, 'created_at') or $table->timestamp('created_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
             });
         }
 
@@ -136,7 +136,6 @@ class SchemaInstaller
                 $builder->hasColumn($name, 'parent_id') or $table->unsignedBigInteger('parent_id')->default(0)->index();
                 $builder->hasColumn($name, 'author_id') or $table->unsignedBigInteger('author_id')->default(0)->index();
                 $builder->hasColumn($name, 'name') or $table->string('name')->index();
-                $builder->hasColumn($name, 'nickname') or $table->string('nickname')->index();
                 $builder->hasColumn($name, 'email') or $table->string('email')->index();
                 $builder->hasColumn($name, 'website') or $table->string('website')->nullable()->index();
                 $builder->hasColumn($name, 'content') or $table->text('content')->nullable();
@@ -185,9 +184,9 @@ class SchemaInstaller
             $builder->create($name, function (Blueprint $table) {
                 $table->bigIncrements('id');
                 $table->string('name')->index();
-                $table->string('photo')->nullable();
-                $table->string('nickname')->unique();
+                $table->string('picture')->nullable()->index();
                 $table->string('email')->unique();
+                $table->string('username')->unique();
                 $table->string('password')->index();
                 $table->integer('status')->default(0)->index();
                 $table->timestamp('created_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
@@ -196,12 +195,22 @@ class SchemaInstaller
             });
         }
 
+        if ($name == 'user_profile') {
+            $builder->create($name, function (Blueprint $table) {
+                $table->bigIncrements('id');
+                $table->unsignedBigInteger('user_id')->index();
+                $table->string('name')->index();
+                $table->text('value')->nullable();
+                $table->timestamp('last_modified')->default(date('Y-m-d H:i:s'))->nullable()->index();
+                $table->unique(['user_id', 'name']);
+            });
+        }
+
         if ($name == 'user_role') {
             $builder->create($name, function (Blueprint $table) {
                 $table->bigIncrements('id');
                 $table->unsignedBigInteger('user_id')->index();
                 $table->unsignedBigInteger('role_id')->index();
-                $table->timestamp('created_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
                 $table->unique(['user_id', 'role_id']);
             });
         }
@@ -224,7 +233,6 @@ class SchemaInstaller
                 $table->bigIncrements('id');
                 $table->unsignedBigInteger('role_id')->index();
                 $table->unsignedBigInteger('child_id')->index();
-                $table->timestamp('created_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
                 $table->unique(['role_id', 'child_id']);
             });
         }
@@ -278,7 +286,6 @@ class SchemaInstaller
                 $table->bigIncrements('id');
                 $table->unsignedBigInteger('post_id')->index();
                 $table->unsignedBigInteger('tag_id')->index();
-                $table->timestamp('created_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
                 $table->unique(['post_id', 'tag_id']);
             });
         }
@@ -290,7 +297,6 @@ class SchemaInstaller
                 $table->unsignedBigInteger('parent_id')->default(0)->index();
                 $table->unsignedBigInteger('author_id')->default(0)->index();
                 $table->string('name')->index();
-                $table->string('nickname')->index();
                 $table->string('email')->index();
                 $table->string('website')->nullable()->index();
                 $table->text('content')->nullable();

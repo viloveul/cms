@@ -33,6 +33,16 @@ $router->add(
 );
 
 /**
+ * publish post
+ */
+$router->add(
+    'post.publish',
+    new Route('POST /post/publish/{:id}', [
+        App\Controller\PostController::class, 'publish',
+    ])
+);
+
+/**
  * Update post
  */
 $router->add(

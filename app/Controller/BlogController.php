@@ -49,7 +49,7 @@ class BlogController
      */
     public function archive(string $slug)
     {
-        if ($archive = Tag::where('slug', $name)->first()) {
+        if ($archive = Tag::where('slug', $slug)->first()) {
             $model = Post::query();
             $parameter = new Parameter('search', $_GET);
             $parameter->setBaseUrl("/api/v1/blog/archive/{$slug}");
@@ -65,11 +65,10 @@ class BlogController
                 $model->withCount('comments');
                 $model->with([
                     'author' => function ($query) {
-                        $query->select(['id', 'email', 'name', 'nickname']);
+                        $query->select(['id', 'email', 'username', 'name', 'status']);
                     },
                     'tags' => function ($query) {
                         $query->select(['tag_id', 'post_id', 'title', 'type', 'slug']);
-                        $query->where('type', 'tag');
                     },
                 ]);
 
@@ -83,7 +82,21 @@ class BlogController
                     ->skip(($parameter->getCurrentPage() * $parameter->getPageSize()) - $parameter->getPageSize())
                     ->take($parameter->getPageSize())
                     ->get()
-                    ->toArray();
+                    ->map(function ($post) {
+                        return [
+                            'id' => $post->id,
+                            'type' => 'post',
+                            'attributes' => $post->getAttributes(),
+                            'relationships' => [
+                                'tags' => [
+                                    'data' => $post->tags,
+                                ],
+                                'author' => [
+                                    'data' => $post->author,
+                                ],
+                            ],
+                        ];
+                    })->toArray();
             });
             $results = $pagination->getResults();
             $results['meta']['archive'] = $archive;
@@ -97,7 +110,7 @@ class BlogController
      */
     public function author(string $name)
     {
-        if ($author = User::where('nickname', $name)->first()) {
+        if ($author = User::where('username', $name)->first()) {
             $model = Post::query();
             $parameter = new Parameter('search', $_GET);
             $parameter->setBaseUrl("/api/v1/blog/author/{$name}");
@@ -107,18 +120,16 @@ class BlogController
                 foreach ($parameter->getConditions() as $key => $value) {
                     $model->where($key, 'like', "%{$value}%");
                 }
-                $model->where('type', 'post');
                 $model->where('status', 1);
                 $model->where('author_id', $author->id);
 
                 $model->withCount('comments');
                 $model->with([
                     'author' => function ($query) {
-                        $query->select(['id', 'email', 'name', 'nickname']);
+                        $query->select(['id', 'email', 'username', 'name', 'status']);
                     },
                     'tags' => function ($query) {
                         $query->select(['tag_id', 'post_id', 'title', 'type', 'slug']);
-                        $query->where('type', 'tag');
                     },
                 ]);
 
@@ -127,10 +138,25 @@ class BlogController
                     ->skip(($parameter->getCurrentPage() * $parameter->getPageSize()) - $parameter->getPageSize())
                     ->take($parameter->getPageSize())
                     ->get()
-                    ->toArray();
+                    ->map(function ($post) {
+                        return [
+                            'id' => $post->id,
+                            'type' => 'post',
+                            'attributes' => $post->getAttributes(),
+                            'relationships' => [
+                                'tags' => [
+                                    'data' => $post->tags,
+                                ],
+                                'author' => [
+                                    'data' => $post->author,
+                                ],
+                            ],
+                        ];
+                    })->toArray();
             });
             $results = $pagination->getResults();
             $results['meta']['author'] = $author;
+            $results['meta']['profile'] = $author->profile->pluck('value', 'name');
             return $this->response->withPayload($results);
         }
         return $this->response->withErrors(404, ["Author {$name} not found."]);
@@ -150,25 +176,30 @@ class BlogController
             if ($id = $user->get('sub')) {
                 $attributes['author_id'] = $id;
                 $attributes['name'] = $user->get('name');
-                $attributes['nickname'] = $user->get('nickname');
                 $attributes['email'] = $user->get('email');
             }
             $attributes['post_id'] = $post_id;
             $validator = new CommentValidation($attributes->getAttributes());
             if ($validator->validate('insert')) {
                 $comment = new Comment();
-                $data = array_only($attributes->getAttributes(), ['parent_id', 'post_id', 'author_id', 'name', 'nickname', 'email', 'website', 'content']);
+                $data = array_only($attributes->getAttributes(), ['parent_id', 'post_id', 'author_id', 'name', 'email', 'website', 'content']);
                 foreach ($data as $key => $value) {
                     $comment->{$key} = $value;
                 }
                 $comment->status = !$this->setting->get('moderations.comment');
                 $comment->created_at = date('Y-m-d H:i:s');
                 if ($comment->save()) {
+                    $comment->load('author');
                     return $this->response->withPayload([
                         'data' => [
                             'id' => $comment->id,
                             'type' => 'comment',
-                            'attributes' => $comment,
+                            'attributes' => $comment->getAttributes(),
+                            'relationships' => [
+                                'author' => [
+                                    'data' => $comment->author,
+                                ],
+                            ],
                         ],
                     ]);
                 } else {
@@ -199,15 +230,29 @@ class BlogController
                 }
                 $model->where('status', 1);
                 $model->where('post_id', $post_id);
-
-                $model->with('author');
+                $model->with([
+                    'author' => function ($query) {
+                        $query->select(['id', 'email', 'username', 'name', 'status']);
+                    },
+                ]);
 
                 $this->total = $model->count();
                 $this->data = $model->orderBy($parameter->getOrderBy(), $parameter->getSortOrder())
                     ->skip(($parameter->getCurrentPage() * $parameter->getPageSize()) - $parameter->getPageSize())
                     ->take($parameter->getPageSize())
                     ->get()
-                    ->toArray();
+                    ->map(function ($comment) {
+                        return [
+                            'id' => $comment->id,
+                            'type' => 'comment',
+                            'attributes' => $comment->getAttributes(),
+                            'relationships' => [
+                                'author' => [
+                                    'data' => $comment->author,
+                                ],
+                            ],
+                        ];
+                    })->toArray();
             });
             $results = $pagination->getResults();
             return $this->response->withPayload($results);
@@ -227,7 +272,15 @@ class BlogController
                 'data' => [
                     'id' => $post->id,
                     'type' => 'post',
-                    'attributes' => $post,
+                    'attributes' => $post->getAttributes(),
+                    'relationships' => [
+                        'tags' => [
+                            'data' => $post->tags,
+                        ],
+                        'author' => [
+                            'data' => $post->author,
+                        ],
+                    ],
                 ],
             ]);
         }
@@ -251,11 +304,10 @@ class BlogController
             $model->withCount('comments');
             $model->with([
                 'author' => function ($query) {
-                    $query->select(['id', 'email', 'name', 'nickname']);
+                    $query->select(['id', 'email', 'username', 'name', 'status']);
                 },
                 'tags' => function ($query) {
                     $query->select(['tag_id', 'post_id', 'title', 'type', 'slug']);
-                    $query->where('type', 'tag');
                 },
             ]);
 
@@ -264,7 +316,21 @@ class BlogController
                 ->skip(($parameter->getCurrentPage() * $parameter->getPageSize()) - $parameter->getPageSize())
                 ->take($parameter->getPageSize())
                 ->get()
-                ->toArray();
+                ->map(function ($post) {
+                    return [
+                        'id' => $post->id,
+                        'type' => 'post',
+                        'attributes' => $post->getAttributes(),
+                        'relationships' => [
+                            'tags' => [
+                                'data' => $post->tags,
+                            ],
+                            'author' => [
+                                'data' => $post->author,
+                            ],
+                        ],
+                    ];
+                })->toArray();
         });
 
         return $this->response->withPayload($pagination->getResults());

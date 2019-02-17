@@ -1,5 +1,5 @@
 
-# Viloveul Content Management System
+# Viloveul Content Management System (API)
 
 need php 7
 
@@ -13,3 +13,6 @@ update your .env variable, and then type :
 ```bash
 $ php viloveulc install
 ```
+
+
+response : https://jsonapi.org/recommendations
