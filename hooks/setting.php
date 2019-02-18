@@ -36,7 +36,7 @@ $event->listen('setting.contents', function ($payload) {
         ],
     ];
     foreach (['posts', 'tags', 'menus'] as $type) {
-        if (array_key_exists($type, $payload)) {
+        if (array_key_exists($type, $payload ?: [])) {
             foreach ($payload[$type] ?: [] as $data) {
                 if (isset($data->format, $data->name, $data->label)) {
                     $c[$type][] = (array) $data;
