@@ -1,10 +1,10 @@
 <?php
 
 /**
- * Format posts
+ * Format contents
  */
-$event->listen('setting.posts', function ($payload) {
-    $posts = [
+$event->listen('setting.contents', function ($payload) {
+    $c['posts'] = [
         [
             'name' => 'post',
             'format' => 'post',
@@ -16,19 +16,7 @@ $event->listen('setting.posts', function ($payload) {
             'label' => 'Page',
         ],
     ];
-    foreach ($payload ?: [] as $post) {
-        if (isset($post->format, $post->name, $post->label)) {
-            $posts[] = (array) $post;
-        }
-    }
-    return array_values(array_map('unserialize', array_unique(array_map('serialize', $posts))));
-});
-
-/**
- * Format tags
- */
-$event->listen('setting.tags', function ($payload) {
-    $tags = [
+    $c['tags'] = [
         [
             'name' => 'tag',
             'format' => 'tag',
@@ -40,10 +28,21 @@ $event->listen('setting.tags', function ($payload) {
             'label' => 'Category',
         ],
     ];
-    foreach ($payload ?: [] as $tag) {
-        if (isset($tag->format, $tag->name, $tag->label)) {
-            $tags[] = (array) $tag;
+    $c['menus'] = [
+        [
+            'name' => 'navmenu',
+            'format' => 'standar',
+            'label' => 'Nav Menu',
+        ],
+    ];
+    foreach (['posts', 'tags', 'menus'] as $type) {
+        if (array_key_exists($type, $payload)) {
+            foreach ($payload[$type] ?: [] as $data) {
+                if (isset($data->format, $data->name, $data->label)) {
+                    $c[$type][] = (array) $data;
+                }
+            }
         }
     }
-    return array_values(array_map('unserialize', array_unique(array_map('serialize', $tags))));
+    return array_map('unserialize', array_unique(array_map('serialize', $c)));
 });
