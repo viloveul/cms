@@ -36,7 +36,7 @@ class Auth implements MiddlewareInterface, ContainerAware
             $auth->setToken($token);
         }
 
-        $routeIgnores = ['auth.login', 'auth.register', 'setting.get'];
+        $routeIgnores = ['auth.login', 'auth.register', 'setting.get', 'widget.load'];
 
         if (!in_array($route->getName(), $routeIgnores)) {
             try {
