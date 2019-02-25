@@ -197,7 +197,7 @@ class UserController
                 return $this->response->withPayload([
                     'data' => [
                         'id' => $user->id,
-                        'type' => 'user_profile',
+                        'type' => 'user',
                         'attributes' => $user,
                     ],
                     'meta' => [
@@ -235,6 +235,31 @@ class UserController
     }
 
     /**
+     * @param  int     $id
+     * @return mixed
+     */
+    public function relations(int $id)
+    {
+        if ($this->privilege->check($this->route->getName(), 'access') !== true) {
+            return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+        }
+        if ($user = User::where('id', $id)->first()) {
+            $body = $this->request->getBody()->getContents() ?: '[]';
+            $relations = json_decode($body, true) ?: [];
+            is_array($relations) and $user->roles()->sync($relations);
+            return $this->response->withPayload([
+                'data' => [
+                    'id' => $id,
+                    'type' => 'user',
+                    'attributes' => $user,
+                ],
+            ]);
+        } else {
+            return $this->response->withErrors(404, ['User not found']);
+        }
+    }
+
+    /**
      * @param $id
      */
     public function update(int $id)
@@ -256,8 +281,6 @@ class UserController
                     $user->password = password_hash($password, PASSWORD_DEFAULT);
                 }
                 if ($user->save()) {
-                    $relations = $attr->get('relations') ?: [];
-                    $user->roles()->sync($relations);
                     return $this->response->withPayload([
                         'data' => [
                             'id' => $id,
