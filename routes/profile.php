@@ -7,14 +7,14 @@ use Viloveul\Router\Route;
  */
 $router->add(
     'profile.detail',
-    new Route('GET /profile/{:id}', [
+    new Route('GET /profile/detail/{:id}', [
         App\Controller\ProfileController::class, 'detail',
     ])
 );
 
 $router->add(
     'profile.update',
-    new Route('POST /profile/{:id}', [
+    new Route('POST /profile/update/{:id}', [
         App\Controller\ProfileController::class, 'update',
     ])
 );

@@ -123,6 +123,21 @@ class SchemaInstaller
             });
         }
 
+        if ($name == 'menu') {
+            $builder->table($name, function (Blueprint $table) use ($builder, $name) {
+                $builder->hasColumn($name, 'author_id') or $table->unsignedBigInteger('author_id')->default(0)->index();
+                $builder->hasColumn($name, 'label') or $table->string('label')->index();
+                $builder->hasColumn($name, 'icon') or $table->string('icon')->nullable();
+                $builder->hasColumn($name, 'type') or $table->string('type')->index();
+                $builder->hasColumn($name, 'description') or $table->text('description')->nullable();
+                $builder->hasColumn($name, 'url') or $table->text('url')->nullable();
+                $builder->hasColumn($name, 'status') or $table->integer('status')->default(0)->index();
+                $builder->hasColumn($name, 'created_at') or $table->timestamp('created_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
+                $builder->hasColumn($name, 'updated_at') or $table->timestamp('updated_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
+                $builder->hasColumn($name, 'deleted_at') or $table->timestamp('deleted_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
+            });
+        }
+
         if ($name == 'post_tag') {
             $builder->table($name, function (Blueprint $table) use ($builder, $name) {
                 $builder->hasColumn($name, 'post_id') or $table->unsignedBigInteger('post_id')->index();
@@ -274,6 +289,22 @@ class SchemaInstaller
                 $table->text('description')->nullable();
                 $table->text('content')->nullable();
                 $table->integer('comment_enabled')->default(1)->index();
+                $table->integer('status')->default(0)->index();
+                $table->timestamp('created_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
+                $table->timestamp('updated_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
+                $table->timestamp('deleted_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
+            });
+        }
+
+        if ($name == 'menu') {
+            $builder->create($name, function (Blueprint $table) {
+                $table->bigIncrements('id');
+                $table->unsignedBigInteger('author_id')->default(0)->index();
+                $table->string('label')->index();
+                $table->string('icon')->nullable();
+                $table->string('type')->index();
+                $table->text('description')->nullable();
+                $table->text('url')->nullable();
                 $table->integer('status')->default(0)->index();
                 $table->timestamp('created_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
                 $table->timestamp('updated_at')->default(date('Y-m-d H:i:s'))->nullable()->index();

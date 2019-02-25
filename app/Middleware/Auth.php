@@ -36,7 +36,7 @@ class Auth implements MiddlewareInterface, ContainerAware
             $auth->setToken($token);
         }
 
-        $routeIgnores = ['auth.login', 'auth.register', 'setting.get'];
+        $routeIgnores = ['auth.login', 'auth.register', 'setting.get', 'widget.load'];
 
         if (!in_array($route->getName(), $routeIgnores)) {
             try {
@@ -45,7 +45,7 @@ class Auth implements MiddlewareInterface, ContainerAware
                 if (0 !== stripos($route->getName(), 'blog.')) {
                     if ($e instanceof InvalidTokenException) {
                         return $container->get(Response::class)->withErrors(401, [
-                            $e->getMessage(),
+                            'Token Invalid',
                         ]);
                     }
                     return $container->get(Response::class)->withErrors(401, [

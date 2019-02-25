@@ -63,6 +63,16 @@ $router->add(
 );
 
 /**
+ * sync user roles
+ */
+$router->add(
+    'user.relations',
+    new Route('POST /user/relations/{:id}', [
+        App\Controller\UserController::class, 'relations',
+    ])
+);
+
+/**
  * Delete user
  */
 $router->add(
