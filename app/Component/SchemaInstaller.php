@@ -2,8 +2,8 @@
 
 namespace App\Component;
 
+use App\Database;
 use Illuminate\Database\Schema\Blueprint;
-use Viloveul\Kernel\Contracts\Database;
 
 class SchemaInstaller
 {

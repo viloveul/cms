@@ -4,7 +4,7 @@ namespace App\Entity;
 
 use App\Entity\Role;
 use App\Entity\UserProfile;
-use Viloveul\Kernel\Model;
+use App\Model;
 
 class User extends Model
 {

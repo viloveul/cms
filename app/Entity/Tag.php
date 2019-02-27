@@ -3,7 +3,7 @@
 namespace App\Entity;
 
 use App\Entity\Post;
-use Viloveul\Kernel\Model;
+use App\Model;
 
 class Tag extends Model
 {

@@ -10,8 +10,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     return true;
 }
 
-// sleep(1);
-
 try {
 
     $app = require __DIR__ . '/../bootstrap.php';

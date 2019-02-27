@@ -3,7 +3,7 @@
 namespace App\Entity;
 
 use App\Entity\User;
-use Viloveul\Kernel\Model;
+use App\Model;
 
 class Media extends Model
 {
