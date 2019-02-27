@@ -2,7 +2,7 @@
 
 namespace App\Entity;
 
-use Viloveul\Kernel\Model;
+use App\Model;
 
 class UserRole extends Model
 {

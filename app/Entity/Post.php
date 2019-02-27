@@ -5,7 +5,7 @@ namespace App\Entity;
 use App\Entity\Comment;
 use App\Entity\Tag;
 use App\Entity\User;
-use Viloveul\Kernel\Model;
+use App\Model;
 
 class Post extends Model
 {

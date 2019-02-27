@@ -6,16 +6,6 @@ ini_set('display_errors', 'On');
 
 defined('VILOVEUL_WORKDIR') or define('VILOVEUL_WORKDIR', __DIR__);
 
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS');
-header('Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept, Authorization');
-header('Access-Control-Request-Headers: Origin, X-Requested-With, Content-Type, Accept, Authorization');
-header('Access-Control-Request-Method: GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS');
-
-if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
-    exit(1);
-}
-
 // require composer autoloader
 require_once __DIR__ . '/vendor/autoload.php';
 
@@ -31,12 +21,10 @@ $container = Viloveul\Container\ContainerFactory::instance([
     App\Component\Setting::class => App\Component\Setting::class,
 ]);
 
+$config = Viloveul\Config\ConfigFactory::load(__DIR__ . '/config/main.php');
+
 // initialize application object
-$app = new Viloveul\Kernel\Application(
-    $container,
-    // load file configuration
-    Viloveul\Config\ConfigFactory::load(__DIR__ . '/config/main.php')
-);
+$app = new App\Kernel($container, $config);
 
 /**
  * Load all middlewares

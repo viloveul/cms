@@ -4,7 +4,7 @@ namespace App\Entity;
 
 use App\Entity\Post;
 use App\Entity\User;
-use Viloveul\Kernel\Model;
+use App\Model;
 
 class Comment extends Model
 {
