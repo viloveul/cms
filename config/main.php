@@ -20,7 +20,7 @@ return [
         # private key for generate jwt
         'private' => env('AUTH_PRIVATE_KEY', __DIR__ . '/private.pem'),
         # public key for read jwt
-        'public' => env('AUTH_PRIVATE_KEY', __DIR__ . '/public.pem'),
+        'public' => env('AUTH_PUBLIC_KEY', __DIR__ . '/public.pem'),
         # phrase
         'phrase' => env('AUTH_PASSPHRASE', 'something'),
     ],
