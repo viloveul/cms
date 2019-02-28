@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Component\Privilege;
 use App\Entity\Media;
 use Viloveul\Auth\Contracts\Authentication;
+use Viloveul\Config\Contracts\Configuration;
 use Viloveul\Http\Contracts\Response;
 use Viloveul\Http\Contracts\ServerRequest;
 use Viloveul\Media\Contracts\Uploader;
@@ -122,15 +123,16 @@ class MediaController
     }
 
     /**
+     * @param  Configuration $config
      * @return mixed
      */
-    public function index()
+    public function index(Configuration $config)
     {
         if ($this->privilege->check($this->route->getName(), 'access') !== true) {
             return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
         }
         $parameter = new Parameter('search', $_GET);
-        $parameter->setBaseUrl('/api/v1/media/index');
+        $parameter->setBaseUrl("{$config->basepath}/media/index");
         $pagination = new Pagination($parameter);
         $uri = $this->request->getUri();
         $pagination->prepare(function () use ($uri) {

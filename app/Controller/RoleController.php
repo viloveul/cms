@@ -6,6 +6,7 @@ use App\Component\AttrAssignment;
 use App\Component\Privilege;
 use App\Entity\Role;
 use App\Validation\Role as RoleValidation;
+use Viloveul\Config\Contracts\Configuration;
 use Viloveul\Http\Contracts\Response;
 use Viloveul\Http\Contracts\ServerRequest;
 use Viloveul\Pagination\Builder as Pagination;
@@ -152,15 +153,16 @@ class RoleController
     }
 
     /**
+     * @param  Configuration $config
      * @return mixed
      */
-    public function index()
+    public function index(Configuration $config)
     {
         if ($this->privilege->check($this->route->getName(), 'access') !== true) {
             return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
         }
         $parameter = new Parameter('search', $_GET);
-        $parameter->setBaseUrl('/api/v1/role/index');
+        $parameter->setBaseUrl("{$config->basepath}/role/index");
         $pagination = new Pagination($parameter);
         $pagination->prepare(function () {
             $model = Role::query();

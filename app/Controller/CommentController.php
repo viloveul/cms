@@ -6,6 +6,7 @@ use App\Component\AttrAssignment;
 use App\Component\Privilege;
 use App\Entity\Comment;
 use App\Validation\Comment as CommentValidation;
+use Viloveul\Config\Contracts\Configuration;
 use Viloveul\Http\Contracts\Response;
 use Viloveul\Http\Contracts\ServerRequest;
 use Viloveul\Pagination\Builder as Pagination;
@@ -37,6 +38,8 @@ class CommentController
     /**
      * @param ServerRequest $request
      * @param Response      $response
+     * @param Privilege     $privilege
+     * @param Dispatcher    $router
      */
     public function __construct(ServerRequest $request, Response $response, Privilege $privilege, Dispatcher $router)
     {
@@ -91,15 +94,16 @@ class CommentController
     }
 
     /**
+     * @param  Configuration $config
      * @return mixed
      */
-    public function index()
+    public function index(Configuration $config)
     {
         if ($this->privilege->check($this->route->getName(), 'access') !== true) {
             return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
         }
         $parameter = new Parameter('search', $_GET);
-        $parameter->setBaseUrl('/api/v1/comment/index');
+        $parameter->setBaseUrl("{$config->basepath}/comment/index");
         $pagination = new Pagination($parameter);
         $pagination->prepare(function () {
             $model = Comment::query()->with('post');

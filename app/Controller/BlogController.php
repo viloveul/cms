@@ -10,6 +10,7 @@ use App\Entity\Tag;
 use App\Entity\User;
 use App\Validation\Comment as CommentValidation;
 use Viloveul\Auth\Contracts\Authentication;
+use Viloveul\Config\Contracts\Configuration;
 use Viloveul\Http\Contracts\Response;
 use Viloveul\Http\Contracts\ServerRequest;
 use Viloveul\Pagination\Builder as Pagination;
@@ -17,6 +18,11 @@ use Viloveul\Pagination\Parameter;
 
 class BlogController
 {
+    /**
+     * @var mixed
+     */
+    protected $config;
+
     /**
      * @var mixed
      */
@@ -36,12 +42,14 @@ class BlogController
      * @param ServerRequest $request
      * @param Response      $response
      * @param Setting       $setting
+     * @param Configuration $config
      */
-    public function __construct(ServerRequest $request, Response $response, Setting $setting)
+    public function __construct(ServerRequest $request, Response $response, Setting $setting, Configuration $config)
     {
         $this->request = $request;
         $this->response = $response;
         $this->setting = $setting;
+        $this->config = $config;
     }
 
     /**
@@ -52,7 +60,7 @@ class BlogController
         if ($archive = Tag::where('slug', $slug)->first()) {
             $model = Post::query();
             $parameter = new Parameter('search', $_GET);
-            $parameter->setBaseUrl("/api/v1/blog/archive/{$slug}");
+            $parameter->setBaseUrl("{$this->config->basepath}/blog/archive/{$slug}");
             $pagination = new Pagination($parameter);
             $pagination->prepare(function () use ($model, $slug) {
                 $parameter = $this->getParameter();
@@ -113,7 +121,7 @@ class BlogController
         if ($author = User::where('username', $name)->first()) {
             $model = Post::query();
             $parameter = new Parameter('search', $_GET);
-            $parameter->setBaseUrl("/api/v1/blog/author/{$name}");
+            $parameter->setBaseUrl("{$this->config->basepath}/blog/author/{$name}");
             $pagination = new Pagination($parameter);
             $pagination->prepare(function () use ($model, $author) {
                 $parameter = $this->getParameter();
@@ -221,7 +229,7 @@ class BlogController
         if ($post = Post::where('id', $post_id)->where('status', 1)->where('comment_enabled', 1)->first()) {
             $model = Comment::query();
             $parameter = new Parameter('search', $_GET);
-            $parameter->setBaseUrl("/api/v1/blog/comments/{$post_id}");
+            $parameter->setBaseUrl("{$this->config->basepath}/blog/comments/{$post_id}");
             $pagination = new Pagination($parameter);
             $pagination->prepare(function () use ($model, $post_id) {
                 $parameter = $this->getParameter();
@@ -291,7 +299,7 @@ class BlogController
     {
         $model = Post::query()->select(['id', 'author_id', 'created_at', 'title', 'description', 'slug', 'type']);
         $parameter = new Parameter('search', $_GET);
-        $parameter->setBaseUrl('/api/v1/blog/index');
+        $parameter->setBaseUrl("{$this->config->basepath}/blog/index");
         $pagination = new Pagination($parameter);
         $pagination->prepare(function () use ($model) {
             $parameter = $this->getParameter();
