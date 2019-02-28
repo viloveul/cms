@@ -7,6 +7,7 @@ use App\Component\Privilege;
 use App\Component\Setting;
 use App\Entity\Menu;
 use Viloveul\Auth\Contracts\Authentication;
+use Viloveul\Config\Contracts\Configuration;
 use Viloveul\Http\Contracts\Response;
 use Viloveul\Http\Contracts\ServerRequest;
 use Viloveul\Pagination\Builder as Pagination;
@@ -125,15 +126,16 @@ class MenuController
     }
 
     /**
+     * @param  Configuration $config
      * @return mixed
      */
-    public function index()
+    public function index(Configuration $config)
     {
         if ($this->privilege->check($this->route->getName(), 'access') !== true) {
             return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
         }
         $parameter = new Parameter('search', $_GET);
-        $parameter->setBaseUrl('/api/v1/menu/index');
+        $parameter->setBaseUrl("{$config->basepath}/menu/index");
         $pagination = new Pagination($parameter);
         $pagination->prepare(function () {
             $model = Menu::query();

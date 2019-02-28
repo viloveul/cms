@@ -9,6 +9,7 @@ use App\Component\SlugCreation;
 use App\Entity\Post;
 use App\Validation\Post as PostValidation;
 use Viloveul\Auth\Contracts\Authentication;
+use Viloveul\Config\Contracts\Configuration;
 use Viloveul\Http\Contracts\Response;
 use Viloveul\Http\Contracts\ServerRequest;
 use Viloveul\Pagination\Builder as Pagination;
@@ -146,15 +147,16 @@ class PostController
     }
 
     /**
+     * @param  Configuration $config
      * @return mixed
      */
-    public function index()
+    public function index(Configuration $config)
     {
         if ($this->privilege->check($this->route->getName(), 'access') !== true) {
             return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
         }
         $parameter = new Parameter('search', $_GET);
-        $parameter->setBaseUrl('/api/v1/post/index');
+        $parameter->setBaseUrl("{$config->basepath}/post/index");
         $pagination = new Pagination($parameter);
         $pagination->prepare(function () {
             $model = Post::query()->with('author');
