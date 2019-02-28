@@ -9,6 +9,7 @@ $ cd your-project-name
 ```
 
 Edit file .env anda sesuai kebutuhan :
+
 | KEY | VALUE | KETERANGAN |
 | - | - | - |
 | BASEPATH | string | sebagai prefix url (default = /api/v1) |
