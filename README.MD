@@ -4,8 +4,8 @@
 need php 7, openssl
 
 ```bash
-$ composer create-project zafex/viloveul-cms-api your-project-name
-$ cd your-project-name
+composer create-project zafex/viloveul-cms-api your-project-name
+cd your-project-name
 ```
 
 Edit file .env anda sesuai kebutuhan :
@@ -34,6 +34,10 @@ Edit file .env anda sesuai kebutuhan :
 
 setelah menyesuaikan konfigurasi .env anda, kemudian lakukan perintah sebagai berikut untuk memulai instalasi
 ```bash
-$ php viloveulc install
+php viloveulc install
+```
+setelah selesai proses instalasi, jalankan perintah berikut:
+```bash
+php -S localhost:3333 -t public
 ```
 response rest api based on : https://jsonapi.org/recommendations
