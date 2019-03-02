@@ -57,13 +57,14 @@ class WidgetController implements ContainerAware
         $dir = realpath(__DIR__ . '/../Widget');
         $contains = scandir($dir);
         $items = array_filter($contains, function ($item) use ($dir) {
-            return !in_array($item, ['.', '..']) && is_file($dir . '/' . $item . '/Builder.php');
+            return !in_array($item, ['.', '..']) && is_file($dir . '/' . $item);
         });
         $results = [];
-        foreach ($items as $ns) {
-            if ($object = $this->make($ns)) {
+        foreach ($items as $class) {
+            $name = pathinfo($class, PATHINFO_FILENAME);
+            if ($object = $this->make($name)) {
                 $results[] = [
-                    'name' => $ns,
+                    'name' => $name,
                     'options' => $object->getOptions(),
                 ];
             }
@@ -85,6 +86,7 @@ class WidgetController implements ContainerAware
                 if ($object = $this->make($item['name'], $options)) {
                     $results[] = [
                         'name' => $item['name'],
+                        'options' => $object->getOptions(),
                         'results' => $object->results(),
                     ];
                 }
@@ -101,7 +103,7 @@ class WidgetController implements ContainerAware
     protected function make($class, array $options = [])
     {
         try {
-            $item = $this->getContainer()->make("\\App\\Widget\\{$class}\\Builder");
+            $item = $this->getContainer()->make("\\App\\Widget\\{$class}");
             $item->setOptions($options);
             return $item;
         } catch (ContainerException $e) {

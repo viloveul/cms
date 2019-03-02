@@ -4,7 +4,7 @@
 need php 7, openssl
 
 ```bash
-composer create-project zafex/viloveul-cms-api your-project-name
+composer create-project viloveul-cms/api your-project-name
 cd your-project-name
 ```
 

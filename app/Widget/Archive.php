@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Widget\Archive;
+namespace App\Widget;
 
 use App\Component\Widget;
 use App\Entity\Tag;
 
-class Builder extends Widget
+class Archive extends Widget
 {
     /**
      * @var array

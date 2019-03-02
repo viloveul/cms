@@ -198,7 +198,11 @@ class MediaController
         if ($this->privilege->check($this->route->getName(), 'access') !== true) {
             return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
         }
-        return $uploader->upload('*', function ($uploadedFiles, $errors, $files) use ($response, $auth) {
+        $uri = $this->request->getUri();
+        return $uploader->upload('*', function ($uploadedFiles, $errors, $files) use ($response, $auth, $uri) {
+            $schema = $uri->getScheme();
+            $host = $uri->getHost();
+            $port = $uri->getPort();
             $results = [];
             foreach ($uploadedFiles as $uploadedFile) {
                 $media = Media::create([
@@ -213,10 +217,30 @@ class MediaController
                     'status' => 1,
                     'created_at' => date('Y-m-d H:i:s'),
                 ]);
+                $url = vsprintf('%s://%s:%s/uploads/%s/%s/%s/%s', [
+                    $schema,
+                    $host,
+                    $port,
+                    $media->year,
+                    $media->month,
+                    $media->day,
+                    $media->filename,
+                ]);
+                $image = $url;
+                if (false === stripos($media->type, 'image')) {
+                    $image = vsprintf('%s://%s:%s/images/no-image.jpg', [
+                        $schema,
+                        $host,
+                        $port,
+                    ]);
+                }
                 $results[] = [
                     'id' => $media->id,
                     'type' => 'media',
-                    'attributes' => $media->getAttributes(),
+                    'attributes' => array_merge($media->getAttributes(), [
+                        'url' => $url,
+                        'image_url' => $image,
+                    ]),
                 ];
             }
             return $this->response->withPayload([
