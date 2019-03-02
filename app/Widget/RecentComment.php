@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Widget\RecentComment;
+namespace App\Widget;
 
 use App\Component\Widget;
 use App\Entity\Comment;
 
-class Builder extends Widget
+class RecentComment extends Widget
 {
     /**
      * @var array

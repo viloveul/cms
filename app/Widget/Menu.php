@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Widget\Menu;
+namespace App\Widget;
 
 use App\Component\Setting;
 use App\Component\Widget;
 use Viloveul\Container\ContainerAwareTrait;
 use Viloveul\Container\Contracts\ContainerAware;
 
-class Builder extends Widget implements ContainerAware
+class Menu extends Widget implements ContainerAware
 {
     use ContainerAwareTrait;
 
