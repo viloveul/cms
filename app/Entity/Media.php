@@ -14,6 +14,7 @@ class Media extends Model
         'author_id',
         'name',
         'filename',
+        'ref',
         'type',
         'size',
         'year',
