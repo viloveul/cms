@@ -166,6 +166,7 @@ class SchemaInstaller
                 $builder->hasColumn($name, 'author_id') or $table->unsignedBigInteger('author_id')->default(0)->index();
                 $builder->hasColumn($name, 'name') or $table->string('name')->index();
                 $builder->hasColumn($name, 'filename') or $table->string('filename')->unique();
+                $builder->hasColumn($name, 'ref') or $table->string('ref')->index();
                 $builder->hasColumn($name, 'type') or $table->string('type')->index();
                 $builder->hasColumn($name, 'size') or $table->string('size')->index();
                 $builder->hasColumn($name, 'year') or $table->string('year')->index();
@@ -345,6 +346,7 @@ class SchemaInstaller
                 $table->string('name')->index();
                 $table->string('filename')->unique();
                 $table->string('type')->index();
+                $table->string('ref')->index();
                 $table->string('size')->index();
                 $table->string('year')->index();
                 $table->string('month')->index();

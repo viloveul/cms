@@ -118,12 +118,9 @@ class UserController
         }
         if ($user = User::where('id', $id)->first()) {
             if (!$user->picture) {
-                $uri = $this->request->getUri();
                 $user->picture = sprintf(
-                    '%s://%s:%s/images/no-image.jpg',
-                    $uri->getScheme(),
-                    $uri->getHost(),
-                    $uri->getPort()
+                    '%s/images/no-image.jpg',
+                    $this->request->getBaseUrl()
                 );
             }
             return $this->response->withPayload([
@@ -187,13 +184,10 @@ class UserController
     {
         if ($id = $auth->getUser()->get('sub')) {
             if ($user = User::where('id', $id)->where('status', 1)->first()) {
-                if (!$user->picrure) {
-                    $uri = $this->request->getUri();
+                if (!$user->picture) {
                     $user->picture = sprintf(
-                        '%s://%s:%s/images/no-image.jpg',
-                        $uri->getScheme(),
-                        $uri->getHost(),
-                        $uri->getPort()
+                        '%s/images/no-image.jpg',
+                        $this->request->getBaseUrl()
                     );
                 }
                 return $this->response->withPayload([

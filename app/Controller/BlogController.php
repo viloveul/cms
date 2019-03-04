@@ -58,7 +58,16 @@ class BlogController
     public function archive(string $slug)
     {
         if ($archive = Tag::where('slug', $slug)->first()) {
-            $model = Post::query();
+            $model = Post::query()->select([
+                'id',
+                'author_id',
+                'created_at',
+                'title',
+                'description',
+                'slug',
+                'type',
+                'comment_enabled',
+            ]);
             $parameter = new Parameter('search', $_GET);
             $parameter->setBaseUrl("{$this->config->basepath}/blog/archive/{$slug}");
             $pagination = new Pagination($parameter);
@@ -119,7 +128,16 @@ class BlogController
     public function author(string $name)
     {
         if ($author = User::where('username', $name)->first()) {
-            $model = Post::query();
+            $model = Post::query()->select([
+                'id',
+                'author_id',
+                'created_at',
+                'title',
+                'description',
+                'slug',
+                'type',
+                'comment_enabled',
+            ]);
             $parameter = new Parameter('search', $_GET);
             $parameter->setBaseUrl("{$this->config->basepath}/blog/author/{$name}");
             $pagination = new Pagination($parameter);
@@ -297,7 +315,16 @@ class BlogController
 
     public function index()
     {
-        $model = Post::query()->select(['id', 'author_id', 'created_at', 'title', 'description', 'slug', 'type']);
+        $model = Post::query()->select([
+            'id',
+            'author_id',
+            'created_at',
+            'title',
+            'description',
+            'slug',
+            'type',
+            'comment_enabled',
+        ]);
         $parameter = new Parameter('search', $_GET);
         $parameter->setBaseUrl("{$this->config->basepath}/blog/index");
         $pagination = new Pagination($parameter);

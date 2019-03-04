@@ -81,14 +81,8 @@ class MediaController
             if ($this->privilege->check($this->route->getName(), 'access', $media->author_id) !== true) {
                 return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
             }
-            $uri = $this->request->getUri();
-            $schema = $uri->getScheme();
-            $host = $uri->getHost();
-            $port = $uri->getPort();
-            $url = vsprintf('%s://%s:%s/uploads/%s/%s/%s/%s', [
-                $schema,
-                $host,
-                $port,
+            $url = vsprintf('%s/uploads/%s/%s/%s/%s', [
+                $this->request->getBaseUrl(),
                 $media->year,
                 $media->month,
                 $media->day,
@@ -96,10 +90,8 @@ class MediaController
             ]);
             $image = $url;
             if (false === stripos($media->type, 'image')) {
-                $image = vsprintf('%s://%s:%s/images/no-image.jpg', [
-                    $schema,
-                    $host,
-                    $port,
+                $image = vsprintf('%s/images/media-image.png', [
+                    $this->request->getBaseUrl(),
                 ]);
             }
             return $this->response->withPayload([
@@ -134,8 +126,8 @@ class MediaController
         $parameter = new Parameter('search', $_GET);
         $parameter->setBaseUrl("{$config->basepath}/media/index");
         $pagination = new Pagination($parameter);
-        $uri = $this->request->getUri();
-        $pagination->prepare(function () use ($uri) {
+        $request = $this->request;
+        $pagination->prepare(function () use ($request) {
             $model = Media::query()->with('author');
             $parameter = $this->getParameter();
             foreach ($parameter->getConditions() as $key => $value) {
@@ -159,14 +151,9 @@ class MediaController
                     ];
                 })->toArray();
 
-            $schema = $uri->getScheme();
-            $host = $uri->getHost();
-            $port = $uri->getPort();
-            $this->data = array_map(function ($o) use ($schema, $host, $port) {
-                $o['attributes']['url'] = vsprintf('%s://%s:%s/uploads/%s/%s/%s/%s', [
-                    $schema,
-                    $host,
-                    $port,
+            $this->data = array_map(function ($o) use ($request) {
+                $o['attributes']['url'] = vsprintf('%s/uploads/%s/%s/%s/%s', [
+                    $request->getBaseUrl(),
                     $o['attributes']['year'],
                     $o['attributes']['month'],
                     $o['attributes']['day'],
@@ -174,10 +161,8 @@ class MediaController
                 ]);
                 $o['attributes']['image_url'] = $o['attributes']['url'];
                 if (false === stripos($o['attributes']['type'], 'image')) {
-                    $o['attributes']['image_url'] = vsprintf('%s://%s:%s/images/no-image.jpg', [
-                        $schema,
-                        $host,
-                        $port,
+                    $o['attributes']['image_url'] = vsprintf('%s/images/media-image.png', [
+                        $request->getBaseUrl(),
                     ]);
                 }
                 return $o;
@@ -195,20 +180,15 @@ class MediaController
      */
     public function upload(Uploader $uploader, Response $response, Authentication $auth)
     {
-        if ($this->privilege->check($this->route->getName(), 'access') !== true) {
-            return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
-        }
-        $uri = $this->request->getUri();
-        return $uploader->upload('*', function ($uploadedFiles, $errors, $files) use ($response, $auth, $uri) {
-            $schema = $uri->getScheme();
-            $host = $uri->getHost();
-            $port = $uri->getPort();
+        $request = $this->request;
+        return $uploader->upload('*', function ($uploadedFiles, $errors, $files) use ($response, $auth, $request) {
             $results = [];
             foreach ($uploadedFiles as $uploadedFile) {
                 $media = Media::create([
                     'author_id' => $auth->getUser()->get('sub') ?: 0,
                     'name' => $uploadedFile['name'],
                     'filename' => $uploadedFile['filename'],
+                    'ref' => $uploadedFile['category'],
                     'type' => $uploadedFile['type'],
                     'size' => $uploadedFile['size'] ?: 0,
                     'year' => $uploadedFile['year'],
@@ -217,10 +197,8 @@ class MediaController
                     'status' => 1,
                     'created_at' => date('Y-m-d H:i:s'),
                 ]);
-                $url = vsprintf('%s://%s:%s/uploads/%s/%s/%s/%s', [
-                    $schema,
-                    $host,
-                    $port,
+                $url = vsprintf('%s/uploads/%s/%s/%s/%s', [
+                    $request->getBaseUrl(),
                     $media->year,
                     $media->month,
                     $media->day,
@@ -228,10 +206,8 @@ class MediaController
                 ]);
                 $image = $url;
                 if (false === stripos($media->type, 'image')) {
-                    $image = vsprintf('%s://%s:%s/images/no-image.jpg', [
-                        $schema,
-                        $host,
-                        $port,
+                    $image = vsprintf('%s/images/media-image.png', [
+                        $request->getBaseUrl(),
                     ]);
                 }
                 $results[] = [
