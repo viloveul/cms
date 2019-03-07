@@ -9,7 +9,7 @@ services:
       - .:/application
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
     ports:
-      - "9999:80"
+      - "19910:80"
     depends_on:
       - php-viloveul
 
@@ -35,11 +35,7 @@ services:
       - MYSQL_PASSWORD=viloveul
       - MYSQL_HOST=localhost
       - MYSQL_PORT=3306
-    ports:
-      - 9998:3306
 
   redis-viloveul:
     image: redis:alpine
     container_name: viloveul-redis-dev
-    ports:
-      - 9997:6379
