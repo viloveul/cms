@@ -41,3 +41,12 @@ setelah selesai proses instalasi, jalankan perintah berikut:
 php -S localhost:3333 -t public
 ```
 response rest api based on : https://jsonapi.org/recommendations
+
+
+## UNDER DOCKER COMPOSE
+simple, just run
+```bash
+docker-compose up
+```
+
+your local ready : http://localhost:9999/api/v1

@@ -22,7 +22,7 @@ return [
         # public key for read jwt
         'public' => env('AUTH_PUBLIC_KEY', __DIR__ . '/public.pem'),
         # phrase
-        'phrase' => env('AUTH_PASSPHRASE', 'something'),
+        'phrase' => env('AUTH_PASSPHRASE', 'viloveul'),
     ],
     # db config (@see eloquent orm)
     'db' => [
@@ -34,8 +34,8 @@ return [
             // database port
             'port' => env('DB_PORT', 3306),
             'database' => env('DB_NAME', 'viloveul_cms'),
-            'username' => env('DB_USERNAME', 'dev'),
-            'password' => env('DB_PASSWD', 'something'),
+            'username' => env('DB_USERNAME', 'viloveul'),
+            'password' => env('DB_PASSWD', 'viloveul'),
             'prefix' => env('DB_PREFIX', 'tbl_'),
             'charset' => env('DB_CHARSET', 'utf8'),
             'collation' => env('DB_COLLATION', 'utf8_general_ci'),
