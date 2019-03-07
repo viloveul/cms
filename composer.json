@@ -43,9 +43,10 @@
         ],
         "bootstrap": [
             "mkdir -p public/uploads",
-            "touch .env"
+            "cp -f sample.env .env"
         ],
         "post-create-project-cmd": [
+            "@clearall",
             "@bootstrap"
         ]
     }

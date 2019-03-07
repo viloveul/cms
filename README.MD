@@ -41,3 +41,16 @@ setelah selesai proses instalasi, jalankan perintah berikut:
 php -S localhost:3333 -t public
 ```
 response rest api based on : https://jsonapi.org/recommendations
+
+
+## UNDER DOCKER COMPOSE
+simple, just run
+```bash
+git clone -b v1 --single-branch https://github.com/zafex/viloveul-cms-api.git
+cd viloveul-cms-api
+docker-compose up -d
+docker exec -ti viloveul-cms-api composer bootstrap
+docker exec -ti viloveul-cms-api php viloveulc install
+```
+
+your local ready : http://localhost:19910/api/v1
