@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Component\AttrAssignment;
+use App\Component\Helper;
 use App\Component\Privilege;
 use App\Component\Setting;
 use App\Component\SlugCreation;
@@ -18,6 +19,16 @@ use Viloveul\Router\Contracts\Dispatcher;
 
 class PostController
 {
+    /**
+     * @var mixed
+     */
+    protected $config;
+
+    /**
+     * @var mixed
+     */
+    protected $helper;
+
     /**
      * @var mixed
      */
@@ -39,26 +50,54 @@ class PostController
     protected $route;
 
     /**
-     * @param ServerRequest $request
-     * @param Response      $response
-     * @param Privilege     $privilege
-     * @param Dispatcher    $router
+     * @var mixed
      */
-    public function __construct(ServerRequest $request, Response $response, Privilege $privilege, Dispatcher $router)
-    {
+    protected $setting;
+
+    /**
+     * @var mixed
+     */
+    protected $user;
+
+    /**
+     * @param ServerRequest  $request
+     * @param Response       $response
+     * @param Privilege      $privilege
+     * @param Configuration  $config
+     * @param Setting        $setting
+     * @param Helper         $helper
+     * @param Authentication $auth
+     * @param Dispatcher     $router
+     */
+    public function __construct(
+        ServerRequest $request,
+        Response $response,
+        Privilege $privilege,
+        Configuration $config,
+        Setting $setting,
+        Helper $helper,
+        Authentication $auth,
+        Dispatcher $router
+    ) {
         $this->request = $request;
         $this->response = $response;
         $this->privilege = $privilege;
+        $this->config = $config;
+        $this->setting = $setting;
+        $this->helper = $helper;
+        $this->user = $auth->getUser();
         $this->route = $router->routed();
     }
 
     /**
      * @return mixed
      */
-    public function create(Setting $setting, Authentication $auth)
+    public function create()
     {
         if ($this->privilege->check($this->route->getName(), 'access') !== true) {
-            return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+            return $this->response->withErrors(403, [
+                "No direct access for route: {$this->route->getName()}"
+            ]);
         }
         $attr = $this->request->loadPostTo(new AttrAssignment);
         if (!$attr->has('slug')) {
@@ -67,20 +106,38 @@ class PostController
         $validator = new PostValidation($attr->getAttributes());
         if ($validator->validate('insert')) {
             $post = new Post();
-            $data = array_only($attr->getAttributes(), ['title', 'cover', 'slug', 'type', 'status', 'content', 'description', 'comment_enabled']);
+            $data = array_only($attr->getAttributes(), [
+                'title',
+                'cover',
+                'slug',
+                'type',
+                'status',
+                'content',
+                'description',
+                'comment_enabled',
+            ]);
             foreach ($data as $key => $value) {
                 $post->{$key} = $value;
             }
             $post->created_at = date('Y-m-d H:i:s');
-            $post->author_id = $auth->getUser()->get('sub');
+            $post->author_id = $this->user->get('sub') ?: 0;
             $post->description = $post->content;
             if ($post->status == 1 && !$this->privilege->check('post.publish')) {
-                $post->status = !$setting->get('moderations.post');
+                $post->status = !$this->setting->get('moderations.post');
             }
             if ($post->save()) {
                 $tags = $attr->get('relations') ?: [];
                 $post->tags()->sync($tags);
                 $post->load('tags');
+
+                if ($users = $this->privilege->getRoleUsers('post.publish')) {
+                    $this->helper->sendNotification(
+                        $users,
+                        'New Post Created',
+                        $post->name . ' send new post. {post#' . $post->id . '}'
+                    );
+                }
+
                 return $this->response->withPayload([
                     'data' => [
                         'id' => $post->id,
@@ -103,7 +160,9 @@ class PostController
     {
         if ($post = Post::where('id', $id)->first()) {
             if ($this->privilege->check($this->route->getName(), 'access', $post->author_id) !== true) {
-                return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+                return $this->response->withErrors(403, [
+                    "No direct access for route: {$this->route->getName()}"
+                ]);
             }
             $post->status = 3;
             $post->deleted_at = date('Y-m-d H:i:s');
@@ -124,7 +183,9 @@ class PostController
     {
         if ($post = Post::where('id', $id)->with(['author', 'tags'])->first()) {
             if ($this->privilege->check($this->route->getName(), 'access', $post->author_id) !== true) {
-                return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+                return $this->response->withErrors(403, [
+                    "No direct access for route: {$this->route->getName()}"
+                ]);
             }
             return $this->response->withPayload([
                 'data' => [
@@ -147,16 +208,17 @@ class PostController
     }
 
     /**
-     * @param  Configuration $config
      * @return mixed
      */
-    public function index(Configuration $config)
+    public function index()
     {
         if ($this->privilege->check($this->route->getName(), 'access') !== true) {
-            return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+            return $this->response->withErrors(403, [
+                "No direct access for route: {$this->route->getName()}"
+            ]);
         }
         $parameter = new Parameter('search', $_GET);
-        $parameter->setBaseUrl("{$config->basepath}/post/index");
+        $parameter->setBaseUrl("{$this->config->basepath}/post/index");
         $pagination = new Pagination($parameter);
         $pagination->prepare(function () {
             $model = Post::query()->with('author');
@@ -193,7 +255,9 @@ class PostController
     public function publish(int $id)
     {
         if ($this->privilege->check($this->route->getName(), 'access') !== true) {
-            return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+            return $this->response->withErrors(403, [
+                "No direct access for route: {$this->route->getName()}"
+            ]);
         }
         if ($post = Post::where('id', $id)->first()) {
             $post->status = 1;
@@ -210,23 +274,34 @@ class PostController
     /**
      * @param $id
      */
-    public function update(int $id, Setting $setting)
+    public function update(int $id)
     {
         if ($post = Post::where('id', $id)->first()) {
             if ($this->privilege->check($this->route->getName(), 'access', $post->author_id) !== true) {
-                return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+                return $this->response->withErrors(403, [
+                    "No direct access for route: {$this->route->getName()}"
+                ]);
             }
             $attr = $this->request->loadPostTo(new AttrAssignment);
             $validator = new PostValidation($attr->getAttributes(), compact('id'));
             if ($validator->validate('update')) {
-                $data = array_only($attr->getAttributes(), ['title', 'cover', 'slug', 'type', 'status', 'content', 'description', 'comment_enabled']);
+                $data = array_only($attr->getAttributes(), [
+                    'title',
+                    'cover',
+                    'slug',
+                    'type',
+                    'status',
+                    'content',
+                    'description',
+                    'comment_enabled',
+                ]);
                 foreach ($data as $key => $value) {
                     $post->{$key} = $value;
                 }
                 $post->updated_at = date('Y-m-d H:i:s');
                 $post->description = $post->content;
                 if ($post->status == 1 && !$this->privilege->check('post.publish')) {
-                    $post->status = !$setting->get('moderations.post');
+                    $post->status = !$this->setting->get('moderations.post');
                 }
                 if ($post->save()) {
                     $tags = $attr->get('relations') ?: [];

@@ -43,6 +43,16 @@ $router->add(
 );
 
 /**
+ * Create comment
+ */
+$router->add(
+    'comment.create',
+    new Route('POST /comment/create', [
+        App\Controller\CommentController::class, 'create',
+    ])
+);
+
+/**
  * Delete comment
  */
 $router->add(

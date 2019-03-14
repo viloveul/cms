@@ -36,10 +36,3 @@ $router->add(
         App\Controller\BlogController::class, 'comments',
     ])
 );
-
-$router->add(
-    'blog.comment',
-    new Route('POST /blog/comment/{:post_id}', [
-        App\Controller\BlogController::class, 'comment',
-    ])
-);

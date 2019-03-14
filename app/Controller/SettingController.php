@@ -14,7 +14,12 @@ class SettingController
     /**
      * @var mixed
      */
-    protected $options;
+    protected $privilege;
+
+    /**
+     * @var mixed
+     */
+    protected $request;
 
     /**
      * @var mixed
@@ -22,46 +27,65 @@ class SettingController
     protected $response;
 
     /**
-     * @param Response $response
-     * @param Setting  $options
+     * @var mixed
      */
-    public function __construct(Response $response, Setting $options)
-    {
+    protected $route;
+
+    /**
+     * @var mixed
+     */
+    protected $setting;
+
+    /**
+     * @param ServerRequest $request
+     * @param Response      $response
+     * @param Privilege     $privilege
+     * @param Setting       $setting
+     * @param Dispatcher    $router
+     */
+    public function __construct(
+        ServerRequest $request,
+        Response $response,
+        Privilege $privilege,
+        Setting $setting,
+        Dispatcher $router
+    ) {
+        $this->request = $request;
         $this->response = $response;
-        $this->options = $options;
+        $this->privilege = $privilege;
+        $this->setting = $setting;
+        $this->route = $router->routed();
     }
 
     /**
      * @param  $name
      * @return mixed
      */
-    public function get(string $name, Privilege $privilege)
+    public function get(string $name)
     {
         return $this->response->withPayload([
             'data' => [
                 'name' => $name,
-                'option' => $this->options->get($name),
+                'option' => $this->setting->get($name),
             ],
         ]);
     }
 
     /**
-     * @param  string        $name
-     * @param  ServerRequest $request
-     * @param  Privilege     $privilege
-     * @param  Dispatcher    $router
+     * @param  string  $name
      * @return mixed
      */
-    public function set(string $name, ServerRequest $request, Privilege $privilege, Dispatcher $router)
+    public function set(string $name)
     {
-        $route = $router->routed();
-        if (!$privilege->check($route->getName())) {
-            return $this->response->withErrors(401, ["No direct access for route: {$route->getName()}"]);
+        if (!$this->privilege->check($this->route->getName())) {
+            return $this->response->withErrors(401, [
+                "No direct access for route: {$this->route->getName()}",
+            ]);
         }
-        $value = $request->getBody()->getContents();
+        $value = $this->request->getBody()->getContents();
         $option = is_scalar($value) ? $value : json_encode($value);
         SettingModel::updateOrCreate(compact('name'), compact('option'));
-        $this->options->clear();
+        $this->setting->clear();
         return $this->response->withPayload([
             'data' => [
                 'name' => $name,

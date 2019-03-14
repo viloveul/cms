@@ -5,7 +5,7 @@ namespace App\Controller;
 use App\Component\AttrAssignment;
 use App\Component\Privilege;
 use App\Entity\Role;
-use App\Validation\Role as RoleValidation;
+use App\Validation\Role as Validation;
 use Viloveul\Config\Contracts\Configuration;
 use Viloveul\Http\Contracts\Response;
 use Viloveul\Http\Contracts\ServerRequest;
@@ -15,6 +15,11 @@ use Viloveul\Router\Contracts\Dispatcher;
 
 class RoleController
 {
+    /**
+     * @var mixed
+     */
+    protected $config;
+
     /**
      * @var mixed
      */
@@ -38,12 +43,21 @@ class RoleController
     /**
      * @param ServerRequest $request
      * @param Response      $response
+     * @param Privilege     $privilege
+     * @param Configuration $config
+     * @param Dispatcher    $router
      */
-    public function __construct(ServerRequest $request, Response $response, Privilege $privilege, Dispatcher $router)
-    {
+    public function __construct(
+        ServerRequest $request,
+        Response $response,
+        Privilege $privilege,
+        Configuration $config,
+        Dispatcher $router
+    ) {
         $this->request = $request;
         $this->response = $response;
         $this->privilege = $privilege;
+        $this->config = $config;
         $this->route = $router->routed();
     }
 
@@ -73,7 +87,9 @@ class RoleController
     public function assign($id)
     {
         if ($this->privilege->check($this->route->getName(), 'access') !== true) {
-            return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+            return $this->response->withErrors(403, [
+                "No direct access for route: {$this->route->getName()}",
+            ]);
         }
         if ($role = Role::where('id', $id)->where('status', 1)->first()) {
             $ids = (array) $this->request->getPost('childs') ?: [];
@@ -97,11 +113,13 @@ class RoleController
     public function create()
     {
         if ($this->privilege->check($this->route->getName(), 'access') !== true) {
-            return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+            return $this->response->withErrors(403, [
+                "No direct access for route: {$this->route->getName()}",
+            ]);
         }
         $attr = $this->request->loadPostTo(new AttrAssignment);
         $attr->set('name', preg_replace('/[^a-z0-9\-\.\_]+/', '-', strtolower($attr->get('name'))), true);
-        $validator = new RoleValidation($attr->getAttributes());
+        $validator = new Validation($attr->getAttributes());
         if ($validator->validate('insert')) {
             $role = new Role();
             $data = array_only($attr->getAttributes(), ['name', 'type', 'description']);
@@ -132,7 +150,9 @@ class RoleController
     public function detail(int $id)
     {
         if ($this->privilege->check($this->route->getName(), 'access') !== true) {
-            return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+            return $this->response->withErrors(403, [
+                "No direct access for route: {$this->route->getName()}",
+            ]);
         }
         if ($role = Role::where('id', $id)->with('childs')->first()) {
             return $this->response->withPayload([
@@ -153,16 +173,17 @@ class RoleController
     }
 
     /**
-     * @param  Configuration $config
      * @return mixed
      */
-    public function index(Configuration $config)
+    public function index()
     {
         if ($this->privilege->check($this->route->getName(), 'access') !== true) {
-            return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+            return $this->response->withErrors(403, [
+                "No direct access for route: {$this->route->getName()}",
+            ]);
         }
         $parameter = new Parameter('search', $_GET);
-        $parameter->setBaseUrl("{$config->basepath}/role/index");
+        $parameter->setBaseUrl("{$this->config->basepath}/role/index");
         $pagination = new Pagination($parameter);
         $pagination->prepare(function () {
             $model = Role::query();
@@ -189,16 +210,18 @@ class RoleController
     /**
      * @param $id
      */
-    public function unassign($id, Privilege $privilege)
+    public function unassign($id)
     {
         if ($this->privilege->check($this->route->getName(), 'access') !== true) {
-            return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+            return $this->response->withErrors(403, [
+                "No direct access for route: {$this->route->getName()}",
+            ]);
         }
         if ($role = Role::where('id', $id)->where('status', 1)->first()) {
             $ids = (array) $this->request->getPost('childs') ?: [];
             $role->childs()->detach($ids);
             $role->load('childs');
-            $privilege->clear();
+            $this->privilege->clear();
             return $this->response->withStatus(201)->withPayload([
                 'data' => [
                     'id' => $role->id,
@@ -217,12 +240,14 @@ class RoleController
     public function update(int $id)
     {
         if ($this->privilege->check($this->route->getName(), 'access') !== true) {
-            return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+            return $this->response->withErrors(403, [
+                "No direct access for route: {$this->route->getName()}",
+            ]);
         }
         if ($role = Role::where('id', $id)->first()) {
             $attr = $this->request->loadPostTo(new AttrAssignment);
             $attr->set('name', preg_replace('/[^a-z0-9\-\.\_]+/', '-', strtolower($attr->get('name') ?: $role->name)), true);
-            $validator = new RoleValidation($attr->getAttributes(), compact('id'));
+            $validator = new Validation($attr->getAttributes(), compact('id'));
             if ($validator->validate('update')) {
                 $data = array_only($attr->getAttributes(), ['name', 'type', 'description']);
                 foreach ($data as $key => $value) {

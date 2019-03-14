@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Component\Privilege;
 use App\Entity\Notification;
+use App\Message\NotificationPassenger;
 use Countable;
 use Viloveul\Auth\Contracts\Authentication;
 use Viloveul\Config\Contracts\Configuration;
@@ -12,9 +13,20 @@ use Viloveul\Http\Contracts\ServerRequest;
 use Viloveul\Pagination\Builder as Pagination;
 use Viloveul\Pagination\Parameter;
 use Viloveul\Router\Contracts\Dispatcher;
+use Viloveul\Transport\Contracts\Bus;
 
 class NotificationController implements Countable
 {
+    /**
+     * @var mixed
+     */
+    protected $bus;
+
+    /**
+     * @var mixed
+     */
+    protected $config;
+
     /**
      * @var mixed
      */
@@ -41,16 +53,28 @@ class NotificationController implements Countable
     protected $user;
 
     /**
-     * @param ServerRequest $request
-     * @param Response      $response
-     * @param Privilege     $privilege
-     * @param Dispatcher    $router
+     * @param ServerRequest  $request
+     * @param Response       $response
+     * @param Privilege      $privilege
+     * @param Configuration  $config
+     * @param Bus            $bus
+     * @param Authentication $auth
+     * @param Dispatcher     $router
      */
-    public function __construct(ServerRequest $request, Response $response, Privilege $privilege, Authentication $auth, Dispatcher $router)
-    {
+    public function __construct(
+        ServerRequest $request,
+        Response $response,
+        Privilege $privilege,
+        Configuration $config,
+        Bus $bus,
+        Authentication $auth,
+        Dispatcher $router
+    ) {
         $this->request = $request;
         $this->response = $response;
         $this->privilege = $privilege;
+        $this->config = $config;
+        $this->bus = $bus;
         $this->user = $auth->getUser();
         $this->route = $router->routed();
     }
@@ -60,9 +84,12 @@ class NotificationController implements Countable
      */
     public function count()
     {
+        $uid = $this->user->get('sub');
         return $this->response->withPayload([
             'data' => [
-                'total' => Notification::where('receiver_id', $this->user->get('sub'))->where('status', 0)->count(),
+                'total' => Notification::where('receiver_id', $uid)->count(),
+                'unread' => Notification::where('receiver_id', $uid)->where('status', 0)->count(),
+                'read' => Notification::where('receiver_id', $uid)->where('status', 1)->count(),
             ],
         ]);
     }
@@ -73,16 +100,23 @@ class NotificationController implements Countable
      */
     public function detail(int $id)
     {
-        if ($notification = Notification::where('id', $id)->where('receiver_id', $this->user->get('sub'))->first()) {
+        $userId = $this->user->get('sub');
+        if ($notification = Notification::where('id', $id)->where('receiver_id', $userId)->with('author')->first()) {
             if ($notification->status == 0) {
                 $notification->status = 1;
                 $notification->save();
+                $this->bus->process(new NotificationPassenger($userId));
             }
             return $this->response->withPayload([
                 'data' => [
                     'id' => $notification->id,
                     'type' => 'notification',
                     'attributes' => $notification->getAttributes(),
+                    'relationships' => [
+                        'author' => [
+                            'data' => $notification->author,
+                        ],
+                    ],
                 ],
             ]);
         } else {
@@ -90,18 +124,15 @@ class NotificationController implements Countable
         }
     }
 
-    /**
-     * @param Configuration $config
-     */
-    public function index(Configuration $config)
+    public function index()
     {
         $userId = $this->user->get('sub');
         $parameter = new Parameter('search', $_GET);
-        $parameter->setBaseUrl("{$config->basepath}/notification/index");
+        $parameter->setBaseUrl("{$this->config->basepath}/notification/index");
         $pagination = new Pagination($parameter);
         $request = $this->request;
         $pagination->prepare(function () use ($request, $userId) {
-            $model = Notification::query()->with('author');
+            $model = Notification::query()->select(['id', 'subject', 'content', 'status']);
             $parameter = $this->getParameter();
             foreach ($parameter->getConditions() as $key => $value) {
                 $model->where($key, 'like', "%{$value}%");
@@ -117,11 +148,6 @@ class NotificationController implements Countable
                         'id' => $notification->id,
                         'type' => 'notification',
                         'attributes' => $notification->getAttributes(),
-                        'relationships' => [
-                            'author' => [
-                                'data' => $notification->author,
-                            ],
-                        ],
                     ];
                 })->toArray();
         });

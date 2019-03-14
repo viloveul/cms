@@ -5,7 +5,7 @@ namespace App\Message;
 use App\Entity\Notification;
 use Viloveul\Transport\Passenger;
 
-class CommentPassenger extends Passenger
+class NotificationPassenger extends Passenger
 {
     /**
      * @var mixed
@@ -24,7 +24,9 @@ class CommentPassenger extends Passenger
     {
         $this->setAttribute('user_id', $this->uid);
         $this->setAttribute('data', [
-            'total' => Notification::where('receiver_id', $this->uid)->where('status', 0)->count(),
+            'total' => Notification::where('receiver_id', $this->uid)->count(),
+            'unread' => Notification::where('receiver_id', $this->uid)->where('status', 0)->count(),
+            'read' => Notification::where('receiver_id', $this->uid)->where('status', 1)->count(),
         ]);
     }
 
@@ -35,6 +37,6 @@ class CommentPassenger extends Passenger
 
     public function task(): string
     {
-        return 'comment.notification';
+        return 'system.notification';
     }
 }

@@ -32,26 +32,31 @@ class Auth implements MiddlewareInterface, ContainerAware
 
         [$name, $token] = sscanf($request->getServer('HTTP_AUTHORIZATION'), "%s %s");
 
-        if (array_get($config->all(), 'auth.name') === $name && !empty($token)) {
+        if (array_get($config->all(), 'auth.name') === $name && !empty($token) && $token !== 'null') {
             $auth->setToken($token);
         }
 
-        $routeIgnores = ['auth.login', 'auth.register', 'setting.get', 'widget.load'];
+        $ignores = ['auth.login', 'auth.register'];
 
-        if (!in_array($route->getName(), $routeIgnores)) {
-            try {
-                $auth->authenticate();
-            } catch (Exception $e) {
-                if (0 !== stripos($route->getName(), 'blog.')) {
-                    if ($e instanceof InvalidTokenException) {
-                        return $container->get(Response::class)->withErrors(401, [
-                            'Token Invalid',
-                        ]);
-                    }
+        $file = $config->get('root') . '/config/allowed.php';
+
+        if (is_file($file)) {
+            $allowed = require $file;
+            $ignores = array_merge($allowed, $ignores);
+        }
+
+        try {
+            $auth->authenticate();
+        } catch (Exception $e) {
+            if (!in_array($route->getName(), $ignores)) {
+                if ($e instanceof InvalidTokenException) {
                     return $container->get(Response::class)->withErrors(401, [
-                        $e->getMessage(),
+                        'Token Invalid',
                     ]);
                 }
+                return $container->get(Response::class)->withErrors(401, [
+                    $e->getMessage(),
+                ]);
             }
         }
 

@@ -54,7 +54,7 @@ return [
         'port' => env('CACHE_PORT', 6379),
     ],
     'transports' => [
-        'default' => 'amqp://localhost:5672//'
+        'default' => env('TRANSPORT_DSN', 'amqp://localhost:5672//'),
     ],
     'commands' => [
         App\Command\InstallCommand::class

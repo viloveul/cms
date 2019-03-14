@@ -36,16 +36,28 @@ class WidgetController implements ContainerAware
     protected $route;
 
     /**
+     * @var mixed
+     */
+    protected $setting;
+
+    /**
      * @param ServerRequest $request
      * @param Response      $response
      * @param Privilege     $privilege
+     * @param Setting       $setting
      * @param Dispatcher    $router
      */
-    public function __construct(ServerRequest $request, Response $response, Privilege $privilege, Dispatcher $router)
-    {
+    public function __construct(
+        ServerRequest $request,
+        Response $response,
+        Privilege $privilege,
+        Setting $setting,
+        Dispatcher $router
+    ) {
         $this->request = $request;
         $this->response = $response;
         $this->privilege = $privilege;
+        $this->setting = $setting;
         $this->route = $router->routed();
     }
 
@@ -73,13 +85,13 @@ class WidgetController implements ContainerAware
     }
 
     /**
-     * @param string  $type
-     * @param Setting $setting
+     * @param  string  $type
+     * @return mixed
      */
-    public function load(string $type = 'sidebar', Setting $setting)
+    public function load(string $type = 'sidebar')
     {
         $results = [];
-        $items = $setting->get('widget-' . $type) ?: [];
+        $items = $this->setting->get('widget-' . $type) ?: [];
         foreach ($items as $item) {
             if (isset($item['name'])) {
                 $options = array_key_exists('options', $item) ? $item['options'] : [];
