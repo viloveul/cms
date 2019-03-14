@@ -3,11 +3,14 @@
 namespace App\Controller;
 
 use App\Component\AttrAssignment;
+use App\Component\Helper;
+use App\Component\Privilege;
 use App\Component\Setting;
 use App\Entity\Comment;
 use App\Entity\Post;
 use App\Entity\Tag;
 use App\Entity\User;
+use App\Message\CommentPassenger;
 use App\Validation\Comment as CommentValidation;
 use Viloveul\Auth\Contracts\Authentication;
 use Viloveul\Config\Contracts\Configuration;
@@ -191,9 +194,11 @@ class BlogController
     /**
      * @param  int            $post_id
      * @param  Authentication $auth
+     * @param  Privilege      $privilege
+     * @param  Helper         $helper
      * @return mixed
      */
-    public function comment(int $post_id, Authentication $auth)
+    public function comment(int $post_id, Authentication $auth, Privilege $privilege, Helper $helper)
     {
         if ($post = Post::where('status', 1)->where('id', $post_id)->where('comment_enabled', 1)->first()) {
             $attributes = new AttrAssignment();
@@ -215,6 +220,14 @@ class BlogController
                 $comment->status = !$this->setting->get('moderations.comment');
                 $comment->created_at = date('Y-m-d H:i:s');
                 if ($comment->save()) {
+                    if ($users = $privilege->getRoleUsers('comment.publish')) {
+                        $helper->sendNotification(
+                            $users,
+                            'New Comment Posted',
+                            $comment->name . ' send new comment. {comment#' . $comment->id . '}',
+                            CommentPassenger::class
+                        );
+                    }
                     $comment->load('author');
                     return $this->response->withPayload([
                         'data' => [

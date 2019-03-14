@@ -14,6 +14,7 @@
         "sort-packages": true
     },
     "require": {
+        "illuminate/database": "v5.*",
         "viloveul/auth": "1.0.*|v1.x-dev",
         "viloveul/cache": "1.0.*|v1.x-dev",
         "viloveul/config": "1.0.*|v1.x-dev",
@@ -26,8 +27,8 @@
         "viloveul/pagination": "1.0.*|v1.x-dev",
         "viloveul/router": "1.0.*|v1.x-dev",
         "viloveul/support": "1.0.*|v1.x-dev",
-        "viloveul/validation": "1.0.*|v1.x-dev",
-        "illuminate/database": "v5.*"
+        "viloveul/transport": "^0.2.0@alpha",
+        "viloveul/validation": "1.0.*|v1.x-dev"
     },
     "autoload": {
         "psr-4": {

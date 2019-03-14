@@ -19,6 +19,7 @@ $container = Viloveul\Container\ContainerFactory::instance([
     App\Component\SlugCreation::class => App\Component\SlugCreation::class,
     App\Component\Privilege::class => App\Component\Privilege::class,
     App\Component\Setting::class => App\Component\Setting::class,
+    App\Component\Helper::class => App\Component\Helper::class,
 ]);
 
 $config = Viloveul\Config\ConfigFactory::load(__DIR__ . '/config/main.php');

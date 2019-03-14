@@ -161,6 +161,18 @@ class SchemaInstaller
             });
         }
 
+        if ($name == 'notification') {
+            $builder->table($name, function (Blueprint $table) use ($builder, $name) {
+                $builder->hasColumn($name, 'author_id') or $table->unsignedBigInteger('author_id')->default(0)->index();
+                $builder->hasColumn($name, 'receiver_id') or $table->unsignedBigInteger('receiver_id')->default(0)->index();
+                $builder->hasColumn($name, 'subject') or $table->string('subject')->index();
+                $builder->hasColumn($name, 'content') or $table->text('content')->nullable();
+                $builder->hasColumn($name, 'status') or $table->integer('status')->default(0)->index();
+                $builder->hasColumn($name, 'created_at') or $table->timestamp('created_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
+                $builder->hasColumn($name, 'updated_at') or $table->timestamp('updated_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
+            });
+        }
+
         if ($name == 'media') {
             $builder->table($name, function (Blueprint $table) use ($builder, $name) {
                 $builder->hasColumn($name, 'author_id') or $table->unsignedBigInteger('author_id')->default(0)->index();
@@ -336,6 +348,19 @@ class SchemaInstaller
                 $table->timestamp('created_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
                 $table->timestamp('updated_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
                 $table->timestamp('deleted_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
+            });
+        }
+
+        if ($name == 'notification') {
+            $builder->create($name, function (Blueprint $table) {
+                $table->bigIncrements('id');
+                $table->unsignedBigInteger('author_id')->default(0)->index();
+                $table->unsignedBigInteger('receiver_id')->default(0)->index();
+                $table->string('subject')->index();
+                $table->text('content')->nullable();
+                $table->integer('status')->default(0)->index();
+                $table->timestamp('created_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
+                $table->timestamp('updated_at')->default(date('Y-m-d H:i:s'))->nullable()->index();
             });
         }
 

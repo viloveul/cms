@@ -77,26 +77,72 @@ class Privilege
         }
     }
 
+    /**
+     * @param $name
+     * @param $type
+     */
+    public function getRoleUsers($name, $type = 'access')
+    {
+        $roles = array_filter($this->roles, function ($roles) use ($name, $type) {
+            return in_array("{$name}#{$type}", $roles);
+        });
+        $ids = array_keys($roles);
+        $users = array_filter($this->users, function ($users) use ($ids) {
+            foreach ($ids as $id) {
+                if (in_array($id, $users)) {
+                    return true;
+                }
+            }
+            return false;
+        });
+        return array_keys($users);
+    }
+
+    /**
+     * @param  $id
+     * @return mixed
+     */
+    public function getUserRoles($id)
+    {
+        if (array_key_exists($id, $this->users)) {
+            $roles = [];
+            foreach ($this->users[$id] as $roleId) {
+                if (array_key_exists($roleId, $this->roles)) {
+                    foreach ($this->roles[$roleId] as $role) {
+                        if (!in_array($role, $roles)) {
+                            $roles[] = $role;
+                        }
+                    }
+                }
+            }
+            return $roles;
+        }
+        return [];
+    }
+
     public function load(): void
     {
-        foreach (Role::all() ?: [] as $role) {
-            $this->roles[$role->id][] = $role->name . '#' . $role->type;
+        $users = UserRole::all()->toArray();
+        $childs = RoleChild::all()->toArray();
+        $roles = Role::all()->toArray();
+
+        foreach ($roles as $role) {
+            $this->roles[$role['id']][] = $role['name'] . '#' . $role['type'];
         }
+        // create key -> value | parent -> childs
         $relations = [];
-        foreach (RoleChild::all() ?: [] as $child) {
-            $relations[$child->role_id][] = $child->child_id;
+        foreach ($childs as $child) {
+            $relations[$child['role_id']][] = $child['child_id'];
         }
-        foreach (array_keys($this->roles) as $key) {
-            $this->recursive($relations, $key);
-        }
-        foreach (UserRole::all() ?: [] as $user) {
-            if (!array_key_exists($user->user_id, $this->users)) {
-                $this->users[$user->user_id] = [];
+        // make appended child name to parent
+        array_walk($this->roles, function ($childs, $id) use ($relations) {
+            $this->recursive($id, $relations);
+        });
+
+        foreach ($users as $user) {
+            if (array_key_exists($user['role_id'], $this->roles)) {
+                $this->users[$user['user_id']][] = $user['role_id'];
             }
-            $this->users[$user->user_id] = array_unique(array_merge(
-                $this->users[$user->user_id],
-                $this->roles[$user->role_id]
-            ));
         }
         $this->cache->set('privilege.roles', $this->roles);
         $this->cache->set('privilege.users', $this->users);
@@ -108,29 +154,26 @@ class Privilege
     public function mine()
     {
         if ($id = $this->user->get('sub')) {
-            if (array_key_exists($id, $this->users)) {
-                return $this->users[$id];
-            }
+            return $this->getUserRoles($id);
         }
         return [];
     }
 
     /**
-     * @param array  $relations
-     * @param $key
+     * @param int   $id
+     * @param array $relations
      */
-    protected function recursive(array $relations, $key): void
+    public function recursive(int $id, array $relations): void
     {
-        if (array_key_exists($key, $relations)) {
-            foreach ($relations[$key] as $child) {
-                if (array_key_exists($child, $relations)) {
-                    $this->recursive($relations, $child);
-                }
-                if (array_key_exists($child, $this->roles)) {
-                    $this->roles[$key] = array_unique(array_merge(
-                        $this->roles[$key],
-                        $this->roles[$child]
-                    ));
+        if (array_key_exists($id, $relations)) {
+            foreach ($relations[$id] as $childId) {
+                $this->recursive($childId, $relations);
+                if (array_key_exists($childId, $this->roles)) {
+                    foreach ($this->roles[$childId] as $own) {
+                        if (!in_array($own, $this->roles[$id])) {
+                            $this->roles[$id][] = $own;
+                        }
+                    }
                 }
             }
         }

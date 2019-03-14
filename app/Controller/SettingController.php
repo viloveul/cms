@@ -35,7 +35,7 @@ class SettingController
      * @param  $name
      * @return mixed
      */
-    public function get(string $name)
+    public function get(string $name, Privilege $privilege)
     {
         return $this->response->withPayload([
             'data' => [

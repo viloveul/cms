@@ -2,8 +2,6 @@
 
 namespace App\Component;
 
-use Viloveul\Kernel\Contracts\Model;
-
 class SlugCreation
 {
     /**

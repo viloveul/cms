@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Component\AttrAssignment;
 use App\Component\Privilege;
 use App\Component\Setting;
+use App\Entity\Notification;
 use App\Entity\User;
 use App\Validation\User as UserValidation;
 use Viloveul\Auth\Contracts\Authentication;
@@ -198,6 +199,7 @@ class UserController
                     ],
                     'meta' => [
                         'token' => $auth->getToken(),
+                        'notification' => Notification::where('receiver_id', $id)->where('status', 0)->count(),
                         'privileges' => $this->privilege->mine(),
                     ],
                 ]);

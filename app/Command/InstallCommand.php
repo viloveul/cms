@@ -187,6 +187,15 @@ class InstallCommand extends Command implements ContainerAware
         }
         $this->writeNormal('--------------------------------------------------------------');
 
+        if (!$installer->check('notification')) {
+            $this->writeInfo('check and create table notification if not exists.');
+            $installer->install('notification');
+        } else {
+            $this->writeInfo('Table exist. alter table notification.');
+            $installer->alter('notification');
+        }
+        $this->writeNormal('--------------------------------------------------------------');
+
         if (!$installer->check('media')) {
             $this->writeInfo('check and create table media if not exists.');
             $installer->install('media');
