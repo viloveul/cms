@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Component\AttrAssignment;
+use App\Component\AuditTrail;
 use App\Component\Privilege;
 use App\Component\Setting;
 use App\Entity\Notification;
@@ -18,6 +19,11 @@ use Viloveul\Router\Contracts\Dispatcher;
 
 class UserController
 {
+    /**
+     * @var mixed
+     */
+    protected $audit;
+
     /**
      * @var mixed
      */
@@ -59,6 +65,7 @@ class UserController
      * @param Privilege      $privilege
      * @param Configuration  $config
      * @param Setting        $setting
+     * @param AuditTrail     $audit
      * @param Authentication $auth
      * @param Dispatcher     $router
      */
@@ -68,6 +75,7 @@ class UserController
         Privilege $privilege,
         Configuration $config,
         Setting $setting,
+        AuditTrail $audit,
         Authentication $auth,
         Dispatcher $router
     ) {
@@ -76,6 +84,7 @@ class UserController
         $this->privilege = $privilege;
         $this->config = $config;
         $this->setting = $setting;
+        $this->audit = $audit;
         $this->route = $router->routed();
         $this->user = $auth->getUser();
     }
@@ -109,6 +118,7 @@ class UserController
             if ($user->save()) {
                 $relations = $attr->get('relations') ?: [];
                 $user->roles()->sync($relations);
+                $this->audit->create($user->id, 'user');
                 return $this->response->withPayload([
                     'data' => [
                         'id' => $user->id,
@@ -138,6 +148,7 @@ class UserController
             $user->status = 3;
             $user->deleted_at = date('Y-m-d H:i:s');
             if ($user->save()) {
+                $this->audit->delete($user->id, 'user');
                 return $this->response->withStatus(201);
             } else {
                 return $this->response->withErrors(500, ['Something Wrong !!!']);
@@ -296,6 +307,7 @@ class UserController
             $attr->get('password') or $attr->forget('password');
             $validator = new Validation($attr->getAttributes(), ['id' => $id]);
             if ($validator->validate('update')) {
+                $previous = $user->getAttributes();
                 $data = array_only($attr->getAttributes(), [
                     'name',
                     'picture',
@@ -311,6 +323,7 @@ class UserController
                     $user->password = password_hash($password, PASSWORD_DEFAULT);
                 }
                 if ($user->save()) {
+                    $this->audit->update($user->id, 'user', $user->getAttributes(), $previous);
                     return $this->response->withPayload([
                         'data' => [
                             'id' => $id,

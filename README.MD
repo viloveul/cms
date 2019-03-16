@@ -3,7 +3,7 @@
 
 need php 7, openssl
 
-```bash
+```shell
 composer create-project viloveul-cms/api your-project-name
 cd your-project-name
 ```
@@ -33,24 +33,30 @@ Edit file .env anda sesuai kebutuhan :
 | CACHE_PORT | number | available for redis adapter |
 
 setelah menyesuaikan konfigurasi .env anda, kemudian lakukan perintah sebagai berikut untuk memulai instalasi
-```bash
-php viloveulc install
+```shell
+php viloveulc cms:install
 ```
 setelah selesai proses instalasi, jalankan perintah berikut:
-```bash
-php -S localhost:3333 -t public
+```shell
+php -S localhost:19910 -t public
 ```
 response rest api based on : https://jsonapi.org/recommendations
 
 
 ## UNDER DOCKER COMPOSE
 simple, just run
-```bash
+```shell
 git clone -b v1 --single-branch https://github.com/zafex/viloveul-cms-api.git
 cd viloveul-cms-api
-docker-compose up -d
+docker-compose up
 docker exec -ti viloveul-cms-api composer bootstrap
-docker exec -ti viloveul-cms-api php viloveulc install
+docker exec -ti viloveul-cms-api php viloveulc cms:install
+```
+
+Add content dummy and admin
+```shell
+php viloveulc cms:admin
+php viloveulc cms:dump
 ```
 
 your local ready : http://localhost:19910/api/v1

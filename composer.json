@@ -27,7 +27,7 @@
         "viloveul/pagination": "1.0.*|v1.x-dev",
         "viloveul/router": "1.0.*|v1.x-dev",
         "viloveul/support": "1.0.*|v1.x-dev",
-        "viloveul/transport": "^0.2.0@alpha",
+        "viloveul/transport": "1.0.*|v1.x-dev",
         "viloveul/validation": "1.0.*|v1.x-dev"
     },
     "autoload": {
@@ -39,15 +39,15 @@
         "codeception/codeception": "2.5.*"
     },
     "scripts": {
-        "clearall": [
+        "fresh": [
             "rm -f config/private.pem config/public.pem"
         ],
         "bootstrap": [
             "mkdir -p public/uploads",
-            "cp -f sample.env .env"
+            "cp -n sample.env .env"
         ],
         "post-create-project-cmd": [
-            "@clearall",
+            "@fresh",
             "@bootstrap"
         ]
     }

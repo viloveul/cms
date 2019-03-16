@@ -13,13 +13,13 @@ require_once __DIR__ . '/vendor/autoload.php';
 $dotenv = new Dotenv\Dotenv(__DIR__);
 $dotenv->load();
 
-
 // initialize container with several components
 $container = Viloveul\Container\ContainerFactory::instance([
     App\Component\SlugCreation::class => App\Component\SlugCreation::class,
     App\Component\Privilege::class => App\Component\Privilege::class,
     App\Component\Setting::class => App\Component\Setting::class,
     App\Component\Helper::class => App\Component\Helper::class,
+    App\Component\AuditTrail::class => App\Component\AuditTrail::class,
 ]);
 
 $config = Viloveul\Config\ConfigFactory::load(__DIR__ . '/config/main.php');

@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Component\AttrAssignment;
+use App\Component\AuditTrail;
 use App\Component\Helper;
 use App\Component\Privilege;
 use App\Component\Setting;
@@ -19,6 +20,11 @@ use Viloveul\Router\Contracts\Dispatcher;
 
 class PostController
 {
+    /**
+     * @var mixed
+     */
+    protected $audit;
+
     /**
      * @var mixed
      */
@@ -66,6 +72,7 @@ class PostController
      * @param Configuration  $config
      * @param Setting        $setting
      * @param Helper         $helper
+     * @param AuditTrail     $audit
      * @param Authentication $auth
      * @param Dispatcher     $router
      */
@@ -76,6 +83,7 @@ class PostController
         Configuration $config,
         Setting $setting,
         Helper $helper,
+        AuditTrail $audit,
         Authentication $auth,
         Dispatcher $router
     ) {
@@ -85,6 +93,7 @@ class PostController
         $this->config = $config;
         $this->setting = $setting;
         $this->helper = $helper;
+        $this->audit = $audit;
         $this->user = $auth->getUser();
         $this->route = $router->routed();
     }
@@ -129,7 +138,7 @@ class PostController
                 $tags = $attr->get('relations') ?: [];
                 $post->tags()->sync($tags);
                 $post->load('tags');
-
+                $this->audit->create($post->id, 'post');
                 if ($users = $this->privilege->getRoleUsers('post.publish')) {
                     $this->helper->sendNotification(
                         $users,
@@ -167,6 +176,7 @@ class PostController
             $post->status = 3;
             $post->deleted_at = date('Y-m-d H:i:s');
             if ($post->save()) {
+                $this->audit->delete($id, 'post');
                 return $this->response->withStatus(201);
             } else {
                 return $this->response->withErrors(500, ['Something Wrong !!!']);
@@ -262,6 +272,7 @@ class PostController
             $attr = $this->request->loadPostTo(new AttrAssignment);
             $validator = new PostValidation($attr->getAttributes(), compact('id'));
             if ($validator->validate('update')) {
+                $previous = $post->getAttributes();
                 $data = array_only($attr->getAttributes(), [
                     'title',
                     'cover',
@@ -281,6 +292,7 @@ class PostController
                     $post->status = (!$this->setting->get('moderations.post') || $this->privilege->check('moderator:post', 'group'));
                 }
                 if ($post->save()) {
+                    $this->audit->update($id, 'post', $post->getAttributes(), $previous);
                     $tags = $attr->get('relations') ?: [];
                     $post->tags()->sync($tags);
                     $post->load('tags');

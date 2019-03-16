@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Component\AttrAssignment;
+use App\Component\AuditTrail;
 use App\Component\Helper;
 use App\Component\Privilege;
 use App\Component\Setting;
@@ -19,6 +20,11 @@ use Viloveul\Router\Contracts\Dispatcher;
 
 class CommentController
 {
+    /**
+     * @var mixed
+     */
+    protected $audit;
+
     /**
      * @var mixed
      */
@@ -65,6 +71,7 @@ class CommentController
      * @param Privilege      $privilege
      * @param Setting        $setting
      * @param Helper         $helper
+     * @param AuditTrail     $audit
      * @param Configuration  $config
      * @param Dispatcher     $router
      * @param Authentication $auth
@@ -75,6 +82,7 @@ class CommentController
         Privilege $privilege,
         Setting $setting,
         Helper $helper,
+        AuditTrail $audit,
         Configuration $config,
         Dispatcher $router,
         Authentication $auth
@@ -84,6 +92,7 @@ class CommentController
         $this->privilege = $privilege;
         $this->setting = $setting;
         $this->helper = $helper;
+        $this->audit = $audit;
         $this->config = $config;
         $this->route = $router->routed();
         $this->user = $auth->getUser();
@@ -132,6 +141,7 @@ class CommentController
                         );
                     }
                     $comment->load('author');
+                    $this->audit->create($comment->id, 'comment');
                     return $this->response->withPayload([
                         'data' => [
                             'id' => $comment->id,
@@ -170,6 +180,7 @@ class CommentController
             $comment->status = 3;
             $comment->deleted_at = date('Y-m-d H:i:s');
             if ($comment->save()) {
+                $this->audit->delete($comment->id, 'comment');
                 return $this->response->withStatus(201);
             } else {
                 return $this->response->withErrors(500, ['Something Wrong !!!']);
@@ -258,6 +269,7 @@ class CommentController
             $attr = $this->request->loadPostTo(new AttrAssignment);
             $validator = new Validation($attr->getAttributes());
             if ($validator->validate('update')) {
+                $previous = $comment->getAttributes();
                 $data = array_only($attr->getAttributes(), [
                     'parent_id',
                     'post_id',
@@ -265,13 +277,14 @@ class CommentController
                     'email',
                     'website',
                     'content',
-                    'status'
+                    'status',
                 ]);
                 foreach ($data as $key => $value) {
                     $comment->{$key} = $value;
                 }
                 $comment->updated_at = date('Y-m-d H:i:s');
                 if ($comment->save()) {
+                    $this->audit->update($comment->id, 'comment', $comment->getAttributes(), $previous);
                     return $this->response->withPayload([
                         'data' => [
                             'id' => $id,
