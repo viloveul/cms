@@ -4,8 +4,8 @@ namespace App\Component;
 
 use App\Component\Privilege;
 use App\Component\Setting;
-use App\Entity\Notification;
-use App\Message\NotificationPassenger;
+use App\Entity\Notification as NotificationModel;
+use App\Message\Notification as NotificationPassenger;
 use Viloveul\Auth\Contracts\Authentication;
 use Viloveul\Transport\Contracts\Bus;
 
@@ -62,7 +62,7 @@ class Helper
             $me = $this->user->get('sub') ?: 0;
             foreach ($target as $id) {
                 if ($id != $me) {
-                    Notification::create([
+                    NotificationModel::create([
                         'author_id' => $me,
                         'receiver_id' => $id,
                         'subject' => $subject,

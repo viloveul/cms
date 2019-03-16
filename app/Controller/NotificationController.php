@@ -4,7 +4,7 @@ namespace App\Controller;
 
 use App\Component\Privilege;
 use App\Entity\Notification;
-use App\Message\NotificationPassenger;
+use App\Message\Notification as NotificationPassenger;
 use Countable;
 use Viloveul\Auth\Contracts\Authentication;
 use Viloveul\Config\Contracts\Configuration;

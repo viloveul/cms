@@ -96,7 +96,7 @@ class PostController
     {
         if ($this->privilege->check($this->route->getName(), 'access') !== true) {
             return $this->response->withErrors(403, [
-                "No direct access for route: {$this->route->getName()}"
+                "No direct access for route: {$this->route->getName()}",
             ]);
         }
         $attr = $this->request->loadPostTo(new AttrAssignment);
@@ -122,8 +122,8 @@ class PostController
             $post->created_at = date('Y-m-d H:i:s');
             $post->author_id = $this->user->get('sub') ?: 0;
             $post->description = $post->content;
-            if ($post->status == 1 && !$this->privilege->check('post.publish')) {
-                $post->status = !$this->setting->get('moderations.post');
+            if ($post->status == 1) {
+                $post->status = (!$this->setting->get('moderations.post') || $this->privilege->check('moderator:post', 'group'));
             }
             if ($post->save()) {
                 $tags = $attr->get('relations') ?: [];
@@ -161,7 +161,7 @@ class PostController
         if ($post = Post::where('id', $id)->first()) {
             if ($this->privilege->check($this->route->getName(), 'access', $post->author_id) !== true) {
                 return $this->response->withErrors(403, [
-                    "No direct access for route: {$this->route->getName()}"
+                    "No direct access for route: {$this->route->getName()}",
                 ]);
             }
             $post->status = 3;
@@ -184,7 +184,7 @@ class PostController
         if ($post = Post::where('id', $id)->with(['author', 'tags'])->first()) {
             if ($this->privilege->check($this->route->getName(), 'access', $post->author_id) !== true) {
                 return $this->response->withErrors(403, [
-                    "No direct access for route: {$this->route->getName()}"
+                    "No direct access for route: {$this->route->getName()}",
                 ]);
             }
             return $this->response->withPayload([
@@ -214,7 +214,7 @@ class PostController
     {
         if ($this->privilege->check($this->route->getName(), 'access') !== true) {
             return $this->response->withErrors(403, [
-                "No direct access for route: {$this->route->getName()}"
+                "No direct access for route: {$this->route->getName()}",
             ]);
         }
         $parameter = new Parameter('search', $_GET);
@@ -249,29 +249,6 @@ class PostController
     }
 
     /**
-     * @param  int     $id
-     * @return mixed
-     */
-    public function publish(int $id)
-    {
-        if ($this->privilege->check($this->route->getName(), 'access') !== true) {
-            return $this->response->withErrors(403, [
-                "No direct access for route: {$this->route->getName()}"
-            ]);
-        }
-        if ($post = Post::where('id', $id)->first()) {
-            $post->status = 1;
-            if ($post->save()) {
-                return $this->response->withStatus(201);
-            } else {
-                return $this->response->withErrors(500, ['Something Wrong !!!']);
-            }
-        } else {
-            return $this->response->withErrors(404, ['Post not found']);
-        }
-    }
-
-    /**
      * @param $id
      */
     public function update(int $id)
@@ -279,7 +256,7 @@ class PostController
         if ($post = Post::where('id', $id)->first()) {
             if ($this->privilege->check($this->route->getName(), 'access', $post->author_id) !== true) {
                 return $this->response->withErrors(403, [
-                    "No direct access for route: {$this->route->getName()}"
+                    "No direct access for route: {$this->route->getName()}",
                 ]);
             }
             $attr = $this->request->loadPostTo(new AttrAssignment);
@@ -300,8 +277,8 @@ class PostController
                 }
                 $post->updated_at = date('Y-m-d H:i:s');
                 $post->description = $post->content;
-                if ($post->status == 1 && !$this->privilege->check('post.publish')) {
-                    $post->status = !$this->setting->get('moderations.post');
+                if ($post->status == 1) {
+                    $post->status = (!$this->setting->get('moderations.post') || $this->privilege->check('moderator:post', 'group'));
                 }
                 if ($post->save()) {
                     $tags = $attr->get('relations') ?: [];

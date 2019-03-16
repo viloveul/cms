@@ -8,7 +8,7 @@ return [
     # root application
     'root' => dirname(__DIR__),
     # base pathinfo on url
-    'basepath' => env('BASEPATH', '/api/v1'),
+    'basepath' => env('BASEPATH', '/'),
     # uploader
     'upload' => [
         # target upload

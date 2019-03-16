@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Component\AttrAssignment;
 use App\Component\Privilege;
+use App\Component\Setting;
 use App\Entity\User;
 use App\Validation\User as Validation;
 use Viloveul\Auth\Contracts\Authentication;
@@ -34,20 +35,28 @@ class AuthController
     protected $response;
 
     /**
+     * @var mixed
+     */
+    protected $setting;
+
+    /**
      * @param ServerRequest  $request
      * @param Response       $response
      * @param Privilege      $privilege
+     * @param Setting        $setting
      * @param Authentication $auth
      */
     public function __construct(
         ServerRequest $request,
         Response $response,
         Privilege $privilege,
+        Setting $setting,
         Authentication $auth
     ) {
         $this->request = $request;
         $this->response = $response;
         $this->privilege = $privilege;
+        $this->setting = $setting;
         $this->auth = $auth;
     }
 
@@ -106,6 +115,7 @@ class AuthController
             }
             $user->created_at = date('Y-m-d H:i:s');
             $user->password = password_hash(array_get($data, 'password'), PASSWORD_DEFAULT);
+            $user->status = !$this->setting->get('moderations.user');
             if ($user->save()) {
                 return $this->response->withPayload([
                     'data' => [

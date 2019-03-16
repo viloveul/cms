@@ -23,16 +23,6 @@ $router->add(
 );
 
 /**
- * publish comment
- */
-$router->add(
-    'comment.publish',
-    new Route('POST /comment/publish/{:id}', [
-        App\Controller\CommentController::class, 'publish',
-    ])
-);
-
-/**
  * Update comment
  */
 $router->add(

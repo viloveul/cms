@@ -118,7 +118,8 @@ class RoleController
             ]);
         }
         $attr = $this->request->loadPostTo(new AttrAssignment);
-        $attr->set('name', preg_replace('/[^a-z0-9\-\.\_]+/', '-', strtolower($attr->get('name'))), true);
+        $with = $attr->get('type') === 'group' ? ':' : '.';
+        $attr->set('name', preg_replace('/[^a-z0-9\-\_]+/', $with, strtolower($attr->get('name'))), true);
         $validator = new Validation($attr->getAttributes());
         if ($validator->validate('insert')) {
             $role = new Role();
@@ -246,7 +247,8 @@ class RoleController
         }
         if ($role = Role::where('id', $id)->first()) {
             $attr = $this->request->loadPostTo(new AttrAssignment);
-            $attr->set('name', preg_replace('/[^a-z0-9\-\.\_]+/', '-', strtolower($attr->get('name') ?: $role->name)), true);
+            $with = $attr->get('type') === 'group' ? ':' : '.';
+            $attr->set('name', preg_replace('/[^a-z0-9\-\_]+/', $with, strtolower($attr->get('name') ?: $role->name)), true);
             $validator = new Validation($attr->getAttributes(), compact('id'));
             if ($validator->validate('update')) {
                 $data = array_only($attr->getAttributes(), ['name', 'type', 'description']);

@@ -257,29 +257,6 @@ class UserController
      * @param  int     $id
      * @return mixed
      */
-    public function publish(int $id)
-    {
-        if ($this->privilege->check($this->route->getName(), 'access') !== true) {
-            return $this->response->withErrors(403, [
-                "No direct access for route: {$this->route->getName()}",
-            ]);
-        }
-        if ($user = User::where('id', $id)->first()) {
-            $user->status = 1;
-            if ($user->save()) {
-                return $this->response->withStatus(201);
-            } else {
-                return $this->response->withErrors(500, ['Something Wrong !!!']);
-            }
-        } else {
-            return $this->response->withErrors(404, ['User not found']);
-        }
-    }
-
-    /**
-     * @param  int     $id
-     * @return mixed
-     */
     public function relations(int $id)
     {
         if ($this->privilege->check($this->route->getName(), 'access') !== true) {
@@ -291,6 +268,7 @@ class UserController
             $body = $this->request->getBody()->getContents() ?: '[]';
             $relations = json_decode($body, true) ?: [];
             is_array($relations) and $user->roles()->sync($relations);
+            $this->privilege->load();
             return $this->response->withPayload([
                 'data' => [
                     'id' => $id,

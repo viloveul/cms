@@ -121,10 +121,10 @@ class CommentController
                 foreach ($data as $key => $value) {
                     $comment->{$key} = $value;
                 }
-                $comment->status = !$this->setting->get('moderations.comment');
+                $comment->status = (!$this->setting->get('moderations.comment') || $this->privilege->check('moderator:comment', 'group'));
                 $comment->created_at = date('Y-m-d H:i:s');
                 if ($comment->save()) {
-                    if ($users = $this->privilege->getRoleUsers('comment.publish')) {
+                    if ($users = $this->privilege->getRoleUsers('moderator:comment', 'group')) {
                         $this->helper->sendNotification(
                             $users,
                             'New Comment Posted',
@@ -241,29 +241,6 @@ class CommentController
                 })->toArray();
         });
         return $this->response->withPayload($pagination->getResults());
-    }
-
-    /**
-     * @param  int     $id
-     * @return mixed
-     */
-    public function publish(int $id)
-    {
-        if ($this->privilege->check($this->route->getName(), 'access') !== true) {
-            return $this->response->withErrors(403, [
-                "No direct access for route: {$this->route->getName()}",
-            ]);
-        }
-        if ($comment = Comment::where('id', $id)->first()) {
-            $comment->status = 1;
-            if ($comment->save()) {
-                return $this->response->withStatus(201);
-            } else {
-                return $this->response->withErrors(500, ['Something Wrong !!!']);
-            }
-        } else {
-            return $this->response->withErrors(404, ['Comment not found']);
-        }
     }
 
     /**

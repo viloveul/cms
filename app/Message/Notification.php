@@ -2,10 +2,10 @@
 
 namespace App\Message;
 
-use App\Entity\Notification;
+use App\Entity\Notification as Model;
 use Viloveul\Transport\Passenger;
 
-class NotificationPassenger extends Passenger
+class Notification extends Passenger
 {
     /**
      * @var mixed
@@ -24,9 +24,9 @@ class NotificationPassenger extends Passenger
     {
         $this->setAttribute('user_id', $this->uid);
         $this->setAttribute('data', [
-            'total' => Notification::where('receiver_id', $this->uid)->count(),
-            'unread' => Notification::where('receiver_id', $this->uid)->where('status', 0)->count(),
-            'read' => Notification::where('receiver_id', $this->uid)->where('status', 1)->count(),
+            'total' => Model::where('receiver_id', $this->uid)->count(),
+            'unread' => Model::where('receiver_id', $this->uid)->where('status', 0)->count(),
+            'read' => Model::where('receiver_id', $this->uid)->where('status', 1)->count(),
         ]);
     }
 
