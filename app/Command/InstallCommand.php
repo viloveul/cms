@@ -3,11 +3,7 @@
 namespace App\Command;
 
 use App\Component\SchemaInstaller;
-use App\Component\ContentDummy;
 use App\Entity\Role;
-use App\Entity\User;
-use RuntimeException;
-use Symfony\Component\Console\Question\Question;
 use Viloveul\Console\Command;
 use Viloveul\Container\ContainerAwareTrait;
 use Viloveul\Container\Contracts\ContainerAware;
@@ -20,7 +16,7 @@ class InstallCommand extends Command implements ContainerAware
     /**
      * @var string
      */
-    protected static $defaultName = 'install';
+    protected static $defaultName = 'cms:install';
 
     /**
      * @return mixed
@@ -47,43 +43,6 @@ class InstallCommand extends Command implements ContainerAware
         $pub = fopen(__DIR__ . '/../../config/public.pem', 'w');
         fwrite($pub, $details['key']);
         fclose($pub);
-
-        $helper = $this->getHelper('question');
-
-        $questionEmail = new Question('Please enter the email for user admin : ', 'mail@admin.me');
-        $questionEmail->setValidator(function ($answer) {
-            if (empty($answer)) {
-                throw new RuntimeException('The email of the user should be non-empty string');
-            }
-
-            return $answer;
-        });
-        $questionEmail->setMaxAttempts(2);
-        $email = $helper->ask($this->getInput(), $this->getOutput(), $questionEmail);
-
-        $questionPassword = new Question('Please enter the password for user admin : ');
-        $questionPassword->setValidator(function ($answer) {
-            if (empty($answer)) {
-                throw new RuntimeException('The password of the user should be non-empty string');
-            }
-            return $answer;
-        });
-        $questionPassword->setHidden(true);
-        $questionPassword->setHiddenFallback(false);
-        $questionPassword->setMaxAttempts(2);
-        $password = $helper->ask($this->getInput(), $this->getOutput(), $questionPassword);
-
-        $questionPassconf = new Question('Please re-enter the password : ');
-        $questionPassconf->setValidator(function ($answer) use ($password) {
-            if ($answer != $password) {
-                throw new RuntimeException('The password does not match');
-            }
-            return $answer;
-        });
-        $questionPassconf->setHidden(true);
-        $questionPassconf->setHiddenFallback(false);
-        $questionPassconf->setMaxAttempts(2);
-        $helper->ask($this->getInput(), $this->getOutput(), $questionPassconf);
 
         $container = $this->getContainer();
         $installer = $container->make(SchemaInstaller::class);
@@ -204,26 +163,11 @@ class InstallCommand extends Command implements ContainerAware
             $installer->alter('media');
         }
         $this->writeNormal('--------------------------------------------------------------');
-
-        $this->writeInfo('Create user admin');
-        $user = User::updateOrCreate(
-            ['username' => 'admin'],
-            [
-                'name' => 'Administrator',
-                'email' => $email,
-                'password' => password_hash($password, PASSWORD_DEFAULT),
-                'status' => 1,
-            ]
-        );
-        $this->writeNormal('--------------------------------------------------------------');
         $this->writeInfo('Create role group admin');
         $role = Role::firstOrCreate(
             ['name' => 'admin', 'type' => 'group'],
             ['type' => 'group']
         );
-        $this->writeNormal('--------------------------------------------------------------');
-        $this->writeInfo('assign user admin to role group admin');
-        $user->roles()->sync([$role->id]);
         $this->writeNormal('--------------------------------------------------------------');
         $this->writeInfo('Create access role admin');
         $accessors = [];
@@ -239,10 +183,6 @@ class InstallCommand extends Command implements ContainerAware
             $this->writeInfo('Assign access : ' . $key);
         }
         $role->childs()->sync($accessors);
-        $this->writeNormal('--------------------------------------------------------------');
-        $this->writeInfo('Create content dummy');
-        $dummy = new ContentDummy($user);
-        $dummy->run();
         $this->writeNormal('--------------------------------------------------------------');
         $this->writeInfo('Installation complete.');
     }

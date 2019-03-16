@@ -57,6 +57,8 @@ return [
         'default' => env('TRANSPORT_DSN', 'amqp://localhost:5672//'),
     ],
     'commands' => [
-        App\Command\InstallCommand::class
-    ]
+        App\Command\InstallCommand::class,
+        App\Command\DumpCommand::class,
+        App\Command\AdminCommand::class,
+    ],
 ];
