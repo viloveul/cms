@@ -33,16 +33,6 @@ $router->add(
 );
 
 /**
- * publish user
- */
-$router->add(
-    'user.publish',
-    new Route('POST /user/publish/{:id}', [
-        App\Controller\UserController::class, 'publish',
-    ])
-);
-
-/**
  * get me
  */
 $router->add(

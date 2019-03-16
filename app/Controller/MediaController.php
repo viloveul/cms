@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Component\Helper;
 use App\Component\Privilege;
 use App\Entity\Media;
 use Viloveul\Auth\Contracts\Authentication;
@@ -15,6 +16,16 @@ use Viloveul\Router\Contracts\Dispatcher;
 
 class MediaController
 {
+    /**
+     * @var mixed
+     */
+    protected $config;
+
+    /**
+     * @var mixed
+     */
+    protected $helper;
+
     /**
      * @var mixed
      */
@@ -36,17 +47,35 @@ class MediaController
     protected $route;
 
     /**
-     * @param ServerRequest $request
-     * @param Response      $response
-     * @param Privilege     $privilege
-     * @param Dispatcher    $router
+     * @var mixed
      */
-    public function __construct(ServerRequest $request, Response $response, Privilege $privilege, Dispatcher $router)
-    {
+    protected $user;
+
+    /**
+     * @param ServerRequest  $request
+     * @param Response       $response
+     * @param Privilege      $privilege
+     * @param Configuration  $config
+     * @param Helper         $helper
+     * @param Dispatcher     $router
+     * @param Authentication $auth
+     */
+    public function __construct(
+        ServerRequest $request,
+        Response $response,
+        Privilege $privilege,
+        Configuration $config,
+        Helper $helper,
+        Dispatcher $router,
+        Authentication $auth
+    ) {
         $this->request = $request;
         $this->response = $response;
         $this->privilege = $privilege;
+        $this->config = $config;
+        $this->helper = $helper;
         $this->route = $router->routed();
+        $this->user = $auth->getUser();
     }
 
     /**
@@ -57,7 +86,9 @@ class MediaController
     {
         if ($media = Media::where('id', $id)->first()) {
             if ($this->privilege->check($this->route->getName(), 'access', $media->author_id) !== true) {
-                return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+                return $this->response->withErrors(403, [
+                    "No direct access for route: {$this->route->getName()}",
+                ]);
             }
             $media->status = 3;
             $media->deleted_at = date('Y-m-d H:i:s');
@@ -79,7 +110,9 @@ class MediaController
     {
         if ($media = Media::where('id', $id)->with('author')->first()) {
             if ($this->privilege->check($this->route->getName(), 'access', $media->author_id) !== true) {
-                return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+                return $this->response->withErrors(403, [
+                    "No direct access for route: {$this->route->getName()}",
+                ]);
             }
             $url = vsprintf('%s/uploads/%s/%s/%s/%s', [
                 $this->request->getBaseUrl(),
@@ -115,16 +148,17 @@ class MediaController
     }
 
     /**
-     * @param  Configuration $config
      * @return mixed
      */
-    public function index(Configuration $config)
+    public function index()
     {
         if ($this->privilege->check($this->route->getName(), 'access') !== true) {
-            return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+            return $this->response->withErrors(403, [
+                "No direct access for route: {$this->route->getName()}",
+            ]);
         }
         $parameter = new Parameter('search', $_GET);
-        $parameter->setBaseUrl("{$config->basepath}/media/index");
+        $parameter->setBaseUrl("{$this->config->basepath}/media/index");
         $pagination = new Pagination($parameter);
         $request = $this->request;
         $pagination->prepare(function () use ($request) {
@@ -173,19 +207,19 @@ class MediaController
     }
 
     /**
-     * @param  Uploader       $uploader
-     * @param  Response       $response
-     * @param  Authentication $auth
+     * @param  Uploader $uploader
      * @return mixed
      */
-    public function upload(Uploader $uploader, Response $response, Authentication $auth)
+    public function upload(Uploader $uploader)
     {
         $request = $this->request;
-        return $uploader->upload('*', function ($uploadedFiles, $errors, $files) use ($response, $auth, $request) {
+        $response = $this->response;
+        $user = $this->user;
+        return $uploader->upload('*', function ($uploadedFiles, $errors, $files) use ($request, $response, $user) {
             $results = [];
             foreach ($uploadedFiles as $uploadedFile) {
                 $media = Media::create([
-                    'author_id' => $auth->getUser()->get('sub') ?: 0,
+                    'author_id' => $user->get('sub') ?: 0,
                     'name' => $uploadedFile['name'],
                     'filename' => $uploadedFile['filename'],
                     'ref' => $uploadedFile['category'],

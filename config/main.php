@@ -8,7 +8,7 @@ return [
     # root application
     'root' => dirname(__DIR__),
     # base pathinfo on url
-    'basepath' => env('BASEPATH', '/api/v1'),
+    'basepath' => env('BASEPATH', '/'),
     # uploader
     'upload' => [
         # target upload
@@ -52,6 +52,9 @@ return [
         'host' => env('CACHE_HOST', '127.0.0.1'),
         /* CACHE PORT (REDIS) */
         'port' => env('CACHE_PORT', 6379),
+    ],
+    'transports' => [
+        'default' => env('TRANSPORT_DSN', 'amqp://localhost:5672//'),
     ],
     'commands' => [
         App\Command\InstallCommand::class

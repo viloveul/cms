@@ -4,8 +4,9 @@ namespace App\Controller;
 
 use App\Component\AttrAssignment;
 use App\Component\Privilege;
+use App\Component\Setting;
 use App\Entity\User;
-use App\Validation\User as UserValidation;
+use App\Validation\User as Validation;
 use Viloveul\Auth\Contracts\Authentication;
 use Viloveul\Auth\UserData;
 use Viloveul\Http\Contracts\Response;
@@ -13,6 +14,16 @@ use Viloveul\Http\Contracts\ServerRequest;
 
 class AuthController
 {
+    /**
+     * @var mixed
+     */
+    protected $auth;
+
+    /**
+     * @var mixed
+     */
+    protected $privilege;
+
     /**
      * @var mixed
      */
@@ -24,41 +35,52 @@ class AuthController
     protected $response;
 
     /**
-     * @param ServerRequest $request
-     * @param Response      $response
+     * @var mixed
      */
-    public function __construct(ServerRequest $request, Response $response)
-    {
+    protected $setting;
+
+    /**
+     * @param ServerRequest  $request
+     * @param Response       $response
+     * @param Privilege      $privilege
+     * @param Setting        $setting
+     * @param Authentication $auth
+     */
+    public function __construct(
+        ServerRequest $request,
+        Response $response,
+        Privilege $privilege,
+        Setting $setting,
+        Authentication $auth
+    ) {
         $this->request = $request;
         $this->response = $response;
+        $this->privilege = $privilege;
+        $this->setting = $setting;
+        $this->auth = $auth;
     }
 
     /**
-     * @param  Authentication $auth
-     * @param  Privilege      $privilege
      * @return mixed
      */
-    public function login(Authentication $auth, Privilege $privilege)
+    public function login()
     {
         $attr = $this->request->loadPostTo(new AttrAssignment);
-        $validator = new UserValidation($attr->getAttributes());
+        $validator = new Validation($attr->getAttributes());
         if ($validator->validate('login')) {
             $data = array_only($attr->getAttributes(), ['username', 'password']);
             $user = User::where('username', $data['username'])->where('status', 1)->first();
             if ($user && password_verify($data['password'], $user->password)) {
                 if (!$user->photo) {
-                    $uri = $this->request->getUri();
                     $user->photo = sprintf(
-                        '%s://%s:%s/images/no-image.jpg',
-                        $uri->getScheme(),
-                        $uri->getHost(),
-                        $uri->getPort()
+                        '%s/images/no-image.jpg',
+                        $this->request->getBaseUrl()
                     );
                 }
-                $privilege->clear();
+                $this->privilege->clear();
                 return $this->response->withPayload([
                     'data' => [
-                        'token' => $auth->generate(
+                        'token' => $this->auth->generate(
                             new UserData([
                                 'sub' => $user->id,
                                 'email' => $user->email,
@@ -84,7 +106,7 @@ class AuthController
     public function register()
     {
         $attr = $this->request->loadPostTo(new AttrAssignment);
-        $validator = new UserValidation($attr->getAttributes());
+        $validator = new Validation($attr->getAttributes());
         if ($validator->validate('store')) {
             $user = new User();
             $data = array_only($attr->getAttributes(), ['email', 'name', 'username']);
@@ -93,6 +115,7 @@ class AuthController
             }
             $user->created_at = date('Y-m-d H:i:s');
             $user->password = password_hash(array_get($data, 'password'), PASSWORD_DEFAULT);
+            $user->status = !$this->setting->get('moderations.user');
             if ($user->save()) {
                 return $this->response->withPayload([
                     'data' => [

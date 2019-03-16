@@ -19,6 +19,11 @@ class MenuController
     /**
      * @var mixed
      */
+    protected $config;
+
+    /**
+     * @var mixed
+     */
     protected $privilege;
 
     /**
@@ -37,36 +42,59 @@ class MenuController
     protected $route;
 
     /**
-     * @param ServerRequest $request
-     * @param Response      $response
-     * @param Privilege     $privilege
-     * @param Dispatcher    $router
+     * @var mixed
      */
-    public function __construct(ServerRequest $request, Response $response, Privilege $privilege, Dispatcher $router)
-    {
+    protected $user;
+
+    /**
+     * @param ServerRequest  $request
+     * @param Response       $response
+     * @param Privilege      $privilege
+     * @param Configuration  $config
+     * @param Authentication $auth
+     * @param Dispatcher     $router
+     */
+    public function __construct(
+        ServerRequest $request,
+        Response $response,
+        Privilege $privilege,
+        Configuration $config,
+        Authentication $auth,
+        Dispatcher $router
+    ) {
         $this->request = $request;
         $this->response = $response;
         $this->privilege = $privilege;
+        $this->config = $config;
+        $this->user = $auth->getUser();
         $this->route = $router->routed();
     }
 
     /**
-     * @param  Authentication $auth
      * @return mixed
      */
-    public function create(Authentication $auth)
+    public function create()
     {
         if ($this->privilege->check($this->route->getName(), 'access') !== true) {
-            return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+            return $this->response->withErrors(403, [
+                "No direct access for route: {$this->route->getName()}",
+            ]);
         }
         $attr = $this->request->loadPostTo(new AttrAssignment);
-        $data = array_only($attr->getAttributes(), ['label', 'icon', 'type', 'description', 'url', 'status']);
+        $data = array_only($attr->getAttributes(), [
+            'label',
+            'icon',
+            'type',
+            'description',
+            'url',
+            'status',
+        ]);
         $menu = new Menu();
         foreach ($data as $key => $value) {
             $menu->{$key} = $value;
         }
         $menu->status = 1;
-        $menu->author_id = $auth->getUser()->get('sub');
+        $menu->author_id = $this->user->get('sub');
         $menu->created_at = date('Y-m-d H:i:s');
         if ($menu->save()) {
             return $this->response->withPayload([
@@ -89,7 +117,9 @@ class MenuController
     {
         if ($menu = Menu::where('id', $id)->first()) {
             if ($this->privilege->check($this->route->getName(), 'access', $menu->author_id) !== true) {
-                return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+                return $this->response->withErrors(403, [
+                    "No direct access for route: {$this->route->getName()}",
+                ]);
             }
             $menu->status = 3;
             $menu->deleted_at = date('Y-m-d H:i:s');
@@ -111,7 +141,9 @@ class MenuController
     {
         if ($menu = Menu::where('id', $id)->first()) {
             if ($this->privilege->check($this->route->getName(), 'access', $menu->author_id) !== true) {
-                return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+                return $this->response->withErrors(403, [
+                    "No direct access for route: {$this->route->getName()}",
+                ]);
             }
             return $this->response->withPayload([
                 'data' => [
@@ -126,16 +158,17 @@ class MenuController
     }
 
     /**
-     * @param  Configuration $config
      * @return mixed
      */
-    public function index(Configuration $config)
+    public function index()
     {
         if ($this->privilege->check($this->route->getName(), 'access') !== true) {
-            return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+            return $this->response->withErrors(403, [
+                "No direct access for route: {$this->route->getName()}",
+            ]);
         }
         $parameter = new Parameter('search', $_GET);
-        $parameter->setBaseUrl("{$config->basepath}/menu/index");
+        $parameter->setBaseUrl("{$this->config->basepath}/menu/index");
         $pagination = new Pagination($parameter);
         $pagination->prepare(function () {
             $model = Menu::query();
@@ -166,8 +199,8 @@ class MenuController
      */
     public function load(string $type = 'menu', Setting $setting)
     {
-        $model = Menu::select(['id', 'label', 'icon', 'url'])->where('type', $type)->where('status', 1)->get();
         $items = [];
+        $model = Menu::select(['id', 'label', 'icon', 'url'])->where('type', $type)->where('status', 1)->get();
         foreach ($model->toArray() as $item) {
             $items[$item['id']] = $item;
         }
@@ -188,10 +221,19 @@ class MenuController
     {
         if ($menu = Menu::where('id', $id)->first()) {
             if ($this->privilege->check($this->route->getName(), 'access', $menu->author_id) !== true) {
-                return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+                return $this->response->withErrors(403, [
+                    "No direct access for route: {$this->route->getName()}",
+                ]);
             }
             $attr = $this->request->loadPostTo(new AttrAssignment);
-            $data = array_only($attr->getAttributes(), ['label', 'icon', 'type', 'description', 'url', 'status']);
+            $data = array_only($attr->getAttributes(), [
+                'label',
+                'icon',
+                'type',
+                'description',
+                'url',
+                'status',
+            ]);
             foreach ($data as $key => $value) {
                 $menu->{$key} = $value;
             }

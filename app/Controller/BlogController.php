@@ -2,14 +2,11 @@
 
 namespace App\Controller;
 
-use App\Component\AttrAssignment;
 use App\Component\Setting;
 use App\Entity\Comment;
 use App\Entity\Post;
 use App\Entity\Tag;
 use App\Entity\User;
-use App\Validation\Comment as CommentValidation;
-use Viloveul\Auth\Contracts\Authentication;
 use Viloveul\Config\Contracts\Configuration;
 use Viloveul\Http\Contracts\Response;
 use Viloveul\Http\Contracts\ServerRequest;
@@ -44,8 +41,12 @@ class BlogController
      * @param Setting       $setting
      * @param Configuration $config
      */
-    public function __construct(ServerRequest $request, Response $response, Setting $setting, Configuration $config)
-    {
+    public function __construct(
+        ServerRequest $request,
+        Response $response,
+        Setting $setting,
+        Configuration $config
+    ) {
         $this->request = $request;
         $this->response = $response;
         $this->setting = $setting;
@@ -186,57 +187,6 @@ class BlogController
             return $this->response->withPayload($results);
         }
         return $this->response->withErrors(404, ["Author {$name} not found."]);
-    }
-
-    /**
-     * @param  int            $post_id
-     * @param  Authentication $auth
-     * @return mixed
-     */
-    public function comment(int $post_id, Authentication $auth)
-    {
-        if ($post = Post::where('status', 1)->where('id', $post_id)->where('comment_enabled', 1)->first()) {
-            $attributes = new AttrAssignment();
-            $this->request->loadPostTo($attributes);
-            $user = $auth->getUser();
-            if ($id = $user->get('sub')) {
-                $attributes['author_id'] = $id;
-                $attributes['name'] = $user->get('name');
-                $attributes['email'] = $user->get('email');
-            }
-            $attributes['post_id'] = $post_id;
-            $validator = new CommentValidation($attributes->getAttributes());
-            if ($validator->validate('insert')) {
-                $comment = new Comment();
-                $data = array_only($attributes->getAttributes(), ['parent_id', 'post_id', 'author_id', 'name', 'email', 'website', 'content']);
-                foreach ($data as $key => $value) {
-                    $comment->{$key} = $value;
-                }
-                $comment->status = !$this->setting->get('moderations.comment');
-                $comment->created_at = date('Y-m-d H:i:s');
-                if ($comment->save()) {
-                    $comment->load('author');
-                    return $this->response->withPayload([
-                        'data' => [
-                            'id' => $comment->id,
-                            'type' => 'comment',
-                            'attributes' => $comment->getAttributes(),
-                            'relationships' => [
-                                'author' => [
-                                    'data' => $comment->author,
-                                ],
-                            ],
-                        ],
-                    ]);
-                } else {
-                    return $this->response->withErrors(500, ['Something Wrong !!!']);
-                }
-            } else {
-                return $this->response->withErrors(400, $validator->errors());
-            }
-        } else {
-            return $this->response->withErrors(404, ['Page not found.']);
-        }
     }
 
     /**

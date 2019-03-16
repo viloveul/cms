@@ -35,6 +35,8 @@ use Viloveul\Router\Contracts\Dispatcher as IRouteDispatcher;
 use Viloveul\Router\Dispatcher as RouteDispatcher;
 use Viloveul\Router\NotFoundException;
 use Viloveul\Router\Route;
+use Viloveul\Transport\Bus;
+use Viloveul\Transport\Contracts\Bus as IBus;
 
 class Kernel
 {
@@ -91,6 +93,14 @@ class Kernel
                 $capsule->addConnection($value, $key === 'default' ? 'viloveul' : $key);
             }
             return $capsule;
+        });
+
+        $this->container->set(IBus::class, function (IConfiguration $config) {
+            $bus = new Bus();
+            foreach ($config->get('transports') ?: [] as $key => $value) {
+                $bus->setConnection($value, $key);
+            }
+            return $bus;
         });
 
         $this->container->set(IServerRequest::class, function () {

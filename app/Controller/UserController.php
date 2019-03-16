@@ -5,8 +5,9 @@ namespace App\Controller;
 use App\Component\AttrAssignment;
 use App\Component\Privilege;
 use App\Component\Setting;
+use App\Entity\Notification;
 use App\Entity\User;
-use App\Validation\User as UserValidation;
+use App\Validation\User as Validation;
 use Viloveul\Auth\Contracts\Authentication;
 use Viloveul\Config\Contracts\Configuration;
 use Viloveul\Http\Contracts\Response;
@@ -17,6 +18,11 @@ use Viloveul\Router\Contracts\Dispatcher;
 
 class UserController
 {
+    /**
+     * @var mixed
+     */
+    protected $config;
+
     /**
      * @var mixed
      */
@@ -38,17 +44,40 @@ class UserController
     protected $route;
 
     /**
-     * @param ServerRequest $request
-     * @param Response      $response
-     * @param Privilege     $privilege
-     * @param Dispatcher    $router
+     * @var mixed
      */
-    public function __construct(ServerRequest $request, Response $response, Privilege $privilege, Dispatcher $router)
-    {
+    protected $setting;
+
+    /**
+     * @var mixed
+     */
+    protected $user;
+
+    /**
+     * @param ServerRequest  $request
+     * @param Response       $response
+     * @param Privilege      $privilege
+     * @param Configuration  $config
+     * @param Setting        $setting
+     * @param Authentication $auth
+     * @param Dispatcher     $router
+     */
+    public function __construct(
+        ServerRequest $request,
+        Response $response,
+        Privilege $privilege,
+        Configuration $config,
+        Setting $setting,
+        Authentication $auth,
+        Dispatcher $router
+    ) {
         $this->request = $request;
         $this->response = $response;
         $this->privilege = $privilege;
+        $this->config = $config;
+        $this->setting = $setting;
         $this->route = $router->routed();
+        $this->user = $auth->getUser();
     }
 
     /**
@@ -57,13 +86,21 @@ class UserController
     public function create()
     {
         if ($this->privilege->check($this->route->getName(), 'access') !== true) {
-            return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+            return $this->response->withErrors(403, [
+                "No direct access for route: {$this->route->getName()}",
+            ]);
         }
         $attr = $this->request->loadPostTo(new AttrAssignment);
-        $validator = new UserValidation($attr->getAttributes());
+        $validator = new Validation($attr->getAttributes());
         if ($validator->validate('insert')) {
             $user = new User();
-            $data = array_only($attr->getAttributes(), ['name', 'picture', 'username', 'email', 'status']);
+            $data = array_only($attr->getAttributes(), [
+                'name',
+                'picture',
+                'username',
+                'email',
+                'status',
+            ]);
             foreach ($data as $key => $value) {
                 $user->{$key} = $value;
             }
@@ -93,7 +130,9 @@ class UserController
     public function delete(int $id)
     {
         if ($this->privilege->check($this->route->getName(), 'access') !== true) {
-            return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+            return $this->response->withErrors(403, [
+                "No direct access for route: {$this->route->getName()}",
+            ]);
         }
         if ($user = User::where('id', $id)->first()) {
             $user->status = 3;
@@ -114,7 +153,9 @@ class UserController
     public function detail(int $id)
     {
         if ($this->privilege->check($this->route->getName(), 'access', $id) !== true) {
-            return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+            return $this->response->withErrors(403, [
+                "No direct access for route: {$this->route->getName()}",
+            ]);
         }
         if ($user = User::where('id', $id)->first()) {
             if (!$user->picture) {
@@ -141,16 +182,17 @@ class UserController
     }
 
     /**
-     * @param  Configuration $config
      * @return mixed
      */
-    public function index(Configuration $config)
+    public function index()
     {
         if ($this->privilege->check($this->route->getName(), 'access') !== true) {
-            return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+            return $this->response->withErrors(403, [
+                "No direct access for route: {$this->route->getName()}",
+            ]);
         }
         $parameter = new Parameter('search', $_GET);
-        $parameter->setBaseUrl("{$config->basepath}/user/index");
+        $parameter->setBaseUrl("{$this->config->basepath}/user/index");
         $pagination = new Pagination($parameter);
         $pagination->prepare(function () {
             $model = User::query();
@@ -176,13 +218,11 @@ class UserController
     }
 
     /**
-     * @param  Authentication $auth
-     * @param  Setting        $setting
      * @return mixed
      */
-    public function me(Authentication $auth, Setting $setting)
+    public function me()
     {
-        if ($id = $auth->getUser()->get('sub')) {
+        if ($id = $this->user->get('sub')) {
             if ($user = User::where('id', $id)->where('status', 1)->first()) {
                 if (!$user->picture) {
                     $user->picture = sprintf(
@@ -197,7 +237,11 @@ class UserController
                         'attributes' => $user,
                     ],
                     'meta' => [
-                        'token' => $auth->getToken(),
+                        'notification' => [
+                            'total' => Notification::where('receiver_id', $id)->count(),
+                            'unread' => Notification::where('receiver_id', $id)->where('status', 0)->count(),
+                            'read' => Notification::where('receiver_id', $id)->where('status', 1)->count(),
+                        ],
                         'privileges' => $this->privilege->mine(),
                     ],
                 ]);
@@ -213,36 +257,18 @@ class UserController
      * @param  int     $id
      * @return mixed
      */
-    public function publish(int $id)
-    {
-        if ($this->privilege->check($this->route->getName(), 'access') !== true) {
-            return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
-        }
-        if ($user = User::where('id', $id)->first()) {
-            $user->status = 1;
-            if ($user->save()) {
-                return $this->response->withStatus(201);
-            } else {
-                return $this->response->withErrors(500, ['Something Wrong !!!']);
-            }
-        } else {
-            return $this->response->withErrors(404, ['User not found']);
-        }
-    }
-
-    /**
-     * @param  int     $id
-     * @return mixed
-     */
     public function relations(int $id)
     {
         if ($this->privilege->check($this->route->getName(), 'access') !== true) {
-            return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+            return $this->response->withErrors(403, [
+                "No direct access for route: {$this->route->getName()}",
+            ]);
         }
         if ($user = User::where('id', $id)->first()) {
             $body = $this->request->getBody()->getContents() ?: '[]';
             $relations = json_decode($body, true) ?: [];
             is_array($relations) and $user->roles()->sync($relations);
+            $this->privilege->load();
             return $this->response->withPayload([
                 'data' => [
                     'id' => $id,
@@ -261,14 +287,22 @@ class UserController
     public function update(int $id)
     {
         if ($this->privilege->check($this->route->getName(), 'access', $id) !== true) {
-            return $this->response->withErrors(403, ["No direct access for route: {$this->route->getName()}"]);
+            return $this->response->withErrors(403, [
+                "No direct access for route: {$this->route->getName()}",
+            ]);
         }
         if ($user = User::where('id', $id)->first()) {
             $attr = $this->request->loadPostTo(new AttrAssignment);
             $attr->get('password') or $attr->forget('password');
-            $validator = new UserValidation($attr->getAttributes(), ['id' => $id]);
+            $validator = new Validation($attr->getAttributes(), ['id' => $id]);
             if ($validator->validate('update')) {
-                $data = array_only($attr->getAttributes(), ['name', 'picture', 'email', 'username', 'status']);
+                $data = array_only($attr->getAttributes(), [
+                    'name',
+                    'picture',
+                    'email',
+                    'username',
+                    'status',
+                ]);
                 foreach ($data as $key => $value) {
                     $user->{$key} = $value;
                 }
