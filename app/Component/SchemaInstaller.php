@@ -196,8 +196,8 @@ class SchemaInstaller
                 $builder->hasColumn($name, 'author_id') or $table->unsignedBigInteger('author_id')->default(0)->index();
                 $builder->hasColumn($name, 'object_id') or $table->unsignedBigInteger('object_id')->default(0)->index();
                 $builder->hasColumn($name, 'entity') or $table->string('entity')->index();
-                $builder->hasColumn($name, 'ip') or $table->string('ip')->index();
-                $builder->hasColumn($name, 'agent') or $table->string('agent')->index();
+                $builder->hasColumn($name, 'ip') or $table->string('ip')->nullable()->index();
+                $builder->hasColumn($name, 'agent') or $table->text('agent')->nullable();
                 $builder->hasColumn($name, 'type') or $table->string('type')->index();
                 $builder->hasColumn($name, 'created_at') or $table->timestamp('created_at')->nullable()->index();
             });
@@ -410,8 +410,8 @@ class SchemaInstaller
                 $table->unsignedBigInteger('author_id')->default(0)->index();
                 $table->unsignedBigInteger('object_id')->default(0)->index();
                 $table->string('entity')->index();
-                $table->string('ip')->index();
-                $table->string('agent')->index();
+                $table->string('ip')->nullable()->index();
+                $table->text('agent')->nullable();
                 $table->string('type')->index();
                 $table->timestamp('created_at')->nullable()->index();
             });
