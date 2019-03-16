@@ -163,6 +163,24 @@ class InstallCommand extends Command implements ContainerAware
             $installer->alter('media');
         }
         $this->writeNormal('--------------------------------------------------------------');
+
+        if (!$installer->check('audit')) {
+            $this->writeInfo('check and create table audit if not exists.');
+            $installer->install('audit');
+        } else {
+            $this->writeInfo('Table exist. alter table audit.');
+            $installer->alter('audit');
+        }
+        $this->writeNormal('--------------------------------------------------------------');
+
+        if (!$installer->check('audit_detail')) {
+            $this->writeInfo('check and create table audit_detail if not exists.');
+            $installer->install('audit_detail');
+        } else {
+            $this->writeInfo('Table exist. alter table audit_detail.');
+            $installer->alter('audit_detail');
+        }
+        $this->writeNormal('--------------------------------------------------------------');
         $this->writeInfo('Create role group admin');
         $role = Role::firstOrCreate(
             ['name' => 'admin', 'type' => 'group'],

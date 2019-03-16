@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Component\AuditTrail;
 use App\Component\Helper;
 use App\Component\Privilege;
 use App\Entity\Media;
@@ -16,6 +17,11 @@ use Viloveul\Router\Contracts\Dispatcher;
 
 class MediaController
 {
+    /**
+     * @var mixed
+     */
+    protected $audit;
+
     /**
      * @var mixed
      */
@@ -57,6 +63,7 @@ class MediaController
      * @param Privilege      $privilege
      * @param Configuration  $config
      * @param Helper         $helper
+     * @param AuditTrail     $audit
      * @param Dispatcher     $router
      * @param Authentication $auth
      */
@@ -66,6 +73,7 @@ class MediaController
         Privilege $privilege,
         Configuration $config,
         Helper $helper,
+        AuditTrail $audit,
         Dispatcher $router,
         Authentication $auth
     ) {
@@ -74,6 +82,7 @@ class MediaController
         $this->privilege = $privilege;
         $this->config = $config;
         $this->helper = $helper;
+        $this->audit = $audit;
         $this->route = $router->routed();
         $this->user = $auth->getUser();
     }
@@ -93,6 +102,7 @@ class MediaController
             $media->status = 3;
             $media->deleted_at = date('Y-m-d H:i:s');
             if ($media->save()) {
+                $this->audit->delete($id, 'media');
                 return $this->response->withStatus(201);
             } else {
                 return $this->response->withErrors(500, ['Something Wrong !!!']);
@@ -215,7 +225,8 @@ class MediaController
         $request = $this->request;
         $response = $this->response;
         $user = $this->user;
-        return $uploader->upload('*', function ($uploadedFiles, $errors, $files) use ($request, $response, $user) {
+        $audit = $this->audit;
+        return $uploader->upload('*', function ($uploadedFiles, $errors, $files) use ($request, $response, $user, $audit) {
             $results = [];
             foreach ($uploadedFiles as $uploadedFile) {
                 $media = Media::create([
@@ -231,6 +242,7 @@ class MediaController
                     'status' => 1,
                     'created_at' => date('Y-m-d H:i:s'),
                 ]);
+                $audit->create($media->id, 'media');
                 $url = vsprintf('%s/uploads/%s/%s/%s/%s', [
                     $request->getBaseUrl(),
                     $media->year,

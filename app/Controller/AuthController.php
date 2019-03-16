@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Component\AttrAssignment;
+use App\Component\AuditTrail;
 use App\Component\Privilege;
 use App\Component\Setting;
 use App\Entity\User;
@@ -14,6 +15,11 @@ use Viloveul\Http\Contracts\ServerRequest;
 
 class AuthController
 {
+    /**
+     * @var mixed
+     */
+    protected $audit;
+
     /**
      * @var mixed
      */
@@ -44,6 +50,7 @@ class AuthController
      * @param Response       $response
      * @param Privilege      $privilege
      * @param Setting        $setting
+     * @param AuditTrail     $audit
      * @param Authentication $auth
      */
     public function __construct(
@@ -51,12 +58,14 @@ class AuthController
         Response $response,
         Privilege $privilege,
         Setting $setting,
+        AuditTrail $audit,
         Authentication $auth
     ) {
         $this->request = $request;
         $this->response = $response;
         $this->privilege = $privilege;
         $this->setting = $setting;
+        $this->audit = $audit;
         $this->auth = $auth;
     }
 
@@ -78,6 +87,7 @@ class AuthController
                     );
                 }
                 $this->privilege->clear();
+                $this->audit->record($user->id, 'user', 'login');
                 return $this->response->withPayload([
                     'data' => [
                         'token' => $this->auth->generate(
