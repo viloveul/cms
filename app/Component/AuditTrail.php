@@ -73,14 +73,13 @@ class AuditTrail
     public function update(int $id, string $entity, array $current, array $previous = []): void
     {
         $audit = $this->audit($id, $entity, 'update');
-        foreach ($current as $key => $value) {
-            $old = array_key_exists($key, $previous) ? $previous[$key] : null;
+        foreach ($current as $field => $value) {
+            $old = array_key_exists($field, $previous) ? $previous[$field] : null;
             if ($value != $old) {
                 AuditDetail::create([
                     'audit_id' => $audit->id,
-                    'resource' => $key,
+                    'resource' => $field,
                     'previous' => $old,
-                    'current' => $value,
                 ]);
             }
         }

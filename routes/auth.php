@@ -21,3 +21,13 @@ $router->add(
         App\Controller\AuthController::class, 'register',
     ])
 );
+
+/**
+ * forgot password
+ */
+$router->add(
+    'auth.forgot',
+    new Route('POST /auth/forgot', [
+        App\Controller\AuthController::class, 'forgot',
+    ])
+);

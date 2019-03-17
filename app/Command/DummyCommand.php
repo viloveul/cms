@@ -3,18 +3,19 @@
 namespace App\Command;
 
 use App\Component\ContentDummy;
+use App\Entity\User;
 use Viloveul\Console\Command;
 use Viloveul\Container\ContainerAwareTrait;
 use Viloveul\Container\Contracts\ContainerAware;
 
-class DumpCommand extends Command implements ContainerAware
+class DummyCommand extends Command implements ContainerAware
 {
     use ContainerAwareTrait;
 
     /**
      * @var string
      */
-    protected static $defaultName = 'cms:dump';
+    protected static $defaultName = 'cms:dummy';
 
     /**
      * @return mixed
@@ -23,7 +24,7 @@ class DumpCommand extends Command implements ContainerAware
     {
         $this->writeNormal('--------------------------------------------------------------');
         $this->writeInfo('Create content dummy');
-        $dummy = new ContentDummy($user);
+        $dummy = new ContentDummy(User::first());
         $dummy->run();
         $this->writeNormal('--------------------------------------------------------------');
         $this->writeInfo('Dump complete.');

@@ -5,6 +5,7 @@ namespace App;
 use App\Database;
 use Closure;
 use Exception;
+use PHPMailer\PHPMailer\PHPMailer;
 use Psr\Http\Message\UriInterface as IUri;
 use Viloveul\Auth\Authentication;
 use Viloveul\Auth\Contracts\Authentication as IAuthentication;
@@ -128,6 +129,23 @@ class Kernel
         });
 
         $this->container->set(IConsole::class, Console::class);
+
+        $this->container->set(PHPMailer::class, function (IConfiguration $config) {
+            $mailer = new PHPMailer(true);
+            $mailer->isSMTP();
+            $mailer->isHTML(true);
+            $mailer->SMTPAuth = true;
+            $mailer->SMTPSecure = array_get($config->all(), 'smtpmail.secure');
+            $mailer->Host = array_get($config->all(), 'smtpmail.host');
+            $mailer->Username = array_get($config->all(), 'smtpmail.username');
+            $mailer->Password = array_get($config->all(), 'smtpmail.password');
+            $mailer->Port = array_get($config->all(), 'smtpmail.port');
+            $mailer->setFrom(
+                array_get($config->all(), 'smtpmail.username'),
+                array_get($config->all(), 'smtpmail.name')
+            );
+            return $mailer;
+        });
     }
 
     /**

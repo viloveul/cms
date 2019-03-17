@@ -14,7 +14,6 @@ class AuditDetail extends Model
         'audit_id',
         'resource',
         'previous',
-        'current',
     ];
 
     /**

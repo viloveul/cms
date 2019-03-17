@@ -35,7 +35,7 @@ class ContentDummy
     public function comments()
     {
         foreach (array_unique($this->postIds) as $id) {
-            for ($i = 0; $i < 25; $i++) {
+            for ($i = 0; $i < 12; $i++) {
                 Comment::create([
                     'post_id' => $id,
                     'author_id' => $this->user->id,

@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Entity\Role;
+use App\Entity\UserPassword;
 use App\Entity\UserProfile;
 use App\Model;
 
@@ -26,12 +27,20 @@ class User extends Model
     /**
      * @var array
      */
-    protected $hidden = ['password'];
+    protected $hidden = ['password', 'passwords'];
 
     /**
      * @var string
      */
     protected $table = 'user';
+
+    /**
+     * @return mixed
+     */
+    public function passwords()
+    {
+        return $this->hasMany(UserPassword::class);
+    }
 
     /**
      * @return mixed
