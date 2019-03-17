@@ -36,7 +36,7 @@ class Auth implements MiddlewareInterface, ContainerAware
             $auth->setToken($token);
         }
 
-        $ignores = ['auth.login', 'auth.register'];
+        $ignores = ['auth.login', 'auth.register', 'auth.forgot'];
 
         $file = $config->get('root') . '/config/allowed.php';
 

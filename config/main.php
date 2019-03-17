@@ -53,12 +53,20 @@ return [
         /* CACHE PORT (REDIS) */
         'port' => env('CACHE_PORT', 6379),
     ],
+    'smtpmail' => [
+        'host' => env('SMTP_HOST', 'your.server.com'),
+        'port' => env('SMTP_PORT', 465),
+        'name' => env('SMTP_NAME', 'Viloveul'),
+        'secure' => env('SMTP_SECURE', 'ssl'),
+        'username' => env('SMTP_USERNAME', 'your@server.com'),
+        'password' => env('SMTP_PASSWORD', 'yourP@sSw0rd.'),
+    ],
     'transports' => [
         'default' => env('TRANSPORT_DSN', 'amqp://localhost:5672//'),
     ],
     'commands' => [
         App\Command\InstallCommand::class,
-        App\Command\DumpCommand::class,
+        App\Command\DummyCommand::class,
         App\Command\AdminCommand::class,
     ],
 ];

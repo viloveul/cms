@@ -47,6 +47,15 @@ class SchemaInstaller
             });
         }
 
+        if ($name == 'user_password') {
+            $builder->table($name, function (Blueprint $table) use ($builder, $name) {
+                $builder->hasColumn($name, 'user_id') or $table->unsignedBigInteger('user_id')->index();
+                $builder->hasColumn($name, 'password') or $table->string('password')->index();
+                $builder->hasColumn($name, 'expired') or $table->string('expired')->index();
+                $builder->hasColumn($name, 'status') or $table->integer('status')->default(0)->index();
+            });
+        }
+
         if ($name == 'user_profile') {
             $builder->table($name, function (Blueprint $table) use ($builder, $name) {
                 $builder->hasColumn($name, 'user_id') or $table->unsignedBigInteger('user_id')->index();
@@ -208,7 +217,6 @@ class SchemaInstaller
                 $builder->hasColumn($name, 'audit_id') or $table->unsignedBigInteger('audit_id')->default(0)->index();
                 $builder->hasColumn($name, 'resource') or $table->string('resource')->index();
                 $builder->hasColumn($name, 'previous') or $table->text('previous')->nullable();
-                $builder->hasColumn($name, 'current') or $table->text('current')->nullable();
             });
         }
     }
@@ -241,6 +249,16 @@ class SchemaInstaller
                 $table->timestamp('created_at')->nullable()->index();
                 $table->timestamp('updated_at')->nullable()->index();
                 $table->timestamp('deleted_at')->nullable()->index();
+            });
+        }
+
+        if ($name == 'user_password') {
+            $builder->create($name, function (Blueprint $table) {
+                $table->bigIncrements('id');
+                $table->unsignedBigInteger('user_id')->index();
+                $table->string('password')->index();
+                $table->string('expired')->index();
+                $table->integer('status')->default(0)->index();
             });
         }
 
@@ -423,7 +441,6 @@ class SchemaInstaller
                 $table->unsignedBigInteger('audit_id')->default(0)->index();
                 $table->string('resource')->index();
                 $table->text('previous')->nullable();
-                $table->text('current')->nullable();
             });
         }
     }

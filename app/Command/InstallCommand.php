@@ -23,26 +23,28 @@ class InstallCommand extends Command implements ContainerAware
      */
     public function handle()
     {
-        if (!env('AUTH_PASSPHRASE')) {
-            $this->writeError('Please put AUTH_PASSPHRASE as a non-empty string or not null on your .env');
-            exit();
+        if (!is_file(__DIR__ . '/../../config/public.pem')) {
+            if (!env('AUTH_PASSPHRASE')) {
+                $this->writeError('Please put AUTH_PASSPHRASE as a non-empty string or not null on your .env');
+                exit();
+            }
+
+            $res = openssl_pkey_new();
+            openssl_pkey_export($res, $privkey, env('AUTH_PASSPHRASE'), [
+                'private_key_type' => OPENSSL_KEYTYPE_RSA,
+                'private_key_bits' => 4096,
+                'digest_alg' => 'RSA-SHA256',
+            ]);
+
+            $priv = fopen(__DIR__ . '/../../config/private.pem', 'w');
+            fwrite($priv, $privkey);
+            fclose($priv);
+
+            $details = openssl_pkey_get_details($res);
+            $pub = fopen(__DIR__ . '/../../config/public.pem', 'w');
+            fwrite($pub, $details['key']);
+            fclose($pub);
         }
-
-        $res = openssl_pkey_new();
-        openssl_pkey_export($res, $privkey, env('AUTH_PASSPHRASE'), [
-            'private_key_type' => OPENSSL_KEYTYPE_RSA,
-            'private_key_bits' => 4096,
-            'digest_alg' => 'RSA-SHA256',
-        ]);
-
-        $priv = fopen(__DIR__ . '/../../config/private.pem', 'w');
-        fwrite($priv, $privkey);
-        fclose($priv);
-
-        $details = openssl_pkey_get_details($res);
-        $pub = fopen(__DIR__ . '/../../config/public.pem', 'w');
-        fwrite($pub, $details['key']);
-        fclose($pub);
 
         $container = $this->getContainer();
         $installer = $container->make(SchemaInstaller::class);
@@ -53,6 +55,15 @@ class InstallCommand extends Command implements ContainerAware
         } else {
             $this->writeInfo('Table exist. alter table user.');
             $installer->alter('user');
+        }
+        $this->writeNormal('--------------------------------------------------------------');
+
+        if (!$installer->check('user_password')) {
+            $this->writeInfo('check and create table user_password if not exists.');
+            $installer->install('user_password');
+        } else {
+            $this->writeInfo('Table exist. alter table user_password.');
+            $installer->alter('user_password');
         }
         $this->writeNormal('--------------------------------------------------------------');
 

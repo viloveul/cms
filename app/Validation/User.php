@@ -83,6 +83,12 @@ class User extends Validator
                     'required',
                 ],
             ],
+            'forgot' => [
+                'email' => [
+                    'required',
+                    'email'
+                ],
+            ],
         ];
     }
 
