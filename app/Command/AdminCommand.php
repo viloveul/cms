@@ -5,6 +5,7 @@ namespace App\Command;
 use App\Entity\Role;
 use App\Entity\User;
 use RuntimeException;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Question\Question;
 use Viloveul\Console\Command;
 use Viloveul\Container\ContainerAwareTrait;
@@ -26,40 +27,47 @@ class AdminCommand extends Command implements ContainerAware
     {
         $helper = $this->getHelper('question');
 
-        $questionEmail = new Question('Please enter the email for user admin : ', 'mail@admin.me');
-        $questionEmail->setValidator(function ($answer) {
-            if (empty($answer)) {
-                throw new RuntimeException('The email of the user should be non-empty string');
-            }
+        $email = $this->getOption('email');
+        $password = $this->getOption('password');
 
-            return $answer;
-        });
-        $questionEmail->setMaxAttempts(2);
-        $email = $helper->ask($this->getInput(), $this->getOutput(), $questionEmail);
+        if (empty($email)) {
+            $questionEmail = new Question('Please enter the email for user admin : ', 'mail@admin.me');
+            $questionEmail->setValidator(function ($answer) {
+                if (empty($answer)) {
+                    throw new RuntimeException('The email of the user should be non-empty string');
+                }
 
-        $questionPassword = new Question('Please enter the password for user admin : ');
-        $questionPassword->setValidator(function ($answer) {
-            if (empty($answer)) {
-                throw new RuntimeException('The password of the user should be non-empty string');
-            }
-            return $answer;
-        });
-        $questionPassword->setHidden(true);
-        $questionPassword->setHiddenFallback(false);
-        $questionPassword->setMaxAttempts(2);
-        $password = $helper->ask($this->getInput(), $this->getOutput(), $questionPassword);
+                return $answer;
+            });
+            $questionEmail->setMaxAttempts(2);
+            $email = $helper->ask($this->getInput(), $this->getOutput(), $questionEmail);
+        }
 
-        $questionPassconf = new Question('Please re-enter the password : ');
-        $questionPassconf->setValidator(function ($answer) use ($password) {
-            if ($answer != $password) {
-                throw new RuntimeException('The password does not match');
-            }
-            return $answer;
-        });
-        $questionPassconf->setHidden(true);
-        $questionPassconf->setHiddenFallback(false);
-        $questionPassconf->setMaxAttempts(2);
-        $helper->ask($this->getInput(), $this->getOutput(), $questionPassconf);
+        if (empty($password)) {
+            $questionPassword = new Question('Please enter the password for user admin : ');
+            $questionPassword->setValidator(function ($answer) {
+                if (empty($answer)) {
+                    throw new RuntimeException('The password of the user should be non-empty string');
+                }
+                return $answer;
+            });
+            $questionPassword->setHidden(true);
+            $questionPassword->setHiddenFallback(false);
+            $questionPassword->setMaxAttempts(2);
+            $password = $helper->ask($this->getInput(), $this->getOutput(), $questionPassword);
+
+            $questionPassconf = new Question('Please re-enter the password : ');
+            $questionPassconf->setValidator(function ($answer) use ($password) {
+                if ($answer != $password) {
+                    throw new RuntimeException('The password does not match');
+                }
+                return $answer;
+            });
+            $questionPassconf->setHidden(true);
+            $questionPassconf->setHiddenFallback(false);
+            $questionPassconf->setMaxAttempts(2);
+            $helper->ask($this->getInput(), $this->getOutput(), $questionPassconf);
+        }
 
         $this->writeNormal('--------------------------------------------------------------');
 
@@ -80,5 +88,11 @@ class AdminCommand extends Command implements ContainerAware
         });
         $user->roles()->sync($roleIds->toArray());
         $this->writeInfo('execution complete.');
+    }
+
+    protected function configure()
+    {
+        $this->addOption('email', null, InputOption::VALUE_OPTIONAL, 'Admin email', null);
+        $this->addOption('password', null, InputOption::VALUE_OPTIONAL, 'Admin password', null);
     }
 }

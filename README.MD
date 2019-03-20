@@ -38,7 +38,7 @@ php viloveulc cms:install
 ```
 setelah selesai proses instalasi, jalankan perintah berikut:
 ```shell
-php -S localhost:19910 -t public
+php -S localhost:19911 -t public
 ```
 response rest api based on : https://jsonapi.org/recommendations
 
@@ -56,7 +56,7 @@ docker exec -ti viloveul-cms-api php viloveulc cms:install
 Add content dummy and admin
 ```shell
 php viloveulc cms:admin
-php viloveulc cms:dump
+php viloveulc cms:dummy
 ```
 
-your local ready : http://localhost:19910/api/v1
+your local ready : http://localhost:19911
