@@ -1,0 +1,9 @@
+.git
+.gitignore
+.env
+bundle.zip
+composer.lock
+vendor
+/public/uploads
+/config/private.pem
+/config/public.pem
