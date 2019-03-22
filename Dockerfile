@@ -1,22 +1,81 @@
-FROM php:7.3-fpm-alpine
+FROM debian:stretch-slim
 
-MAINTAINER "Fajrul <fajrulaz@gmail.com>"
+MAINTAINER Fajrul Akbar Zuhdi<fajrulaz@gmail.com>
 
-RUN apk update
-RUN apk add autoconf automake make gcc g++ icu-dev nano curl
+ENV DEBIAN_FRONTEND=noninteractive
 
-# INSTALL APCU CACHE
-RUN pecl install apcu && docker-php-ext-enable apcu
+RUN apt-get update && apt-get install -y --no-install-recommends --no-install-suggests \
+    apt-utils \
+    lsb-release \
+    gnupg \
+    autoconf \
+    apt-transport-https \
+    ca-certificates \
+    dpkg-dev \
+    file \
+    g++ \
+    gcc \
+    libc-dev \
+    make \
+    pkg-config \
+    re2c \
+    curl \
+    nano \
+    wget \
+    zip \
+    unzip \
+    supervisor
 
-# INSTALL REDIS CLIENT
-RUN pecl install redis && docker-php-ext-enable redis
+RUN wget -O /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg && \
+    echo "deb https://packages.sury.org/php stretch main" | tee /etc/apt/sources.list.d/php7.3.list
 
-# INSTALL intl and mysql pdo connection
-RUN docker-php-ext-install intl pdo_mysql
+RUN apt-get update && apt-get install -y --no-install-recommends --no-install-suggests \
+    nginx \
+    mariadb-server \
+    php7.3-common \
+    php7.3-dev \
+    php7.3-cli \
+    php7.3-fpm \
+    php7.3-zip \
+    php7.3-xml \
+    php7.3-mysql \
+    php7.3-mbstring \
+    php7.3-intl \
+    php7.3-gd \
+    php7.3-curl \
+    php7.3-bcmath \
+    php-pear \
+    php-amqp
 
-# INSTALL COMPOSER
-RUN curl -sS "https://getcomposer.org/installer" | php
-RUN mv composer.phar /usr/local/bin/composer
+ENV COMPOSER_ALLOW_SUPERUSER 1
 
-# CLEAR ALL CACHE APK
-RUN rm -rf /var/cache/apk && mkdir -p /var/cache/apk
+ADD . /www
+
+# WORK
+RUN pecl install apcu && \
+    echo "extension=apcu.so" > /etc/php/7.3/mods-available/apcu.ini && \
+    phpenmod apcu && \
+    touch /www/.env && \
+    php -r "copy('https://getcomposer.org/installer', '/tmp/composer-setup.php');" && \
+    php /tmp/composer-setup.php --install-dir=/usr/bin/ --filename=composer && \
+    composer install --no-dev --working-dir=/www && \
+    composer run bootstrap --working-dir=/www && \
+    composer clear-cache && \
+    apt-get autoremove -y && \
+    rm -f /etc/nginx/sites-enabled/* && \
+    rm -rf /var/lib/apt/lists/* && \
+    rm -rf /tmp/* && \
+    mkdir -p /var/log/supervisor && \
+    mkdir -p /var/run/php && \
+    cp /www/nginx.conf  /etc/nginx/conf.d/default.conf
+
+WORKDIR /www
+
+EXPOSE 19911 3306
+
+ENV DB_HOST=localhost
+ENV DB_NAME=viloveul
+ENV DB_USERNAME=dev
+ENV DB_PASSWD=viloveul
+
+CMD ["sh", "/www/run.sh"]
