@@ -24,6 +24,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends --no-install-su
     wget \
     zip \
     unzip \
+    cron \
     supervisor
 
 RUN wget -O /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg && \
