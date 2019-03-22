@@ -67,7 +67,8 @@ RUN pecl install apcu && \
     rm -rf /tmp/* && \
     mkdir -p /var/log/supervisor && \
     mkdir -p /var/run/php && \
-    cp /www/nginx.conf  /etc/nginx/conf.d/default.conf
+    cp /www/nginx.conf  /etc/nginx/conf.d/default.conf && \
+    echo "clear_env = no" > /etc/php/7.3/fpm/pool.d/osenv.conf
 
 WORKDIR /www
 
