@@ -8,61 +8,61 @@ return [
     # root application
     'root' => dirname(__DIR__),
     # base pathinfo on url
-    'basepath' => env('BASEPATH', '/'),
+    'basepath' => env('VILOVEUL_BASEPATH', '/'),
     # uploader
     'upload' => [
         # target upload
-        'target' => env('UPLOAD_TARGET', dirname(__DIR__) . '/public/uploads'),
+        'target' => env('VILOVEUL_UPLOAD_TARGET', dirname(__DIR__) . '/public/uploads'),
     ],
     'auth' => [
         # token name on header for jwt
-        'name' => env('AUTH_NAME', 'Bearer'),
+        'name' => env('VILOVEUL_AUTH_NAME', 'Bearer'),
         # private key for generate jwt
-        'private' => env('AUTH_PRIVATE_KEY', __DIR__ . '/private.pem'),
+        'private' => env('VILOVEUL_AUTH_PRIVATE_KEY', __DIR__ . '/private.pem'),
         # public key for read jwt
-        'public' => env('AUTH_PUBLIC_KEY', __DIR__ . '/public.pem'),
+        'public' => env('VILOVEUL_AUTH_PUBLIC_KEY', __DIR__ . '/public.pem'),
         # phrase
-        'phrase' => env('AUTH_PASSPHRASE', 'viloveul'),
+        'phrase' => env('VILOVEUL_AUTH_PASSPHRASE', 'viloveul'),
     ],
     # db config (@see eloquent orm)
     'db' => [
         'viloveul' => [
             // database driver
-            'driver' => env('DB_DRIVER', 'mysql'),
+            'driver' => env('VILOVEUL_DB_DRIVER', 'mysql'),
             // database host
-            'host' => env('DB_HOST', 'localhost'),
+            'host' => env('VILOVEUL_DB_HOST', 'localhost'),
             // database port
-            'port' => env('DB_PORT', 3306),
-            'database' => env('DB_NAME', 'viloveul_cms'),
-            'username' => env('DB_USERNAME', 'viloveul'),
-            'password' => env('DB_PASSWD', 'viloveul'),
-            'prefix' => env('DB_PREFIX', 'tbl_'),
-            'charset' => env('DB_CHARSET', 'utf8'),
-            'collation' => env('DB_COLLATION', 'utf8_general_ci'),
+            'port' => env('VILOVEUL_DB_PORT', 3306),
+            'database' => env('VILOVEUL_DB_NAME', 'viloveul_cms'),
+            'username' => env('VILOVEUL_DB_USERNAME', 'viloveul'),
+            'password' => env('VILOVEUL_DB_PASSWD', 'viloveul'),
+            'prefix' => env('VILOVEUL_DB_PREFIX', 'tbl_'),
+            'charset' => env('VILOVEUL_DB_CHARSET', 'utf8'),
+            'collation' => env('VILOVEUL_DB_COLLATION', 'utf8_general_ci'),
         ],
     ],
     'cache' => [
         /* ADAPTER (APCU|REDIS) */
-        'adapter' => env('CACHE_ADAPTER', 'redis'),
+        'adapter' => env('VILOVEUL_CACHE_ADAPTER', 'redis'),
         /* LIFETIME CACHE BEFORE DELETE */
-        'lifetime' => env('CACHE_LIFETIME', 3600),
+        'lifetime' => env('VILOVEUL_CACHE_LIFETIME', 3600),
         /* CACHE PREFIX */
         'prefix' => 'viloveul_',
         /* CACHE HOST (REDIS) */
-        'host' => env('CACHE_HOST', '127.0.0.1'),
+        'host' => env('VILOVEUL_CACHE_HOST', '127.0.0.1'),
         /* CACHE PORT (REDIS) */
-        'port' => env('CACHE_PORT', 6379),
+        'port' => env('VILOVEUL_CACHE_PORT', 6379),
     ],
     'smtpmail' => [
-        'host' => env('SMTP_HOST', 'your.server.com'),
-        'port' => env('SMTP_PORT', 465),
-        'name' => env('SMTP_NAME', 'Viloveul'),
-        'secure' => env('SMTP_SECURE', 'ssl'),
-        'username' => env('SMTP_USERNAME', 'your@server.com'),
-        'password' => env('SMTP_PASSWORD', 'yourP@sSw0rd.'),
+        'host' => env('VILOVEUL_SMTP_HOST', 'your.server.com'),
+        'port' => env('VILOVEUL_SMTP_PORT', 465),
+        'name' => env('VILOVEUL_SMTP_NAME', 'Viloveul'),
+        'secure' => env('VILOVEUL_SMTP_SECURE', 'ssl'),
+        'username' => env('VILOVEUL_SMTP_USERNAME', 'your@server.com'),
+        'password' => env('VILOVEUL_SMTP_PASSWORD', 'yourP@sSw0rd.'),
     ],
     'transports' => [
-        'default' => env('TRANSPORT_DSN', 'amqp://localhost:5672//'),
+        'default' => env('VILOVEUL_TRANSPORT_DSN', 'amqp://localhost:5672//'),
     ],
     'commands' => [
         App\Command\InstallCommand::class,

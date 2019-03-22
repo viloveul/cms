@@ -67,16 +67,15 @@ RUN pecl install apcu && \
     rm -rf /tmp/* && \
     mkdir -p /var/log/supervisor && \
     mkdir -p /var/run/php && \
-    cp /www/nginx.conf  /etc/nginx/conf.d/default.conf && \
-    echo "clear_env = no" > /etc/php/7.3/fpm/pool.d/osenv.conf
+    cp /www/nginx.conf  /etc/nginx/conf.d/default.conf
 
 WORKDIR /www
 
 EXPOSE 19911 3306
 
-ENV DB_HOST=localhost
-ENV DB_NAME=viloveul
-ENV DB_USERNAME=dev
-ENV DB_PASSWD=viloveul
+ENV VILOVEUL_DB_HOST=localhost
+ENV VILOVEUL_DB_NAME=viloveul
+ENV VILOVEUL_DB_USERNAME=dev
+ENV VILOVEUL_DB_PASSWD=viloveul
 
 CMD ["sh", "/www/run.sh"]
