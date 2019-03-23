@@ -4,7 +4,7 @@ MAINTAINER Fajrul Akbar Zuhdi<fajrulaz@gmail.com>
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update && apt-get install -y --no-install-recommends --no-install-suggests \
+ENV BASICDEP \
     apt-utils \
     lsb-release \
     gnupg \
@@ -27,20 +27,30 @@ RUN apt-get update && apt-get install -y --no-install-recommends --no-install-su
     cron \
     supervisor
 
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends --no-install-suggests $BASICDEP && \
+    rm -rf /var/lib/apt/lists/*
+
 ADD . /viloveul
 
 WORKDIR /viloveul
 
-RUN apt-get install -y --no-install-recommends --no-install-suggests nginx && \
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends --no-install-suggests nginx && \
+    rm -rf /var/lib/apt/lists/* && \
     rm -f /etc/nginx/sites-enabled/* && \
     cp /viloveul/config/nginx.conf /etc/nginx/conf.d/default.conf && \
     mkdir -p /var/log/supervisor && \
     touch /viloveul/.env
 
-RUN wget -O /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg && \
-    echo "deb https://packages.sury.org/php stretch main" | tee /etc/apt/sources.list.d/php7.3.list
+ENV COMPOSER_ALLOW_SUPERUSER 1
 
-RUN apt-get update && apt-get install -y --no-install-recommends --no-install-suggests \
+ENV VILOVEUL_DB_HOST=localhost
+ENV VILOVEUL_DB_NAME=viloveul
+ENV VILOVEUL_DB_USERNAME=dev
+ENV VILOVEUL_DB_PASSWD=viloveul
+
+ENV SERVERDEP \
     mariadb-server \
     php7.3-common \
     php7.3-dev \
@@ -57,12 +67,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends --no-install-su
     php-pear \
     php-amqp
 
-ENV COMPOSER_ALLOW_SUPERUSER 1
-
-ENV VILOVEUL_DB_HOST=localhost
-ENV VILOVEUL_DB_NAME=viloveul
-ENV VILOVEUL_DB_USERNAME=dev
-ENV VILOVEUL_DB_PASSWD=viloveul
+RUN wget -O /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg && \
+    echo "deb https://packages.sury.org/php stretch main" | tee /etc/apt/sources.list.d/php7.3.list && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends --no-install-suggests $SERVERDEP && \
+    rm -rf /var/lib/apt/lists/*
 
 RUN pecl install apcu && \
     echo "extension=apcu.so" > /etc/php/7.3/mods-available/apcu.ini && \
@@ -73,7 +82,6 @@ RUN pecl install apcu && \
     composer run bootstrap --working-dir=/viloveul && \
     composer clear-cache && \
     apt-get autoremove -y && \
-    rm -rf /var/lib/apt/lists/* && \
     rm -rf /tmp/* && \
     mkdir -p /var/run/php
 
