@@ -76,6 +76,9 @@ RUN wget -O /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg
 RUN pecl install apcu && \
     echo "extension=apcu.so" > /etc/php/7.3/mods-available/apcu.ini && \
     phpenmod apcu && \
+    pecl install redis && \
+    echo "extension=redis.so" > /etc/php/7.3/mods-available/redis.ini && \
+    phpenmod redis && \
     php -r "copy('https://getcomposer.org/installer', '/tmp/composer-setup.php');" && \
     php /tmp/composer-setup.php --install-dir=/usr/bin/ --filename=composer && \
     composer install --no-dev --working-dir=/viloveul && \

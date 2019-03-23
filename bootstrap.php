@@ -4,7 +4,7 @@ error_reporting(-1);
 // sleep(100);
 ini_set('display_errors', 'On');
 
-defined('VILOVEUL_WORKDIR') or define('VILOVEUL_WORKDIR', __DIR__);
+define('VILOVEUL_WORKDIR', __DIR__);
 
 // require composer autoloader
 require_once __DIR__ . '/vendor/autoload.php';
