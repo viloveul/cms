@@ -1,9 +1,8 @@
-.git
-.gitignore
-.env
-bundle.zip
-composer.lock
-vendor
-/public/uploads
-/config/private.pem
-/config/public.pem
+/.env
+/.git
+/bundle.zip
+/composer.lock
+/public/uploads/*
+/var/private.pem
+/var/public.pem
+/vendor

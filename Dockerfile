@@ -27,11 +27,20 @@ RUN apt-get update && apt-get install -y --no-install-recommends --no-install-su
     cron \
     supervisor
 
+ADD . /viloveul
+
+WORKDIR /viloveul
+
+RUN apt-get install -y --no-install-recommends --no-install-suggests nginx && \
+    rm -f /etc/nginx/sites-enabled/* && \
+    cp /viloveul/config/nginx.conf /etc/nginx/conf.d/default.conf && \
+    mkdir -p /var/log/supervisor && \
+    touch /viloveul/.env
+
 RUN wget -O /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg && \
     echo "deb https://packages.sury.org/php stretch main" | tee /etc/apt/sources.list.d/php7.3.list
 
 RUN apt-get update && apt-get install -y --no-install-recommends --no-install-suggests \
-    nginx \
     mariadb-server \
     php7.3-common \
     php7.3-dev \
@@ -50,33 +59,24 @@ RUN apt-get update && apt-get install -y --no-install-recommends --no-install-su
 
 ENV COMPOSER_ALLOW_SUPERUSER 1
 
-ADD . /www
-
-# WORK
-RUN pecl install apcu && \
-    echo "extension=apcu.so" > /etc/php/7.3/mods-available/apcu.ini && \
-    phpenmod apcu && \
-    touch /www/.env && \
-    php -r "copy('https://getcomposer.org/installer', '/tmp/composer-setup.php');" && \
-    php /tmp/composer-setup.php --install-dir=/usr/bin/ --filename=composer && \
-    composer install --no-dev --working-dir=/www && \
-    composer run bootstrap --working-dir=/www && \
-    composer clear-cache && \
-    apt-get autoremove -y && \
-    rm -f /etc/nginx/sites-enabled/* && \
-    rm -rf /var/lib/apt/lists/* && \
-    rm -rf /tmp/* && \
-    mkdir -p /var/log/supervisor && \
-    mkdir -p /var/run/php && \
-    cp /www/nginx.conf  /etc/nginx/conf.d/default.conf
-
-WORKDIR /www
-
-EXPOSE 19911 3306
-
 ENV VILOVEUL_DB_HOST=localhost
 ENV VILOVEUL_DB_NAME=viloveul
 ENV VILOVEUL_DB_USERNAME=dev
 ENV VILOVEUL_DB_PASSWD=viloveul
 
-CMD ["sh", "/www/run.sh"]
+RUN pecl install apcu && \
+    echo "extension=apcu.so" > /etc/php/7.3/mods-available/apcu.ini && \
+    phpenmod apcu && \
+    php -r "copy('https://getcomposer.org/installer', '/tmp/composer-setup.php');" && \
+    php /tmp/composer-setup.php --install-dir=/usr/bin/ --filename=composer && \
+    composer install --no-dev --working-dir=/viloveul && \
+    composer run bootstrap --working-dir=/viloveul && \
+    composer clear-cache && \
+    apt-get autoremove -y && \
+    rm -rf /var/lib/apt/lists/* && \
+    rm -rf /tmp/* && \
+    mkdir -p /var/run/php
+
+EXPOSE 19911 3306
+
+CMD ["sh", "/viloveul/sbin/docker"]

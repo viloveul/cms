@@ -23,25 +23,25 @@ class InstallCommand extends Command implements ContainerAware
      */
     public function handle()
     {
-        if (!is_file(__DIR__ . '/../../config/public.pem')) {
-            if (!env('AUTH_PASSPHRASE')) {
-                $this->writeError('Please put AUTH_PASSPHRASE as a non-empty string or not null on your .env');
+        if (!is_file(__DIR__ . '/../../var/public.pem')) {
+            if (!env('VILOVEUL_AUTH_PASSPHRASE')) {
+                $this->writeError('Please put VILOVEUL_AUTH_PASSPHRASE as a non-empty string or not null on your .env');
                 exit();
             }
 
             $res = openssl_pkey_new();
-            openssl_pkey_export($res, $privkey, env('AUTH_PASSPHRASE'), [
+            openssl_pkey_export($res, $privkey, env('VILOVEUL_AUTH_PASSPHRASE'), [
                 'private_key_type' => OPENSSL_KEYTYPE_RSA,
                 'private_key_bits' => 4096,
                 'digest_alg' => 'RSA-SHA256',
             ]);
 
-            $priv = fopen(__DIR__ . '/../../config/private.pem', 'w');
+            $priv = fopen(__DIR__ . '/../../var/private.pem', 'w');
             fwrite($priv, $privkey);
             fclose($priv);
 
             $details = openssl_pkey_get_details($res);
-            $pub = fopen(__DIR__ . '/../../config/public.pem', 'w');
+            $pub = fopen(__DIR__ . '/../../var/public.pem', 'w');
             fwrite($pub, $details['key']);
             fclose($pub);
         }

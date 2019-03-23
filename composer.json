@@ -41,11 +41,11 @@
     },
     "scripts": {
         "fresh": [
-            "rm -f config/private.pem config/public.pem"
+            "rm -f var/private.pem var/public.pem"
         ],
         "bootstrap": [
             "mkdir -p public/uploads",
-            "cp -n sample.env .env"
+            "cp -n config/envi.env .env"
         ],
         "post-create-project-cmd": [
             "@fresh",
