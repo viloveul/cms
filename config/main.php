@@ -18,9 +18,9 @@ return [
         # token name on header for jwt
         'name' => env('VILOVEUL_AUTH_NAME', 'Bearer'),
         # private key for generate jwt
-        'private' => env('VILOVEUL_AUTH_PRIVATE_KEY', __DIR__ . '/private.pem'),
+        'private' => env('VILOVEUL_AUTH_PRIVATE_KEY', dirname(__DIR__) . '/var/private.pem'),
         # public key for read jwt
-        'public' => env('VILOVEUL_AUTH_PUBLIC_KEY', __DIR__ . '/public.pem'),
+        'public' => env('VILOVEUL_AUTH_PUBLIC_KEY', dirname(__DIR__) . '/var/public.pem'),
         # phrase
         'phrase' => env('VILOVEUL_AUTH_PASSPHRASE', 'viloveul'),
     ],
@@ -43,7 +43,7 @@ return [
     ],
     'cache' => [
         /* ADAPTER (APCU|REDIS) */
-        'adapter' => env('VILOVEUL_CACHE_ADAPTER', 'redis'),
+        'adapter' => env('VILOVEUL_CACHE_ADAPTER', 'apcu'),
         /* LIFETIME CACHE BEFORE DELETE */
         'lifetime' => env('VILOVEUL_CACHE_LIFETIME', 3600),
         /* CACHE PREFIX */

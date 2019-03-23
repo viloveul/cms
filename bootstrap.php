@@ -36,7 +36,7 @@ $app->middleware($container->make(App\Middleware\Auth::class));
  * Load all routes
  */
 $app->uses(function (Viloveul\Router\Contracts\Collection $router) {
-    foreach (glob(__DIR__ . '/routes/*.php') as $file) {
+    foreach (glob(__DIR__ . '/route/*.php') as $file) {
         require $file;
     }
 });
@@ -45,7 +45,7 @@ $app->uses(function (Viloveul\Router\Contracts\Collection $router) {
  * Load all routes
  */
 $app->uses(function (Viloveul\Event\Contracts\Dispatcher $event) {
-    foreach (glob(__DIR__ . '/hooks/*.php') as $file) {
+    foreach (glob(__DIR__ . '/hook/*.php') as $file) {
         require $file;
     }
 });
