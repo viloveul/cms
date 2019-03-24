@@ -1,7 +1,7 @@
 
 # Viloveul Content Management System (Rest API)
 
-need php 7, openssl
+PHP7, OpenSSL, php-apcu/php-redis
 
 ```shell
 composer create-project viloveul-cms/api your-project-name
@@ -34,18 +34,19 @@ Edit file .env anda sesuai kebutuhan :
 
 setelah menyesuaikan konfigurasi .env anda, kemudian lakukan perintah sebagai berikut untuk memulai instalasi
 ```shell
-php sbin/viloveulc cms:install
+sbin/viloveulc cms:install
 ```
 setelah selesai proses instalasi, jalankan perintah berikut:
 ```shell
 php -S localhost:19911 -t public
 ```
 
-
-## UNDER DOCKER COMPOSE
+## UNDER DOCKER
 simple, just run
 ```shell
-docker run -e VILOVEUL_AUTH_PASSPHRASE=dordor -e ADMIN_EMAIL=your@mail.com -e ADMIN_PASSWORD=YourP@s5w0rdH3rE -p 19911:19911
+docker run -e VILOVEUL_AUTH_PASSPHRASE=dordor -e ADMIN_EMAIL=your@mail.com -e ADMIN_PASSWORD=YourP@s5w0rdH3rE -p 19911:19911 fajrulaz/viloveul-cms-api
 ```
 
 your local ready : http://localhost:19911
+
+* Note: ini adalah headless CMS, bukan Stack CMS

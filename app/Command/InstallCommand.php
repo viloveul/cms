@@ -2,7 +2,7 @@
 
 namespace App\Command;
 
-use App\Component\SchemaInstaller;
+use App\Component\Schema;
 use App\Entity\Role;
 use Viloveul\Console\Command;
 use Viloveul\Container\ContainerAwareTrait;
@@ -47,7 +47,7 @@ class InstallCommand extends Command implements ContainerAware
         }
 
         $container = $this->getContainer();
-        $installer = $container->make(SchemaInstaller::class);
+        $installer = $container->make(Schema::class);
 
         if (!$installer->check('user')) {
             $this->writeInfo('check and create table user if not exists.');
