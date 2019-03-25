@@ -5,20 +5,8 @@ MAINTAINER Fajrul Akbar Zuhdi<fajrulaz@gmail.com>
 ENV DEBIAN_FRONTEND=noninteractive
 
 ENV BASICDEP \
-    apt-utils \
-    lsb-release \
-    gnupg \
-    autoconf \
     apt-transport-https \
     ca-certificates \
-    dpkg-dev \
-    file \
-    g++ \
-    gcc \
-    libc-dev \
-    make \
-    pkg-config \
-    re2c \
     curl \
     nano \
     wget \
@@ -45,15 +33,7 @@ RUN apt-get update && \
 
 ENV COMPOSER_ALLOW_SUPERUSER 1
 
-ENV VILOVEUL_DB_HOST=localhost
-ENV VILOVEUL_DB_NAME=viloveul
-ENV VILOVEUL_DB_USERNAME=dev
-ENV VILOVEUL_DB_PASSWD=viloveul
-
 ENV SERVERDEP \
-    mariadb-server \
-    php7.3-common \
-    php7.3-dev \
     php7.3-cli \
     php7.3-fpm \
     php7.3-zip \
@@ -64,8 +44,9 @@ ENV SERVERDEP \
     php7.3-gd \
     php7.3-curl \
     php7.3-bcmath \
-    php-pear \
-    php-amqp
+    php7.3-apcu \
+    php7.3-redis \
+    php7.3-amqp
 
 RUN wget -O /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg && \
     echo "deb https://packages.sury.org/php stretch main" | tee /etc/apt/sources.list.d/php7.3.list && \
@@ -73,21 +54,12 @@ RUN wget -O /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg
     apt-get install -y --no-install-recommends --no-install-suggests $SERVERDEP && \
     rm -rf /var/lib/apt/lists/*
 
-RUN pecl install apcu && \
-    echo "extension=apcu.so" > /etc/php/7.3/mods-available/apcu.ini && \
-    phpenmod apcu && \
-    pecl install redis && \
-    echo "extension=redis.so" > /etc/php/7.3/mods-available/redis.ini && \
-    phpenmod redis && \
-    php -r "copy('https://getcomposer.org/installer', '/tmp/composer-setup.php');" && \
+RUN php -r "copy('https://getcomposer.org/installer', '/tmp/composer-setup.php');" && \
     php /tmp/composer-setup.php --install-dir=/usr/bin/ --filename=composer && \
-    composer install --no-dev --working-dir=/viloveul && \
-    composer run bootstrap --working-dir=/viloveul && \
-    composer clear-cache && \
     apt-get autoremove -y && \
     rm -rf /tmp/* && \
     mkdir -p /var/run/php
 
-EXPOSE 19911 3306
+EXPOSE 19911
 
 CMD ["sh", "/viloveul/sbin/docker"]

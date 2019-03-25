@@ -1,12 +1,9 @@
 #!/usr/bin/env sh
 set -e
 printenv | more | grep ^VILOVEUL_ > /viloveul/.env
-/etc/init.d/mysql start
-mysql -uroot -e 'CREATE DATABASE IF NOT EXISTS viloveul;'
-mysql -uroot -e "CREATE USER IF NOT EXISTS 'dev'@'%' IDENTIFIED BY 'viloveul';"
-mysql -uroot -e "GRANT ALL PRIVILEGES ON * . * TO 'dev'@'%';"
-mysql -uroot -e "FLUSH PRIVILEGES;"
+composer install --no-dev --working-dir=/viloveul
+composer run bootstrap --working-dir=/viloveul
+composer clear-cache
 php sbin/viloveulc cms:install
 php sbin/viloveulc cms:admin --email=$ADMIN_EMAIL --password=$ADMIN_PASSWORD
-/etc/init.d/mysql stop
 exec /usr/bin/supervisord -c /viloveul/config/supervisor.conf
