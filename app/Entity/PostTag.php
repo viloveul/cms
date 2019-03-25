@@ -12,7 +12,6 @@ class PostTag extends Model
     protected $fillable = [
         'post_id',
         'tag_id',
-        'created_at',
     ];
 
     /**

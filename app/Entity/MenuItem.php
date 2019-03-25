@@ -2,25 +2,20 @@
 
 namespace App\Entity;
 
+use App\Entity\Menu;
 use App\Entity\User;
 use App\Model;
 
-class Media extends Model
+class MenuItem extends Model
 {
     /**
      * @var array
      */
     protected $fillable = [
-        'id',
+        'menu_id',
         'author_id',
-        'name',
-        'filename',
-        'ref',
-        'type',
-        'size',
-        'year',
-        'month',
-        'day',
+        'label',
+        'url',
         'status',
         'created_at',
         'updated_at',
@@ -30,7 +25,7 @@ class Media extends Model
     /**
      * @var string
      */
-    protected $table = 'media';
+    protected $table = 'menu_item';
 
     /**
      * @return mixed
@@ -38,6 +33,14 @@ class Media extends Model
     public function author()
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * @return mixed
+     */
+    public function menu()
+    {
+        return $this->belongsTo(Menu::class);
     }
 
     /**

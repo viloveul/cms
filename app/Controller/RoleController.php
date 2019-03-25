@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Component\AttrAssignment;
+use App\Component\Helper;
 use App\Component\Privilege;
 use App\Entity\Role;
 use App\Validation\Role as Validation;
@@ -19,6 +20,11 @@ class RoleController
      * @var mixed
      */
     protected $config;
+
+    /**
+     * @var mixed
+     */
+    protected $helper;
 
     /**
      * @var mixed
@@ -45,6 +51,7 @@ class RoleController
      * @param Response      $response
      * @param Privilege     $privilege
      * @param Configuration $config
+     * @param Helper        $helper
      * @param Dispatcher    $router
      */
     public function __construct(
@@ -52,12 +59,14 @@ class RoleController
         Response $response,
         Privilege $privilege,
         Configuration $config,
+        Helper $helper,
         Dispatcher $router
     ) {
         $this->request = $request;
         $this->response = $response;
         $this->privilege = $privilege;
         $this->config = $config;
+        $this->helper = $helper;
         $this->route = $router->routed();
     }
 
@@ -73,18 +82,16 @@ class RoleController
         $role->where('status', 1);
         return $this->response->withPayload([
             'data' => $role->get()->map(function ($role) {
-                return [
-                    'id' => $role->id,
-                    'attributes' => $role->getAttributes(),
-                ];
+                return $role->getAttributes();
             }),
         ]);
     }
 
     /**
-     * @param $id
+     * @param  string  $id
+     * @return mixed
      */
-    public function assign($id)
+    public function assign(string $id)
     {
         if ($this->privilege->check($this->route->getName(), 'access') !== true) {
             return $this->response->withErrors(403, [
@@ -97,11 +104,7 @@ class RoleController
             $role->load('childs');
             $this->privilege->clear();
             return $this->response->withStatus(201)->withPayload([
-                'data' => [
-                    'id' => $role->id,
-                    'type' => 'role',
-                    'attributes' => $role->getAttributes(),
-                ],
+                'data' => $role->getAttributes(),
             ]);
         }
         return $this->response->withErrors(404, ['Role not found']);
@@ -128,13 +131,10 @@ class RoleController
                 $role->{$key} = $value;
             }
             $role->created_at = date('Y-m-d H:i:s');
+            $role->id = $this->helper->uuid();
             if ($role->save()) {
                 return $this->response->withPayload([
-                    'data' => [
-                        'id' => $role->id,
-                        'type' => 'role',
-                        'attributes' => $role->getAttributes(),
-                    ],
+                    'data' => $role->getAttributes(),
                 ]);
             } else {
                 return $this->response->withErrors(500, ['Something Wrong !!!']);
@@ -145,10 +145,10 @@ class RoleController
     }
 
     /**
-     * @param  int     $id
+     * @param  string  $id
      * @return mixed
      */
-    public function detail(int $id)
+    public function detail(string $id)
     {
         if ($this->privilege->check($this->route->getName(), 'access') !== true) {
             return $this->response->withErrors(403, [
@@ -157,16 +157,7 @@ class RoleController
         }
         if ($role = Role::where('id', $id)->with('childs')->first()) {
             return $this->response->withPayload([
-                'data' => [
-                    'id' => $role->id,
-                    'type' => 'role',
-                    'attributes' => $role->getAttributes(),
-                    'relationships' => [
-                        'childs' => [
-                            'data' => $role->childs,
-                        ],
-                    ],
-                ],
+                'data' => $role,
             ]);
         } else {
             return $this->response->withErrors(404, ['Role not found']);
@@ -197,21 +188,16 @@ class RoleController
                 ->skip(($parameter->getCurrentPage() * $parameter->getPageSize()) - $parameter->getPageSize())
                 ->take($parameter->getPageSize())
                 ->get()
-                ->map(function ($role) {
-                    return [
-                        'id' => $role->id,
-                        'type' => 'role',
-                        'attributes' => $role->getAttributes(),
-                    ];
-                })->toArray();
+                ->toArray();
         });
         return $this->response->withPayload($pagination->getResults());
     }
 
     /**
-     * @param $id
+     * @param  string  $id
+     * @return mixed
      */
-    public function unassign($id)
+    public function unassign(string $id)
     {
         if ($this->privilege->check($this->route->getName(), 'access') !== true) {
             return $this->response->withErrors(403, [
@@ -224,21 +210,17 @@ class RoleController
             $role->load('childs');
             $this->privilege->clear();
             return $this->response->withStatus(201)->withPayload([
-                'data' => [
-                    'id' => $role->id,
-                    'type' => 'role',
-                    'attributes' => $role->getAttributes(),
-                ],
+                'data' => $role->getAttributes(),
             ]);
         }
         return $this->response->withErrors(404, ['Role not found']);
     }
 
     /**
-     * @param  int     $id
+     * @param  string  $id
      * @return mixed
      */
-    public function update(int $id)
+    public function update(string $id)
     {
         if ($this->privilege->check($this->route->getName(), 'access') !== true) {
             return $this->response->withErrors(403, [
@@ -258,11 +240,7 @@ class RoleController
                 $role->updated_at = date('Y-m-d H:i:s');
                 if ($role->save()) {
                     return $this->response->withPayload([
-                        'data' => [
-                            'id' => $id,
-                            'type' => 'role',
-                            'attributes' => $role->getAttributes(),
-                        ],
+                        'data' => $role->getAttributes(),
                     ]);
                 } else {
                     return $this->response->withErrors(500, ['Something Wrong !!!']);

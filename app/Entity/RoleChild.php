@@ -9,7 +9,10 @@ class RoleChild extends Model
     /**
      * @var array
      */
-    protected $fillable = ['role_id', 'child_id', 'created_at'];
+    protected $fillable = [
+        'role_id',
+        'child_id',
+    ];
 
     /**
      * @var string

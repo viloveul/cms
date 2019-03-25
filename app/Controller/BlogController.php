@@ -75,7 +75,11 @@ class BlogController
             $pagination->prepare(function () use ($model, $slug) {
                 $parameter = $this->getParameter();
                 foreach ($parameter->getConditions() as $key => $value) {
-                    $model->where($key, 'like', "%{$value}%");
+                    if (in_array($key, ['id', 'author_id', 'type', 'comment_enabled'])) {
+                        $model->where($key, $value);
+                    } else {
+                        $model->where($key, 'like', "%{$value}%");
+                    }
                 }
                 $model->where('type', 'post');
                 $model->where('status', 1);
@@ -100,21 +104,7 @@ class BlogController
                     ->skip(($parameter->getCurrentPage() * $parameter->getPageSize()) - $parameter->getPageSize())
                     ->take($parameter->getPageSize())
                     ->get()
-                    ->map(function ($post) {
-                        return [
-                            'id' => $post->id,
-                            'type' => 'post',
-                            'attributes' => $post->getAttributes(),
-                            'relationships' => [
-                                'tags' => [
-                                    'data' => $post->tags,
-                                ],
-                                'author' => [
-                                    'data' => $post->author,
-                                ],
-                            ],
-                        ];
-                    })->toArray();
+                    ->toArray();
             });
             $results = $pagination->getResults();
             $results['meta']['archive'] = $archive;
@@ -145,7 +135,11 @@ class BlogController
             $pagination->prepare(function () use ($model, $author) {
                 $parameter = $this->getParameter();
                 foreach ($parameter->getConditions() as $key => $value) {
-                    $model->where($key, 'like', "%{$value}%");
+                    if (in_array($key, ['id', 'author_id', 'type', 'comment_enabled'])) {
+                        $model->where($key, $value);
+                    } else {
+                        $model->where($key, 'like', "%{$value}%");
+                    }
                 }
                 $model->where('status', 1);
                 $model->where('author_id', $author->id);
@@ -165,21 +159,7 @@ class BlogController
                     ->skip(($parameter->getCurrentPage() * $parameter->getPageSize()) - $parameter->getPageSize())
                     ->take($parameter->getPageSize())
                     ->get()
-                    ->map(function ($post) {
-                        return [
-                            'id' => $post->id,
-                            'type' => 'post',
-                            'attributes' => $post->getAttributes(),
-                            'relationships' => [
-                                'tags' => [
-                                    'data' => $post->tags,
-                                ],
-                                'author' => [
-                                    'data' => $post->author,
-                                ],
-                            ],
-                        ];
-                    })->toArray();
+                    ->toArray();
             });
             $results = $pagination->getResults();
             $results['meta']['author'] = $author;
@@ -190,9 +170,9 @@ class BlogController
     }
 
     /**
-     * @param int $post_id
+     * @param string $post_id
      */
-    public function comments(int $post_id)
+    public function comments(string $post_id)
     {
         if ($post = Post::where('id', $post_id)->where('status', 1)->where('comment_enabled', 1)->first()) {
             $model = Comment::query();
@@ -201,9 +181,6 @@ class BlogController
             $pagination = new Pagination($parameter);
             $pagination->prepare(function () use ($model, $post_id) {
                 $parameter = $this->getParameter();
-                foreach ($parameter->getConditions() as $key => $value) {
-                    $model->where($key, 'like', "%{$value}%");
-                }
                 $model->where('status', 1);
                 $model->where('post_id', $post_id);
                 $model->with([
@@ -217,18 +194,7 @@ class BlogController
                     ->skip(($parameter->getCurrentPage() * $parameter->getPageSize()) - $parameter->getPageSize())
                     ->take($parameter->getPageSize())
                     ->get()
-                    ->map(function ($comment) {
-                        return [
-                            'id' => $comment->id,
-                            'type' => 'comment',
-                            'attributes' => $comment->getAttributes(),
-                            'relationships' => [
-                                'author' => [
-                                    'data' => $comment->author,
-                                ],
-                            ],
-                        ];
-                    })->toArray();
+                    ->toArray();
             });
             $results = $pagination->getResults();
             return $this->response->withPayload($results);
@@ -245,19 +211,7 @@ class BlogController
     {
         if ($post = Post::where('slug', $slug)->where('status', 1)->with(['author', 'tags'])->first()) {
             return $this->response->withPayload([
-                'data' => [
-                    'id' => $post->id,
-                    'type' => 'post',
-                    'attributes' => $post->getAttributes(),
-                    'relationships' => [
-                        'tags' => [
-                            'data' => $post->tags,
-                        ],
-                        'author' => [
-                            'data' => $post->author,
-                        ],
-                    ],
-                ],
+                'data' => $post,
             ]);
         }
         return $this->response->withErrors(404, ['Page not found.']);
@@ -281,7 +235,11 @@ class BlogController
         $pagination->prepare(function () use ($model) {
             $parameter = $this->getParameter();
             foreach ($parameter->getConditions() as $key => $value) {
-                $model->where($key, 'like', "%{$value}%");
+                if (in_array($key, ['id', 'author_id', 'type', 'comment_enabled'])) {
+                    $model->where($key, $value);
+                } else {
+                    $model->where($key, 'like', "%{$value}%");
+                }
             }
             $model->where('type', 'post');
             $model->where('status', 1);
@@ -301,21 +259,7 @@ class BlogController
                 ->skip(($parameter->getCurrentPage() * $parameter->getPageSize()) - $parameter->getPageSize())
                 ->take($parameter->getPageSize())
                 ->get()
-                ->map(function ($post) {
-                    return [
-                        'id' => $post->id,
-                        'type' => 'post',
-                        'attributes' => $post->getAttributes(),
-                        'relationships' => [
-                            'tags' => [
-                                'data' => $post->tags,
-                            ],
-                            'author' => [
-                                'data' => $post->author,
-                            ],
-                        ],
-                    ];
-                })->toArray();
+                ->toArray();
         });
 
         return $this->response->withPayload($pagination->getResults());

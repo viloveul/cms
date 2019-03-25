@@ -2,6 +2,7 @@
 
 namespace App\Command;
 
+use App\Component\Helper;
 use App\Entity\Role;
 use App\Entity\User;
 use RuntimeException;
@@ -72,15 +73,18 @@ class AdminCommand extends Command implements ContainerAware
         $this->writeNormal('--------------------------------------------------------------');
 
         $this->writeInfo('Create user admin');
-        $user = User::updateOrCreate(
+        $user = User::firstOrNew(
             ['username' => 'admin'],
             [
+                'id' => $this->getContainer()->get(Helper::class)->uuid(),
                 'name' => 'Administrator',
-                'email' => $email,
-                'password' => password_hash($password, PASSWORD_DEFAULT),
-                'status' => 1,
             ]
         );
+        $user->email = $email;
+        $user->password = password_hash($password, PASSWORD_DEFAULT);
+        $user->status = 1;
+        $user->save();
+
         $this->writeNormal('--------------------------------------------------------------');
         $this->writeInfo('assign user admin to all roles');
         $roleIds = Role::all()->map(function ($role) {

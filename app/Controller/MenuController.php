@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Component\AttrAssignment;
+use App\Component\Helper;
 use App\Component\Privilege;
 use App\Component\Setting;
 use App\Entity\Menu;
@@ -20,6 +21,11 @@ class MenuController
      * @var mixed
      */
     protected $config;
+
+    /**
+     * @var mixed
+     */
+    protected $helper;
 
     /**
      * @var mixed
@@ -51,6 +57,7 @@ class MenuController
      * @param Response       $response
      * @param Privilege      $privilege
      * @param Configuration  $config
+     * @param Helper         $helper
      * @param Authentication $auth
      * @param Dispatcher     $router
      */
@@ -59,6 +66,7 @@ class MenuController
         Response $response,
         Privilege $privilege,
         Configuration $config,
+        Helper $helper,
         Authentication $auth,
         Dispatcher $router
     ) {
@@ -66,6 +74,7 @@ class MenuController
         $this->response = $response;
         $this->privilege = $privilege;
         $this->config = $config;
+        $this->helper = $helper;
         $this->user = $auth->getUser();
         $this->route = $router->routed();
     }
@@ -96,13 +105,10 @@ class MenuController
         $menu->status = 1;
         $menu->author_id = $this->user->get('sub');
         $menu->created_at = date('Y-m-d H:i:s');
+        $menu->id = $this->helper->uuid();
         if ($menu->save()) {
             return $this->response->withPayload([
-                'data' => [
-                    'id' => $menu->id,
-                    'type' => 'menu',
-                    'attributes' => $menu->getAttributes(),
-                ],
+                'data' => $menu,
             ]);
         } else {
             return $this->response->withErrors(500, ['Something Wrong !!!']);
@@ -110,10 +116,10 @@ class MenuController
     }
 
     /**
-     * @param  int     $id
+     * @param  string  $id
      * @return mixed
      */
-    public function delete(int $id)
+    public function delete(string $id)
     {
         if ($menu = Menu::where('id', $id)->first()) {
             if ($this->privilege->check($this->route->getName(), 'access', $menu->author_id) !== true) {
@@ -134,10 +140,10 @@ class MenuController
     }
 
     /**
-     * @param  int     $id
+     * @param  string  $id
      * @return mixed
      */
-    public function detail(int $id)
+    public function detail(string $id)
     {
         if ($menu = Menu::where('id', $id)->first()) {
             if ($this->privilege->check($this->route->getName(), 'access', $menu->author_id) !== true) {
@@ -146,11 +152,7 @@ class MenuController
                 ]);
             }
             return $this->response->withPayload([
-                'data' => [
-                    'id' => $menu->id,
-                    'type' => 'menu',
-                    'attributes' => $menu,
-                ],
+                'data' => $menu,
             ]);
         } else {
             return $this->response->withErrors(404, ['Menu not found']);
@@ -181,13 +183,7 @@ class MenuController
                 ->skip(($parameter->getCurrentPage() * $parameter->getPageSize()) - $parameter->getPageSize())
                 ->take($parameter->getPageSize())
                 ->get()
-                ->map(function ($menu) {
-                    return [
-                        'id' => $menu->id,
-                        'type' => 'menu',
-                        'attributes' => $menu->getAttributes(),
-                    ];
-                })->toArray();
+                ->toArray();
         });
         return $this->response->withPayload($pagination->getResults());
     }
@@ -214,10 +210,10 @@ class MenuController
     }
 
     /**
-     * @param  int     $id
+     * @param  string  $id
      * @return mixed
      */
-    public function update(int $id)
+    public function update(string $id)
     {
         if ($menu = Menu::where('id', $id)->first()) {
             if ($this->privilege->check($this->route->getName(), 'access', $menu->author_id) !== true) {
@@ -241,11 +237,7 @@ class MenuController
             $menu->updated_at = date('Y-m-d H:i:s');
             if ($menu->save()) {
                 return $this->response->withPayload([
-                    'data' => [
-                        'id' => $id,
-                        'type' => 'menu',
-                        'attributes' => $menu,
-                    ],
+                    'data' => $menu,
                 ]);
             } else {
                 return $this->response->withErrors(500, ['Something Wrong !!!']);

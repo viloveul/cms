@@ -132,6 +132,7 @@ class CommentController
                 }
                 $comment->status = (!$this->setting->get('moderations.comment') || $this->privilege->check('moderator:comment', 'group'));
                 $comment->created_at = date('Y-m-d H:i:s');
+                $comment->id = $this->helper->uuid();
                 if ($comment->save()) {
                     if ($users = $this->privilege->getRoleUsers('moderator:comment', 'group')) {
                         $this->helper->sendNotification(
@@ -143,16 +144,7 @@ class CommentController
                     $comment->load('author');
                     $this->audit->create($comment->id, 'comment');
                     return $this->response->withPayload([
-                        'data' => [
-                            'id' => $comment->id,
-                            'type' => 'comment',
-                            'attributes' => $comment->getAttributes(),
-                            'relationships' => [
-                                'author' => [
-                                    'data' => $comment->author,
-                                ],
-                            ],
-                        ],
+                        'data' => $comment,
                     ]);
                 } else {
                     return $this->response->withErrors(500, ['Something Wrong !!!']);
@@ -166,10 +158,10 @@ class CommentController
     }
 
     /**
-     * @param  int     $id
+     * @param  string  $id
      * @return mixed
      */
-    public function delete(int $id)
+    public function delete(string $id)
     {
         if ($comment = Comment::where('id', $id)->first()) {
             if ($this->privilege->check($this->route->getName(), 'access', $comment->author_id) !== true) {
@@ -191,23 +183,19 @@ class CommentController
     }
 
     /**
-     * @param  int     $id
+     * @param  string  $id
      * @return mixed
      */
-    public function detail(int $id)
+    public function detail(string $id)
     {
-        if ($comment = Comment::where('id', $id)->first()) {
+        if ($comment = Comment::where('id', $id)->with(['author', 'post'])->first()) {
             if ($this->privilege->check($this->route->getName(), 'access', $comment->author_id) !== true) {
                 return $this->response->withErrors(403, [
                     "No direct access for route: {$this->route->getName()}",
                 ]);
             }
             return $this->response->withPayload([
-                'data' => [
-                    'id' => $comment->id,
-                    'type' => 'comment',
-                    'attributes' => $comment->getAttributes(),
-                ],
+                'data' => $comment,
             ]);
         } else {
             return $this->response->withErrors(404, ['Comment not found']);
@@ -238,27 +226,16 @@ class CommentController
                 ->skip(($parameter->getCurrentPage() * $parameter->getPageSize()) - $parameter->getPageSize())
                 ->take($parameter->getPageSize())
                 ->get()
-                ->map(function ($comment) {
-                    return [
-                        'id' => $comment->id,
-                        'type' => 'comment',
-                        'attributes' => $comment->getAttributes(),
-                        'relationships' => [
-                            'post' => [
-                                'data' => $comment->post,
-                            ],
-                        ],
-                    ];
-                })->toArray();
+                ->toArray();
         });
         return $this->response->withPayload($pagination->getResults());
     }
 
     /**
-     * @param  int     $id
+     * @param  string  $id
      * @return mixed
      */
-    public function update(int $id)
+    public function update(string $id)
     {
         if ($comment = Comment::where('id', $id)->first()) {
             if ($this->privilege->check($this->route->getName(), 'access', $comment->author_id) !== true) {
@@ -286,11 +263,7 @@ class CommentController
                 if ($comment->save()) {
                     $this->audit->update($comment->id, 'comment', $comment->getAttributes(), $previous);
                     return $this->response->withPayload([
-                        'data' => [
-                            'id' => $id,
-                            'type' => 'comment',
-                            'attributes' => $comment->getAttributes(),
-                        ],
+                        'data' => $comment,
                     ]);
                 } else {
                     return $this->response->withErrors(500, ['Something Wrong !!!']);

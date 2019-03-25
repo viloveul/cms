@@ -7,7 +7,7 @@ use App\Component\AuditTrail;
 use App\Component\Helper;
 use App\Component\Privilege;
 use App\Component\Setting;
-use App\Component\SlugCreation;
+use App\Component\Slug;
 use App\Entity\Post;
 use App\Validation\Post as PostValidation;
 use Viloveul\Auth\Contracts\Authentication;
@@ -110,7 +110,7 @@ class PostController
         }
         $attr = $this->request->loadPostTo(new AttrAssignment);
         if (!$attr->has('slug')) {
-            $attr->slug = SlugCreation::create()->generate(Post::class, 'slug', $attr->get('title'), null);
+            $attr->slug = Slug::create()->generate(Post::class, 'slug', $attr->get('title'), null);
         }
         $validator = new PostValidation($attr->getAttributes());
         if ($validator->validate('insert')) {
@@ -134,6 +134,7 @@ class PostController
             if ($post->status == 1) {
                 $post->status = (!$this->setting->get('moderations.post') || $this->privilege->check('moderator:post', 'group'));
             }
+            $post->id = $this->helper->uuid();
             if ($post->save()) {
                 $tags = $attr->get('relations') ?: [];
                 $post->tags()->sync($tags);
@@ -148,11 +149,7 @@ class PostController
                 }
 
                 return $this->response->withPayload([
-                    'data' => [
-                        'id' => $post->id,
-                        'type' => 'post',
-                        'attributes' => $post->getAttributes(),
-                    ],
+                    'data' => $post,
                 ]);
             } else {
                 return $this->response->withErrors(500, ['Something Wrong !!!']);
@@ -163,9 +160,10 @@ class PostController
     }
 
     /**
-     * @param $id
+     * @param  string  $id
+     * @return mixed
      */
-    public function delete(int $id)
+    public function delete(string $id)
     {
         if ($post = Post::where('id', $id)->first()) {
             if ($this->privilege->check($this->route->getName(), 'access', $post->author_id) !== true) {
@@ -187,9 +185,10 @@ class PostController
     }
 
     /**
-     * @param $id
+     * @param  string  $id
+     * @return mixed
      */
-    public function detail(int $id)
+    public function detail(string $id)
     {
         if ($post = Post::where('id', $id)->with(['author', 'tags'])->first()) {
             if ($this->privilege->check($this->route->getName(), 'access', $post->author_id) !== true) {
@@ -198,19 +197,7 @@ class PostController
                 ]);
             }
             return $this->response->withPayload([
-                'data' => [
-                    'id' => $post->id,
-                    'type' => 'post',
-                    'attributes' => $post->getAttributes(),
-                    'relationships' => [
-                        'author' => [
-                            'data' => $post->author,
-                        ],
-                        'tags' => [
-                            'data' => $post->tags,
-                        ],
-                    ],
-                ],
+                'data' => $post,
             ]);
         } else {
             return $this->response->withErrors(404, ['Post not found']);
@@ -241,27 +228,17 @@ class PostController
                 ->skip(($parameter->getCurrentPage() * $parameter->getPageSize()) - $parameter->getPageSize())
                 ->take($parameter->getPageSize())
                 ->get()
-                ->map(function ($post) {
-                    return [
-                        'id' => $post->id,
-                        'type' => 'post',
-                        'attributes' => $post->getAttributes(),
-                        'relationships' => [
-                            'author' => [
-                                'data' => $post->author,
-                            ],
-                        ],
-                    ];
-                })->toArray();
+                ->toArray();
         });
 
         return $this->response->withPayload($pagination->getResults());
     }
 
     /**
-     * @param $id
+     * @param  string  $id
+     * @return mixed
      */
-    public function update(int $id)
+    public function update(string $id)
     {
         if ($post = Post::where('id', $id)->first()) {
             if ($this->privilege->check($this->route->getName(), 'access', $post->author_id) !== true) {
@@ -297,11 +274,7 @@ class PostController
                     $post->tags()->sync($tags);
                     $post->load('tags');
                     return $this->response->withPayload([
-                        'data' => [
-                            'id' => $post->id,
-                            'type' => 'post',
-                            'attributes' => $post->getAttributes(),
-                        ],
+                        'data' => $post,
                     ]);
                 } else {
                     return $this->response->withErrors(500, ['Something Wrong !!!']);

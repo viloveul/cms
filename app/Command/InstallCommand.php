@@ -2,6 +2,7 @@
 
 namespace App\Command;
 
+use App\Component\Helper;
 use App\Component\Schema;
 use App\Entity\Role;
 use Viloveul\Console\Command;
@@ -191,27 +192,61 @@ class InstallCommand extends Command implements ContainerAware
             $this->writeInfo('Table exist. alter table audit_detail.');
             $installer->alter('audit_detail');
         }
-        $this->writeNormal('--------------------------------------------------------------');
-        $this->writeInfo('Create role group admin');
-        $role = Role::firstOrCreate(
-            ['name' => 'admin', 'type' => 'group'],
-            ['type' => 'group']
-        );
-        $this->writeNormal('--------------------------------------------------------------');
-        $this->writeInfo('Create access role admin');
         $accessors = [];
         foreach ($container->get(Collection::class)->all() as $key => $value) {
             $this->writeNormal('--------------------------------------------------------------');
             $this->writeInfo('Create access : ' . $key);
             $access = Role::firstOrCreate(
                 ['name' => $key],
-                ['type' => 'access']
+                [
+                    'type' => 'access',
+                    'id' => $container->get(Helper::class)->uuid(),
+                ]
             );
             $accessors[] = $access->id;
-            $this->writeNormal('--------------------------------------------------------------');
-            $this->writeInfo('Assign access : ' . $key);
         }
-        $role->childs()->sync($accessors);
+        $this->writeNormal('--------------------------------------------------------------');
+        $this->writeInfo('Create role group admin');
+        $admin = Role::firstOrCreate(
+            ['name' => 'admin:super', 'type' => 'group'],
+            [
+                'type' => 'group',
+                'id' => $container->get(Helper::class)->uuid(),
+            ]
+        );
+        $this->writeNormal('--------------------------------------------------------------');
+        $this->writeInfo('Assign all access to group admin:super');
+        $admin->childs()->sync($accessors);
+        $this->writeNormal('--------------------------------------------------------------');
+
+        $this->writeInfo('Create role group moderator:post');
+        Role::firstOrCreate(
+            ['name' => 'moderator:post', 'type' => 'group'],
+            [
+                'type' => 'group',
+                'id' => $container->get(Helper::class)->uuid(),
+            ]
+        );
+        $this->writeNormal('--------------------------------------------------------------');
+
+        $this->writeInfo('Create role group moderator:comment');
+        Role::firstOrCreate(
+            ['name' => 'moderator:comment', 'type' => 'group'],
+            [
+                'type' => 'group',
+                'id' => $container->get(Helper::class)->uuid(),
+            ]
+        );
+        $this->writeNormal('--------------------------------------------------------------');
+
+        $this->writeInfo('Create role group moderator:user');
+        Role::firstOrCreate(
+            ['name' => 'moderator:user', 'type' => 'group'],
+            [
+                'type' => 'group',
+                'id' => $container->get(Helper::class)->uuid(),
+            ]
+        );
         $this->writeNormal('--------------------------------------------------------------');
         $this->writeInfo('Installation complete.');
     }

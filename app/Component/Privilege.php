@@ -50,11 +50,11 @@ class Privilege
     /**
      * @param string $name
      * @param string $type
-     * @param int    $author_id
+     * @param string $author_id
      */
-    public function check(string $name, string $type = 'access', int $author_id = 0): bool
+    public function check(string $name, string $type = 'access', string $author_id = '0'): bool
     {
-        if ($author_id > 0 && $author_id == $this->user->get('sub')) {
+        if (strlen($author_id) > 0 && $author_id == $this->user->get('sub')) {
             return true;
         }
         $me = $this->mine();
@@ -99,10 +99,10 @@ class Privilege
     }
 
     /**
-     * @param  $id
+     * @param  string  $id
      * @return mixed
      */
-    public function getUserRoles($id)
+    public function getUserRoles(string $id)
     {
         if (array_key_exists($id, $this->users)) {
             $roles = [];
@@ -160,10 +160,10 @@ class Privilege
     }
 
     /**
-     * @param int   $id
-     * @param array $relations
+     * @param string $id
+     * @param array  $relations
      */
-    public function recursive(int $id, array $relations): void
+    public function recursive(string $id, array $relations): void
     {
         if (array_key_exists($id, $relations)) {
             foreach ($relations[$id] as $childId) {

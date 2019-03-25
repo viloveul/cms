@@ -2,7 +2,7 @@
 
 namespace App\Component;
 
-class SlugCreation
+class Slug
 {
     /**
      * @param  string  $model
@@ -24,10 +24,10 @@ class SlugCreation
      * @param  string  $model
      * @param  string  $field
      * @param  string  $slug
-     * @param  int     $id
+     * @param  $id
      * @return mixed
      */
-    public function generate(string $model, string $field, string $slug, int $id = null): string
+    public function generate(string $model, string $field, string $slug, $id = null): string
     {
         $slug = preg_replace('/[^a-z0-9\-\_]+/', '-', strtolower($slug));
         $suffix = '';
