@@ -11,6 +11,7 @@ class AuditDetail extends Model
      * @var array
      */
     protected $fillable = [
+        'id',
         'audit_id',
         'resource',
         'previous',

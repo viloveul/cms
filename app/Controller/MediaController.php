@@ -88,10 +88,10 @@ class MediaController
     }
 
     /**
-     * @param  int     $id
+     * @param  string  $id
      * @return mixed
      */
-    public function delete(int $id)
+    public function delete(string $id)
     {
         if ($media = Media::where('id', $id)->first()) {
             if ($this->privilege->check($this->route->getName(), 'access', $media->author_id) !== true) {
@@ -113,10 +113,10 @@ class MediaController
     }
 
     /**
-     * @param  int     $id
+     * @param  string  $id
      * @return mixed
      */
-    public function detail(int $id)
+    public function detail(string $id)
     {
         if ($media = Media::where('id', $id)->with('author')->first()) {
             if ($this->privilege->check($this->route->getName(), 'access', $media->author_id) !== true) {
@@ -138,19 +138,10 @@ class MediaController
                 ]);
             }
             return $this->response->withPayload([
-                'data' => [
-                    'id' => $id,
-                    'type' => 'media',
-                    'attributes' => array_merge($media->getAttributes(), [
-                        'url' => $url,
-                        'image_url' => $image,
-                    ]),
-                    'relationships' => [
-                        'author' => [
-                            'data' => $media->author,
-                        ],
-                    ],
-                ],
+                'data' => array_merge($media->toArray(), [
+                    'url' => $url,
+                    'image_url' => $image,
+                ]),
             ]);
         } else {
             return $this->response->withErrors(404, ['Media not found']);
@@ -182,30 +173,19 @@ class MediaController
                 ->skip(($parameter->getCurrentPage() * $parameter->getPageSize()) - $parameter->getPageSize())
                 ->take($parameter->getPageSize())
                 ->get()
-                ->map(function ($media) {
-                    return [
-                        'id' => $media->id,
-                        'type' => 'media',
-                        'attributes' => $media->getAttributes(),
-                        'relationships' => [
-                            'author' => [
-                                'data' => $media->author,
-                            ],
-                        ],
-                    ];
-                })->toArray();
+                ->toArray();
 
             $this->data = array_map(function ($o) use ($request) {
-                $o['attributes']['url'] = vsprintf('%s/uploads/%s/%s/%s/%s', [
+                $o['url'] = vsprintf('%s/uploads/%s/%s/%s/%s', [
                     $request->getBaseUrl(),
-                    $o['attributes']['year'],
-                    $o['attributes']['month'],
-                    $o['attributes']['day'],
-                    $o['attributes']['filename'],
+                    $o['year'],
+                    $o['month'],
+                    $o['day'],
+                    $o['filename'],
                 ]);
-                $o['attributes']['image_url'] = $o['attributes']['url'];
-                if (false === stripos($o['attributes']['type'], 'image')) {
-                    $o['attributes']['image_url'] = vsprintf('%s/images/media-image.png', [
+                $o['image_url'] = $o['url'];
+                if (false === stripos($o['type'], 'image')) {
+                    $o['image_url'] = vsprintf('%s/images/media-image.png', [
                         $request->getBaseUrl(),
                     ]);
                 }
@@ -226,10 +206,12 @@ class MediaController
         $response = $this->response;
         $user = $this->user;
         $audit = $this->audit;
-        return $uploader->upload('*', function ($uploadedFiles, $errors, $files) use ($request, $response, $user, $audit) {
+        $helper = $this->helper;
+        return $uploader->upload('*', function ($uploadedFiles, $errors, $files) use ($request, $response, $user, $audit, $helper) {
             $results = [];
             foreach ($uploadedFiles as $uploadedFile) {
                 $media = Media::create([
+                    'id' => $helper->uuid(),
                     'author_id' => $user->get('sub') ?: 0,
                     'name' => $uploadedFile['name'],
                     'filename' => $uploadedFile['filename'],
@@ -256,14 +238,10 @@ class MediaController
                         $request->getBaseUrl(),
                     ]);
                 }
-                $results[] = [
-                    'id' => $media->id,
-                    'type' => 'media',
-                    'attributes' => array_merge($media->getAttributes(), [
-                        'url' => $url,
-                        'image_url' => $image,
-                    ]),
-                ];
+                $results[] = array_merge($media->getAttributes(), [
+                    'url' => $url,
+                    'image_url' => $image,
+                ]);
             }
             return $this->response->withPayload([
                 'data' => $results,

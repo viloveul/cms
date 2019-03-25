@@ -6,6 +6,8 @@ use App\Component\Privilege;
 use App\Component\Setting;
 use App\Entity\Notification as NotificationModel;
 use App\Message\Notification as NotificationPassenger;
+use Ramsey\Uuid\Exception\UnsatisfiedDependencyException;
+use Ramsey\Uuid\Uuid;
 use Viloveul\Auth\Contracts\Authentication;
 use Viloveul\Transport\Contracts\Bus;
 
@@ -59,10 +61,11 @@ class Helper
         if (is_scalar($target)) {
             $this->sendNotification([$target], $subject, $content);
         } else {
-            $me = $this->user->get('sub') ?: 0;
+            $me = $this->user->get('sub') ?: '0';
             foreach ($target as $id) {
                 if ($id != $me) {
                     NotificationModel::create([
+                        'id' => $this->uuid(),
                         'author_id' => $me,
                         'receiver_id' => $id,
                         'subject' => $subject,
@@ -71,6 +74,15 @@ class Helper
                     $this->bus->process(new NotificationPassenger($id));
                 }
             }
+        }
+    }
+
+    public function uuid()
+    {
+        try {
+            return Uuid::uuid4()->toString();
+        } catch (UnsatisfiedDependencyException $e) {
+            throw $e;
         }
     }
 }

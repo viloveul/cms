@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Component\AttrAssignment;
 use App\Component\AuditTrail;
+use App\Component\Helper;
 use App\Component\Privilege;
 use App\Component\Setting;
 use App\Entity\Notification;
@@ -28,6 +29,11 @@ class UserController
      * @var mixed
      */
     protected $config;
+
+    /**
+     * @var mixed
+     */
+    protected $helper;
 
     /**
      * @var mixed
@@ -66,6 +72,7 @@ class UserController
      * @param Configuration  $config
      * @param Setting        $setting
      * @param AuditTrail     $audit
+     * @param Helper         $helper
      * @param Authentication $auth
      * @param Dispatcher     $router
      */
@@ -76,6 +83,7 @@ class UserController
         Configuration $config,
         Setting $setting,
         AuditTrail $audit,
+        Helper $helper,
         Authentication $auth,
         Dispatcher $router
     ) {
@@ -85,6 +93,7 @@ class UserController
         $this->config = $config;
         $this->setting = $setting;
         $this->audit = $audit;
+        $this->helper = $helper;
         $this->route = $router->routed();
         $this->user = $auth->getUser();
     }
@@ -115,16 +124,13 @@ class UserController
             }
             $user->created_at = date('Y-m-d H:i:s');
             $user->password = password_hash($attr->get('password'), PASSWORD_DEFAULT);
+            $user->id = $this->helper->uuid();
             if ($user->save()) {
                 $relations = $attr->get('relations') ?: [];
                 $user->roles()->sync($relations);
                 $this->audit->create($user->id, 'user');
                 return $this->response->withPayload([
-                    'data' => [
-                        'id' => $user->id,
-                        'type' => 'user',
-                        'attributes' => $user,
-                    ],
+                    'data' => $user,
                 ]);
             } else {
                 return $this->response->withErrors(500, ['Something Wrong !!!']);
@@ -135,9 +141,10 @@ class UserController
     }
 
     /**
-     * @param $id
+     * @param  string  $id
+     * @return mixed
      */
-    public function delete(int $id)
+    public function delete(string $id)
     {
         if ($this->privilege->check($this->route->getName(), 'access') !== true) {
             return $this->response->withErrors(403, [
@@ -159,16 +166,17 @@ class UserController
     }
 
     /**
-     * @param $id
+     * @param  string  $id
+     * @return mixed
      */
-    public function detail(int $id)
+    public function detail(string $id)
     {
         if ($this->privilege->check($this->route->getName(), 'access', $id) !== true) {
             return $this->response->withErrors(403, [
                 "No direct access for route: {$this->route->getName()}",
             ]);
         }
-        if ($user = User::where('id', $id)->first()) {
+        if ($user = User::where('id', $id)->with('roles')->first()) {
             if (!$user->picture) {
                 $user->picture = sprintf(
                     '%s/images/no-image.jpg',
@@ -176,16 +184,7 @@ class UserController
                 );
             }
             return $this->response->withPayload([
-                'data' => [
-                    'id' => $user->id,
-                    'type' => 'user',
-                    'attributes' => $user->toArray(),
-                    'relationships' => [
-                        'roles' => [
-                            'data' => $user->roles,
-                        ],
-                    ],
-                ],
+                'data' => $user,
             ]);
         } else {
             return $this->response->withErrors(404, ['User not found']);
@@ -216,13 +215,7 @@ class UserController
                 ->skip(($parameter->getCurrentPage() * $parameter->getPageSize()) - $parameter->getPageSize())
                 ->take($parameter->getPageSize())
                 ->get()
-                ->map(function ($user) {
-                    return [
-                        'id' => $user->id,
-                        'type' => 'user',
-                        'attributes' => $user,
-                    ];
-                })->toArray();
+                ->toArray();
         });
 
         return $this->response->withPayload($pagination->getResults());
@@ -242,18 +235,14 @@ class UserController
                     );
                 }
                 return $this->response->withPayload([
-                    'data' => [
-                        'id' => $user->id,
-                        'type' => 'user',
-                        'attributes' => $user,
-                    ],
+                    'data' => $user,
                     'meta' => [
+                        'privileges' => $this->privilege->mine(),
                         'notification' => [
                             'total' => Notification::where('receiver_id', $id)->count(),
                             'unread' => Notification::where('receiver_id', $id)->where('status', 0)->count(),
                             'read' => Notification::where('receiver_id', $id)->where('status', 1)->count(),
                         ],
-                        'privileges' => $this->privilege->mine(),
                     ],
                 ]);
             } else {
@@ -265,10 +254,10 @@ class UserController
     }
 
     /**
-     * @param  int     $id
+     * @param  string  $id
      * @return mixed
      */
-    public function relations(int $id)
+    public function relations(string $id)
     {
         if ($this->privilege->check($this->route->getName(), 'access') !== true) {
             return $this->response->withErrors(403, [
@@ -281,11 +270,7 @@ class UserController
             is_array($relations) and $user->roles()->sync($relations);
             $this->privilege->load();
             return $this->response->withPayload([
-                'data' => [
-                    'id' => $id,
-                    'type' => 'user',
-                    'attributes' => $user,
-                ],
+                'data' => $user,
             ]);
         } else {
             return $this->response->withErrors(404, ['User not found']);
@@ -293,9 +278,10 @@ class UserController
     }
 
     /**
-     * @param $id
+     * @param  string  $id
+     * @return mixed
      */
-    public function update(int $id)
+    public function update(string $id)
     {
         if ($this->privilege->check($this->route->getName(), 'access', $id) !== true) {
             return $this->response->withErrors(403, [
@@ -325,11 +311,7 @@ class UserController
                 if ($user->save()) {
                     $this->audit->update($user->id, 'user', $user->getAttributes(), $previous);
                     return $this->response->withPayload([
-                        'data' => [
-                            'id' => $id,
-                            'type' => 'user',
-                            'attributes' => $user,
-                        ],
+                        'data' => $user,
                     ]);
                 } else {
                     return $this->response->withErrors(500, ['Something Wrong !!!']);

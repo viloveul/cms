@@ -2,13 +2,20 @@
 
 namespace App\Component;
 
+use App\Component\Helper;
 use App\Entity\Comment;
 use App\Entity\Post;
 use App\Entity\Tag;
 use App\Entity\User;
+use Viloveul\Container\ContainerFactory;
 
-class ContentDummy
+class Dummy
 {
+    /**
+     * @var mixed
+     */
+    protected $helper;
+
     /**
      * @var array
      */
@@ -30,18 +37,20 @@ class ContentDummy
     public function __construct(User $user)
     {
         $this->user = $user;
+        $this->helper = ContainerFactory::instance()->get(Helper::class);
     }
 
     public function comments()
     {
         foreach (array_unique($this->postIds) as $id) {
-            for ($i = 0; $i < 12; $i++) {
+            for ($i = 0; $i < 5; $i++) {
                 Comment::create([
+                    'id' => $this->helper->uuid(),
                     'post_id' => $id,
                     'author_id' => $this->user->id,
                     'name' => $this->user->name,
                     'email' => $this->user->email,
-                    'content' => 'This is sample random comment ' . $i,
+                    'content' => 'This is sample random comment ' . $i . '-' . mt_rand(),
                     'status' => 1,
                 ]);
             }
@@ -50,7 +59,8 @@ class ContentDummy
 
     public function posts()
     {
-        $page = Post::updateOrCreate(['slug' => 'lorem-ipsum'], [
+        $page = Post::firstOrCreate(['slug' => 'lorem-ipsum'], [
+            'id' => $this->helper->uuid(),
             'author_id' => $this->user->id,
             'title' => 'Lorem Ipsum',
             'type' => 'page',
@@ -60,7 +70,8 @@ class ContentDummy
             'comment_enabled' => 0,
         ]);
 
-        $post = Post::updateOrCreate(['slug' => 'hello-world'], [
+        $post = Post::firstOrCreate(['slug' => 'hello-world'], [
+            'id' => $this->helper->uuid(),
             'author_id' => $this->user->id,
             'title' => 'Hello World !!',
             'type' => 'post',
@@ -73,8 +84,8 @@ class ContentDummy
 
         // generate random
         for ($i = 0; $i < 10; $i++) {
-            $random = md5(mt_rand());
-            $o = Post::updateOrCreate(['slug' => 'random-' . $i . '-' . $random], [
+            $o = Post::firstOrCreate(['slug' => 'random-' . $i], [
+                'id' => $this->helper->uuid(),
                 'author_id' => $this->user->id,
                 'title' => 'Random ' . $i,
                 'type' => 'post',
@@ -97,7 +108,8 @@ class ContentDummy
 
     public function tags()
     {
-        $tag = Tag::updateOrCreate(['slug' => 'no-category'], [
+        $tag = Tag::firstOrCreate(['slug' => 'no-category'], [
+            'id' => $this->helper->uuid(),
             'type' => 'category',
             'title' => 'No Category',
             'status' => 1,

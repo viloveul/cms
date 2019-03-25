@@ -49,7 +49,7 @@ class Schema
 
         if ($name == 'user_password') {
             $builder->table($name, function (Blueprint $table) use ($builder, $name) {
-                $builder->hasColumn($name, 'user_id') or $table->unsignedBigInteger('user_id')->index();
+                $builder->hasColumn($name, 'user_id') or $table->uuid('user_id')->index();
                 $builder->hasColumn($name, 'password') or $table->string('password')->index();
                 $builder->hasColumn($name, 'expired') or $table->string('expired')->index();
                 $builder->hasColumn($name, 'status') or $table->integer('status')->default(0)->index();
@@ -59,7 +59,7 @@ class Schema
 
         if ($name == 'user_profile') {
             $builder->table($name, function (Blueprint $table) use ($builder, $name) {
-                $builder->hasColumn($name, 'user_id') or $table->unsignedBigInteger('user_id')->index();
+                $builder->hasColumn($name, 'user_id') or $table->uuid('user_id')->index();
                 $builder->hasColumn($name, 'name') or $table->string('name')->index();
                 $builder->hasColumn($name, 'value') or $table->text('name')->nullable();
                 $builder->hasColumn($name, 'last_modified') or $table->timestamp('last_modified')->nullable()->index();
@@ -68,9 +68,8 @@ class Schema
 
         if ($name == 'user_role') {
             $builder->table($name, function (Blueprint $table) use ($builder, $name) {
-                $builder->hasColumn($name, 'user_id') or $table->unsignedBigInteger('user_id')->index();
-                $builder->hasColumn($name, 'role_id') or $table->unsignedBigInteger('role_id')->index();
-                $builder->hasColumn($name, 'created_at') or $table->timestamp('created_at')->useCurrent()->index();
+                $builder->hasColumn($name, 'user_id') or $table->uuid('user_id')->index();
+                $builder->hasColumn($name, 'role_id') or $table->uuid('role_id')->index();
             });
         }
 
@@ -88,9 +87,8 @@ class Schema
 
         if ($name == 'role_child') {
             $builder->table($name, function (Blueprint $table) use ($builder, $name) {
-                $builder->hasColumn($name, 'role_id') or $table->unsignedBigInteger('role_id')->index();
-                $builder->hasColumn($name, 'child_id') or $table->unsignedBigInteger('child_id')->index();
-                $builder->hasColumn($name, 'created_at') or $table->timestamp('created_at')->useCurrent()->index();
+                $builder->hasColumn($name, 'role_id') or $table->uuid('role_id')->index();
+                $builder->hasColumn($name, 'child_id') or $table->uuid('child_id')->index();
             });
         }
 
@@ -105,8 +103,8 @@ class Schema
 
         if ($name == 'tag') {
             $builder->table($name, function (Blueprint $table) use ($builder, $name) {
-                $builder->hasColumn($name, 'parent_id') or $table->unsignedBigInteger('parent_id')->default(0)->index();
-                $builder->hasColumn($name, 'author_id') or $table->unsignedBigInteger('author_id')->default(0)->index();
+                $builder->hasColumn($name, 'parent_id') or $table->uuid('parent_id')->default(0)->index();
+                $builder->hasColumn($name, 'author_id') or $table->uuid('author_id')->default(0)->index();
                 $builder->hasColumn($name, 'title') or $table->string('title')->index();
                 $builder->hasColumn($name, 'slug') or $table->string('slug')->unique();
                 $builder->hasColumn($name, 'type') or $table->string('type')->default('tag')->index();
@@ -119,8 +117,8 @@ class Schema
 
         if ($name == 'post') {
             $builder->table($name, function (Blueprint $table) use ($builder, $name) {
-                $builder->hasColumn($name, 'parent_id') or $table->unsignedBigInteger('parent_id')->default(0)->index();
-                $builder->hasColumn($name, 'author_id') or $table->unsignedBigInteger('author_id')->default(0)->index();
+                $builder->hasColumn($name, 'parent_id') or $table->uuid('parent_id')->default(0)->index();
+                $builder->hasColumn($name, 'author_id') or $table->uuid('author_id')->default(0)->index();
                 $builder->hasColumn($name, 'slug') or $table->string('slug')->unique();
                 $builder->hasColumn($name, 'title') or $table->string('title')->index();
                 $builder->hasColumn($name, 'cover') or $table->string('cover')->nullable();
@@ -137,7 +135,7 @@ class Schema
 
         if ($name == 'menu') {
             $builder->table($name, function (Blueprint $table) use ($builder, $name) {
-                $builder->hasColumn($name, 'author_id') or $table->unsignedBigInteger('author_id')->default(0)->index();
+                $builder->hasColumn($name, 'author_id') or $table->uuid('author_id')->default(0)->index();
                 $builder->hasColumn($name, 'label') or $table->string('label')->index();
                 $builder->hasColumn($name, 'icon') or $table->string('icon')->nullable();
                 $builder->hasColumn($name, 'type') or $table->string('type')->index();
@@ -152,17 +150,16 @@ class Schema
 
         if ($name == 'post_tag') {
             $builder->table($name, function (Blueprint $table) use ($builder, $name) {
-                $builder->hasColumn($name, 'post_id') or $table->unsignedBigInteger('post_id')->index();
-                $builder->hasColumn($name, 'tag_id') or $table->unsignedBigInteger('tag_id')->index();
-                $builder->hasColumn($name, 'created_at') or $table->timestamp('created_at')->useCurrent()->index();
+                $builder->hasColumn($name, 'post_id') or $table->uuid('post_id')->index();
+                $builder->hasColumn($name, 'tag_id') or $table->uuid('tag_id')->index();
             });
         }
 
         if ($name == 'comment') {
             $builder->table($name, function (Blueprint $table) use ($builder, $name) {
-                $builder->hasColumn($name, 'post_id') or $table->unsignedBigInteger('post_id')->index();
-                $builder->hasColumn($name, 'parent_id') or $table->unsignedBigInteger('parent_id')->default(0)->index();
-                $builder->hasColumn($name, 'author_id') or $table->unsignedBigInteger('author_id')->default(0)->index();
+                $builder->hasColumn($name, 'post_id') or $table->uuid('post_id')->index();
+                $builder->hasColumn($name, 'parent_id') or $table->uuid('parent_id')->default(0)->index();
+                $builder->hasColumn($name, 'author_id') or $table->uuid('author_id')->default(0)->index();
                 $builder->hasColumn($name, 'name') or $table->string('name')->index();
                 $builder->hasColumn($name, 'email') or $table->string('email')->index();
                 $builder->hasColumn($name, 'website') or $table->string('website')->nullable()->index();
@@ -176,8 +173,8 @@ class Schema
 
         if ($name == 'notification') {
             $builder->table($name, function (Blueprint $table) use ($builder, $name) {
-                $builder->hasColumn($name, 'author_id') or $table->unsignedBigInteger('author_id')->default(0)->index();
-                $builder->hasColumn($name, 'receiver_id') or $table->unsignedBigInteger('receiver_id')->default(0)->index();
+                $builder->hasColumn($name, 'author_id') or $table->uuid('author_id')->default(0)->index();
+                $builder->hasColumn($name, 'receiver_id') or $table->uuid('receiver_id')->default(0)->index();
                 $builder->hasColumn($name, 'subject') or $table->string('subject')->index();
                 $builder->hasColumn($name, 'content') or $table->text('content')->nullable();
                 $builder->hasColumn($name, 'status') or $table->integer('status')->default(0)->index();
@@ -188,7 +185,7 @@ class Schema
 
         if ($name == 'media') {
             $builder->table($name, function (Blueprint $table) use ($builder, $name) {
-                $builder->hasColumn($name, 'author_id') or $table->unsignedBigInteger('author_id')->default(0)->index();
+                $builder->hasColumn($name, 'author_id') or $table->uuid('author_id')->default(0)->index();
                 $builder->hasColumn($name, 'name') or $table->string('name')->index();
                 $builder->hasColumn($name, 'filename') or $table->string('filename')->unique();
                 $builder->hasColumn($name, 'ref') or $table->string('ref')->index();
@@ -206,8 +203,8 @@ class Schema
 
         if ($name == 'audit') {
             $builder->table($name, function (Blueprint $table) use ($builder, $name) {
-                $builder->hasColumn($name, 'author_id') or $table->unsignedBigInteger('author_id')->default(0)->index();
-                $builder->hasColumn($name, 'object_id') or $table->unsignedBigInteger('object_id')->default(0)->index();
+                $builder->hasColumn($name, 'author_id') or $table->uuid('author_id')->default(0)->index();
+                $builder->hasColumn($name, 'object_id') or $table->uuid('object_id')->default(0)->index();
                 $builder->hasColumn($name, 'entity') or $table->string('entity')->index();
                 $builder->hasColumn($name, 'ip') or $table->string('ip')->nullable()->index();
                 $builder->hasColumn($name, 'agent') or $table->text('agent')->nullable();
@@ -218,7 +215,7 @@ class Schema
 
         if ($name == 'audit_detail') {
             $builder->table($name, function (Blueprint $table) use ($builder, $name) {
-                $builder->hasColumn($name, 'audit_id') or $table->unsignedBigInteger('audit_id')->default(0)->index();
+                $builder->hasColumn($name, 'audit_id') or $table->uuid('audit_id')->default(0)->index();
                 $builder->hasColumn($name, 'resource') or $table->string('resource')->index();
                 $builder->hasColumn($name, 'previous') or $table->text('previous')->nullable();
             });
@@ -243,7 +240,7 @@ class Schema
 
         if ($name == 'user') {
             $builder->create($name, function (Blueprint $table) {
-                $table->bigIncrements('id');
+                $table->uuid('id')->primary();
                 $table->string('name')->index();
                 $table->string('picture')->nullable()->index();
                 $table->string('email')->unique();
@@ -258,8 +255,8 @@ class Schema
 
         if ($name == 'user_password') {
             $builder->create($name, function (Blueprint $table) {
-                $table->bigIncrements('id');
-                $table->unsignedBigInteger('user_id')->index();
+                $table->uuid('id')->primary();
+                $table->uuid('user_id')->index();
                 $table->string('password')->index();
                 $table->string('expired')->index();
                 $table->integer('status')->default(0)->index();
@@ -269,8 +266,8 @@ class Schema
 
         if ($name == 'user_profile') {
             $builder->create($name, function (Blueprint $table) {
-                $table->bigIncrements('id');
-                $table->unsignedBigInteger('user_id')->index();
+                $table->uuid('id')->primary();
+                $table->uuid('user_id')->index();
                 $table->string('name')->index();
                 $table->text('value')->nullable();
                 $table->timestamp('last_modified')->nullable()->index();
@@ -280,17 +277,16 @@ class Schema
 
         if ($name == 'user_role') {
             $builder->create($name, function (Blueprint $table) {
-                $table->bigIncrements('id');
-                $table->unsignedBigInteger('user_id')->index();
-                $table->unsignedBigInteger('role_id')->index();
-                $table->timestamp('created_at')->useCurrent()->index();
+                $table->uuid('user_id')->index();
+                $table->uuid('role_id')->index();
                 $table->unique(['user_id', 'role_id']);
+                $table->primary(['user_id', 'role_id']);
             });
         }
 
         if ($name == 'role') {
             $builder->create($name, function (Blueprint $table) {
-                $table->bigIncrements('id');
+                $table->uuid('id')->primary();
                 $table->string('name')->unique();
                 $table->string('type')->default('access')->index();
                 $table->text('description')->nullable();
@@ -303,17 +299,16 @@ class Schema
 
         if ($name == 'role_child') {
             $builder->create($name, function (Blueprint $table) {
-                $table->bigIncrements('id');
-                $table->unsignedBigInteger('role_id')->index();
-                $table->unsignedBigInteger('child_id')->index();
-                $table->timestamp('created_at')->useCurrent()->index();
+                $table->uuid('role_id')->index();
+                $table->uuid('child_id')->index();
                 $table->unique(['role_id', 'child_id']);
+                $table->primary(['role_id', 'child_id']);
             });
         }
 
         if ($name == 'setting') {
             $builder->create($name, function (Blueprint $table) {
-                $table->bigIncrements('id');
+                $table->uuid('id')->primary();
                 $table->string('name')->unique();
                 $table->text('option')->nullable();
                 $table->timestamp('created_at')->useCurrent()->index();
@@ -323,9 +318,9 @@ class Schema
 
         if ($name == 'tag') {
             $builder->create($name, function (Blueprint $table) {
-                $table->bigIncrements('id');
-                $table->unsignedBigInteger('parent_id')->default(0)->index();
-                $table->unsignedBigInteger('author_id')->default(0)->index();
+                $table->uuid('id')->primary();
+                $table->uuid('parent_id')->default(0)->index();
+                $table->uuid('author_id')->default(0)->index();
                 $table->string('title')->index();
                 $table->string('slug')->unique();
                 $table->string('type')->default('tag')->index();
@@ -338,9 +333,9 @@ class Schema
 
         if ($name == 'post') {
             $builder->create($name, function (Blueprint $table) {
-                $table->bigIncrements('id');
-                $table->unsignedBigInteger('parent_id')->default(0)->index();
-                $table->unsignedBigInteger('author_id')->default(0)->index();
+                $table->uuid('id')->primary();
+                $table->uuid('parent_id')->default(0)->index();
+                $table->uuid('author_id')->default(0)->index();
                 $table->string('slug')->unique();
                 $table->string('title')->index();
                 $table->string('cover')->nullable();
@@ -357,8 +352,8 @@ class Schema
 
         if ($name == 'menu') {
             $builder->create($name, function (Blueprint $table) {
-                $table->bigIncrements('id');
-                $table->unsignedBigInteger('author_id')->default(0)->index();
+                $table->uuid('id')->primary();
+                $table->uuid('author_id')->default(0)->index();
                 $table->string('label')->index();
                 $table->string('icon')->nullable();
                 $table->string('type')->index();
@@ -373,20 +368,19 @@ class Schema
 
         if ($name == 'post_tag') {
             $builder->create($name, function (Blueprint $table) {
-                $table->bigIncrements('id');
-                $table->unsignedBigInteger('post_id')->index();
-                $table->unsignedBigInteger('tag_id')->index();
-                $table->timestamp('created_at')->useCurrent()->index();
+                $table->uuid('post_id')->index();
+                $table->uuid('tag_id')->index();
                 $table->unique(['post_id', 'tag_id']);
+                $table->primary(['post_id', 'tag_id']);
             });
         }
 
         if ($name == 'comment') {
             $builder->create($name, function (Blueprint $table) {
-                $table->bigIncrements('id');
-                $table->unsignedBigInteger('post_id')->index();
-                $table->unsignedBigInteger('parent_id')->default(0)->index();
-                $table->unsignedBigInteger('author_id')->default(0)->index();
+                $table->uuid('id')->primary();
+                $table->uuid('post_id')->index();
+                $table->uuid('parent_id')->default(0)->index();
+                $table->uuid('author_id')->default(0)->index();
                 $table->string('name')->index();
                 $table->string('email')->index();
                 $table->string('website')->nullable()->index();
@@ -400,9 +394,9 @@ class Schema
 
         if ($name == 'notification') {
             $builder->create($name, function (Blueprint $table) {
-                $table->bigIncrements('id');
-                $table->unsignedBigInteger('author_id')->default(0)->index();
-                $table->unsignedBigInteger('receiver_id')->default(0)->index();
+                $table->uuid('id')->primary();
+                $table->uuid('author_id')->default(0)->index();
+                $table->uuid('receiver_id')->default(0)->index();
                 $table->string('subject')->index();
                 $table->text('content')->nullable();
                 $table->integer('status')->default(0)->index();
@@ -413,8 +407,8 @@ class Schema
 
         if ($name == 'media') {
             $builder->create($name, function (Blueprint $table) {
-                $table->bigIncrements('id');
-                $table->unsignedBigInteger('author_id')->default(0)->index();
+                $table->uuid('id')->primary();
+                $table->uuid('author_id')->default(0)->index();
                 $table->string('name')->index();
                 $table->string('filename')->unique();
                 $table->string('type')->index();
@@ -432,9 +426,9 @@ class Schema
 
         if ($name == 'audit') {
             $builder->create($name, function (Blueprint $table) {
-                $table->bigIncrements('id');
-                $table->unsignedBigInteger('author_id')->default(0)->index();
-                $table->unsignedBigInteger('object_id')->default(0)->index();
+                $table->uuid('id')->primary();
+                $table->uuid('author_id')->default(0)->index();
+                $table->uuid('object_id')->default(0)->index();
                 $table->string('entity')->index();
                 $table->string('ip')->nullable()->index();
                 $table->text('agent')->nullable();
@@ -445,8 +439,8 @@ class Schema
 
         if ($name == 'audit_detail') {
             $builder->create($name, function (Blueprint $table) {
-                $table->bigIncrements('id');
-                $table->unsignedBigInteger('audit_id')->default(0)->index();
+                $table->uuid('id')->primary();
+                $table->uuid('audit_id')->default(0)->index();
                 $table->string('resource')->index();
                 $table->text('previous')->nullable();
             });

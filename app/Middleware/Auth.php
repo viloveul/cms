@@ -32,7 +32,7 @@ class Auth implements MiddlewareInterface, ContainerAware
 
         [$name, $token] = sscanf($request->getServer('HTTP_AUTHORIZATION'), "%s %s");
 
-        if (array_get($config->all(), 'auth.name') === $name && !empty($token) && $token !== 'null') {
+        if (array_get($config->all(), 'auth.name') === $name && !empty($token) && !in_array($token, ['null', 'undefined'])) {
             $auth->setToken($token);
         }
 

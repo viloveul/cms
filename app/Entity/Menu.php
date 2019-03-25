@@ -11,6 +11,7 @@ class Menu extends Model
      * @var array
      */
     protected $fillable = [
+        'id',
         'author_id',
         'label',
         'icon',

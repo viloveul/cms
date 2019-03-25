@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Component\AttrAssignment;
 use App\Component\AuditTrail;
+use App\Component\Helper;
 use App\Component\Privilege;
 use App\Component\Setting;
 use App\Entity\User;
@@ -27,6 +28,11 @@ class AuthController
      * @var mixed
      */
     protected $auth;
+
+    /**
+     * @var mixed
+     */
+    protected $helper;
 
     /**
      * @var mixed
@@ -61,6 +67,7 @@ class AuthController
      * @param AuditTrail     $audit
      * @param PHPMailer      $mailer
      * @param Authentication $auth
+     * @param Helper         $helper
      */
     public function __construct(
         ServerRequest $request,
@@ -69,7 +76,8 @@ class AuthController
         Setting $setting,
         AuditTrail $audit,
         PHPMailer $mailer,
-        Authentication $auth
+        Authentication $auth,
+        Helper $helper
     ) {
         $this->request = $request;
         $this->response = $response;
@@ -78,6 +86,7 @@ class AuthController
         $this->audit = $audit;
         $this->mailer = $mailer;
         $this->auth = $auth;
+        $this->helper = $helper;
     }
 
     /**
@@ -109,11 +118,7 @@ class AuthController
                     $message = $e->getMessage();
                 }
                 return $this->response->withPayload([
-                    'data' => [
-                        'id' => $user->id,
-                        'type' => 'user',
-                        'message' => $message,
-                    ],
+                    'data' => $message,
                 ]);
             } else {
                 return $this->response->withErrors(500, ['Something wrong !!!']);
@@ -157,6 +162,7 @@ class AuthController
                     $this->audit->record($user->id, 'user', 'request_token');
                     return $this->response->withPayload([
                         'data' => [
+                            'id' => $user->id,
                             'token' => $this->auth->generate(
                                 new UserData([
                                     'sub' => $user->id,
@@ -165,8 +171,6 @@ class AuthController
                                     'picture' => $user->picture,
                                 ])
                             ),
-                            'id' => $user->id,
-                            'type' => 'token',
                         ],
                     ]);
                 } else {
@@ -196,13 +200,11 @@ class AuthController
             $user->created_at = date('Y-m-d H:i:s');
             $user->password = password_hash($attr->get('password'), PASSWORD_DEFAULT);
             $user->status = !$this->setting->get('moderations.user');
+            $user->id = $this->helper->uuid();
             if ($user->save()) {
                 $this->audit->record($user->id, 'user', 'request_account');
                 return $this->response->withPayload([
-                    'data' => [
-                        'id' => $user->id,
-                        'type' => 'user',
-                    ],
+                    'data' => $user,
                 ]);
             } else {
                 return $this->response->withErrors(500, ['Something wrong !!!']);

@@ -4,7 +4,7 @@ namespace App\Controller;
 
 use App\Component\AttrAssignment;
 use App\Component\Privilege;
-use App\Component\SlugCreation;
+use App\Component\Slug;
 use App\Entity\Tag;
 use App\Validation\Tag as Validation;
 use Viloveul\Auth\Contracts\Authentication;
@@ -83,10 +83,7 @@ class TagController
         $tag->where('status', 1);
         return $this->response->withPayload([
             'data' => $tag->get()->map(function ($tag) {
-                return [
-                    'id' => $tag->id,
-                    'attributes' => $tag->getAttributes(),
-                ];
+                return $tag->getAttributes();
             }),
         ]);
     }
@@ -103,7 +100,7 @@ class TagController
         }
         $attr = $this->request->loadPostTo(new AttrAssignment);
         if (!$attr->has('slug')) {
-            $attr->slug = SlugCreation::create()->generate(Tag::class, 'slug', $attr->get('title'), null);
+            $attr->slug = Slug::create()->generate(Tag::class, 'slug', $attr->get('title'), null);
         }
         $validator = new Validation($attr->getAttributes());
         if ($validator->validate('insert')) {
@@ -122,11 +119,7 @@ class TagController
             $tag->created_at = date('Y-m-d H:i:s');
             if ($tag->save()) {
                 return $this->response->withPayload([
-                    'data' => [
-                        'id' => $tag->id,
-                        'type' => 'tag',
-                        'attributes' => $tag->getAttributes(),
-                    ],
+                    'data' => $tag->getAttributes(),
                 ]);
             } else {
                 return $this->response->withErrors(500, ['Something Wrong !!!']);
@@ -174,16 +167,7 @@ class TagController
                 ]);
             }
             return $this->response->withPayload([
-                'data' => [
-                    'id' => $tag->id,
-                    'type' => 'tag',
-                    'attributes' => $tag->getAttributes(),
-                    'relationships' => [
-                        'childs' => [
-                            'data' => $tag->childs,
-                        ],
-                    ],
-                ],
+                'data' => $tag,
             ]);
         } else {
             return $this->response->withErrors(404, ['Tag not found']);
@@ -214,13 +198,7 @@ class TagController
                 ->skip(($parameter->getCurrentPage() * $parameter->getPageSize()) - $parameter->getPageSize())
                 ->take($parameter->getPageSize())
                 ->get()
-                ->map(function ($tag) {
-                    return [
-                        'id' => $tag->id,
-                        'type' => 'tag',
-                        'attributes' => $tag->getAttributes(),
-                    ];
-                })->toArray();
+                ->toArray();
         });
         return $this->response->withPayload($pagination->getResults());
     }
@@ -253,11 +231,7 @@ class TagController
                 $tag->updated_at = date('Y-m-d H:i:s');
                 if ($tag->save()) {
                     return $this->response->withPayload([
-                        'data' => [
-                            'id' => $id,
-                            'type' => 'tag',
-                            'attributes' => $tag->getAttributes(),
-                        ],
+                        'data' => $tag->getAttributes(),
                     ]);
                 } else {
                     return $this->response->withErrors(500, ['Something Wrong !!!']);

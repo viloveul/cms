@@ -9,6 +9,11 @@ class Model extends Eloquent
     /**
      * @var mixed
      */
+    public $incrementing = false;
+
+    /**
+     * @var mixed
+     */
     public $timestamps = false;
 
     /**

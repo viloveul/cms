@@ -10,7 +10,13 @@ class UserPassword extends Model
     /**
      * @var array
      */
-    protected $fillable = ['user_id', 'password', 'expired', 'status'];
+    protected $fillable = [
+        'id',
+        'user_id',
+        'password',
+        'expired',
+        'status',
+    ];
 
     /**
      * @var string

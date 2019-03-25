@@ -95,10 +95,10 @@ class NotificationController implements Countable
     }
 
     /**
-     * @param  int     $id
+     * @param  string  $id
      * @return mixed
      */
-    public function detail(int $id)
+    public function detail(string $id)
     {
         $userId = $this->user->get('sub');
         if ($notification = Notification::where('id', $id)->where('receiver_id', $userId)->with('author')->first()) {
@@ -108,16 +108,7 @@ class NotificationController implements Countable
                 $this->bus->process(new NotificationPassenger($userId));
             }
             return $this->response->withPayload([
-                'data' => [
-                    'id' => $notification->id,
-                    'type' => 'notification',
-                    'attributes' => $notification->getAttributes(),
-                    'relationships' => [
-                        'author' => [
-                            'data' => $notification->author,
-                        ],
-                    ],
-                ],
+                'data' => $notification,
             ]);
         } else {
             return $this->response->withErrors(404, ['Notification not found']);
@@ -143,13 +134,7 @@ class NotificationController implements Countable
                 ->skip(($parameter->getCurrentPage() * $parameter->getPageSize()) - $parameter->getPageSize())
                 ->take($parameter->getPageSize())
                 ->get()
-                ->map(function ($notification) {
-                    return [
-                        'id' => $notification->id,
-                        'type' => 'notification',
-                        'attributes' => $notification->getAttributes(),
-                    ];
-                })->toArray();
+                ->toArray();
         });
 
         return $this->response->withPayload($pagination->getResults());
