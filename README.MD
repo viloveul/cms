@@ -1,13 +1,11 @@
 
-# Viloveul Content Management System (Rest API)
+#  Viloveul Content Management System (Rest API)
 
 PHP7, OpenSSL, php-apcu/php-redis
-
 ```shell
 composer create-project viloveul-cms/api your-project-name
 cd your-project-name
 ```
-
 Edit file .env anda sesuai kebutuhan :
 
 | KEY | VALUE | KETERANGAN |
@@ -36,17 +34,64 @@ setelah menyesuaikan konfigurasi .env anda, kemudian lakukan perintah sebagai be
 ```shell
 sbin/viloveulc cms:install
 ```
+Kemudian buat user "Administrator"
+```shell
+sbin/viloveulc cms:admin
+```
+Dummy content (Optional)
+```shell
+sbin/viloveulc cms:dummy
+```
 setelah selesai proses instalasi, jalankan perintah berikut:
 ```shell
 php -S localhost:19911 -t public
 ```
 
-## UNDER DOCKER
+##  UNDER DOCKER
 simple, just run
 ```shell
-docker run -e VILOVEUL_AUTH_PASSPHRASE=dordor -e ADMIN_EMAIL=your@mail.com -e ADMIN_PASSWORD=YourP@s5w0rdH3rE -p 19911:19911 fajrulaz/viloveul-cms-api
+docker run -p 19911:19911 -e VILOVEUL_AUTH_PASSPHRASE=dordor -e ADMIN_EMAIL=your@mail.com -e ADMIN_PASSWORD=YourP@s5w0rdH3rE -e VILOVEUL_DB_HOST=YOUR_DB_HOST fajrulaz/viloveul-cms-api
 ```
-
 your local ready : http://localhost:19911
 
 * Note: ini adalah headless CMS, bukan Stack CMS
+
+##  FEATURES
+
+| MODULE | ENDPOINT | KETERANGAN |
+| - | - | - |
+| AUTH | <code>POST /auth/login</code> | authentication user yang telah terdaftar |
+| | <code>POST /auth/register</code> | register user / create account |
+| | <code>POST /auth/forgot</code> | request password sementara |
+| USER | <code>POST /user/create</code> | create new user account |
+| | <code>GET /user/index</code> | get all registered user |
+| | <code>GET /user/detail/{:id}</code> | get detail user |
+| | <code>GET /user/me</code> | get current user |
+| | <code>POST /user/update/{:id}</code> | update user account |
+| | <code>POST /user/relations/{:id}</code> | set user role relations |
+| | <code>DELETE /user/delete/{:id}</code> | delete registered user (only flag) |
+| PROFILE | <code>GET /profile/detail/{:id}</code> | get profile user |
+| | <code>POST /profile/detail/{:id}</code> | set profile user |
+| ROLE | <code>POST /role/create</code> | create new role user |
+| | <code>GET /role/index</code> | get all created roles |
+| | <code>GET /role/all</code> | get all created roles |
+| | <code>GET /role/detail/{:id}</code> | get detail role |
+| | <code>POST /role/assign/{:id}</code> | Assign some role to another role (parent-child) |
+| | <code>POST /role/unassign/{:id}</code> | delete assigned role from other role |
+| | <code>POST /role/update/{:id}</code> | update role |
+| | <code>DELETE /role/delete/{:id}</code> | delete role |
+| TAG atau KATEGORI | <code>POST /tag/create</code> | Create new tag |
+| | <code>GET /tag/index</code> | Get all tag |
+| | <code>GET /tag/all</code> | Get all tag |
+| | <code>GET /tag/detail/{:id}</code> | Get detail tag |
+| | <code>POST /tag/update/{:id}</code> | Update tag |
+| | <code>DELETE /tag/delete/{:id}</code> | Delete tag |
+| POST atau KONTEN | <code>POST /post/create</code> | Create new post/content |
+| | <code>GET /post/index</code> | Get all post/content |
+| | <code>GET /post/detail/{:id}</code> | Get detail post/content |
+| | <code>POST /post/update/{:id}</code> | Update post/content |
+| | <code>DELETE /post/delete/{:id}</code> | DELETE post/content |
+| MEDIA atau GALERI | <code>POST /media/upload</code> | UPLOAD FILE(S) |
+| | <code>GET /media/index</code> | Get uploaded FILES |
+| | <code>GET /media/detail/{:id}</code> | Get detail media |
+| | <code>DELETE /media/delete/{:id}</code> | delete media |
