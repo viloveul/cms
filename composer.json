@@ -21,7 +21,7 @@
         "viloveul/cache": "1.0.*|v1.x-dev",
         "viloveul/config": "1.0.*|v1.x-dev",
         "viloveul/console": "1.0.*|v1.x-dev",
-        "viloveul/container": "@dev",
+        "viloveul/container": "1.0.*|v1.x-dev",
         "viloveul/event": "1.0.*|v1.x-dev",
         "viloveul/http": "1.0.*|v1.x-dev",
         "viloveul/media": "1.0.*|v1.x-dev",
@@ -52,11 +52,5 @@
             "@fresh",
             "@bootstrap"
         ]
-    },
-    "repositories": [
-        {
-            "type": "path",
-            "url": "../components/container"
-        }
-    ]
+    }
 }
