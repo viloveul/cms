@@ -2,17 +2,17 @@
 
 namespace App\Controller;
 
-use App\Component\AttrAssignment;
+use App\Entity\Role;
 use App\Component\Helper;
 use App\Component\Privilege;
-use App\Entity\Role;
-use App\Validation\Role as Validation;
-use Viloveul\Config\Contracts\Configuration;
-use Viloveul\Http\Contracts\Response;
-use Viloveul\Http\Contracts\ServerRequest;
-use Viloveul\Pagination\Builder as Pagination;
+use App\Component\AttrAssignment;
 use Viloveul\Pagination\Parameter;
+use Viloveul\Http\Contracts\Response;
+use App\Validation\Role as Validation;
 use Viloveul\Router\Contracts\Dispatcher;
+use Viloveul\Http\Contracts\ServerRequest;
+use Viloveul\Config\Contracts\Configuration;
+use Viloveul\Pagination\Builder as Pagination;
 
 class RoleController
 {
@@ -120,7 +120,7 @@ class RoleController
                 "No direct access for route: {$this->route->getName()}",
             ]);
         }
-        $attr = $this->request->loadPostTo(new AttrAssignment);
+        $attr = $this->request->loadPostTo(new AttrAssignment());
         $with = $attr->get('type') === 'group' ? ':' : '.';
         $attr->set('name', preg_replace('/[^a-z0-9\-\_]+/', $with, strtolower($attr->get('name'))), true);
         $validator = new Validation($attr->getAttributes());
@@ -228,7 +228,7 @@ class RoleController
             ]);
         }
         if ($role = Role::where('id', $id)->first()) {
-            $attr = $this->request->loadPostTo(new AttrAssignment);
+            $attr = $this->request->loadPostTo(new AttrAssignment());
             $with = $attr->get('type') === 'group' ? ':' : '.';
             $attr->set('name', preg_replace('/[^a-z0-9\-\_]+/', $with, strtolower($attr->get('name') ?: $role->name)), true);
             $validator = new Validation($attr->getAttributes(), compact('id'));

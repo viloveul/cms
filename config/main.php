@@ -8,11 +8,11 @@ return [
     # root application
     'root' => dirname(__DIR__),
     # base pathinfo on url
-    'basepath' => env('VILOVEUL_BASEPATH', '/'),
+    'basepath' => '/',
     # uploader
     'upload' => [
         # target upload
-        'target' => env('VILOVEUL_UPLOAD_TARGET', dirname(__DIR__) . '/public/uploads'),
+        'target' => dirname(__DIR__) . '/public/uploads',
     ],
     'auth' => [
         # token name on header for jwt
@@ -47,11 +47,13 @@ return [
         /* LIFETIME CACHE BEFORE DELETE */
         'lifetime' => env('VILOVEUL_CACHE_LIFETIME', 3600),
         /* CACHE PREFIX */
-        'prefix' => 'viloveul_',
+        'prefix' => env('VILOVEUL_CACHE_PREFIX', 'viloveul_'),
         /* CACHE HOST (REDIS) */
         'host' => env('VILOVEUL_CACHE_HOST', '127.0.0.1'),
         /* CACHE PORT (REDIS) */
         'port' => env('VILOVEUL_CACHE_PORT', 6379),
+        /* CACHE PASS (REDIS) */
+        'pass' => env('VILOVEUL_CACHE_PASS', null),
     ],
     'smtpmail' => [
         'host' => env('VILOVEUL_SMTP_HOST', 'your.server.com'),

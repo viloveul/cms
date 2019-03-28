@@ -2,13 +2,13 @@
 
 namespace App\Controller;
 
-use App\Component\AttrAssignment;
+use App\Entity\User;
 use App\Component\Helper;
 use App\Component\Privilege;
-use App\Entity\User;
+use App\Component\AttrAssignment;
 use Viloveul\Http\Contracts\Response;
-use Viloveul\Http\Contracts\ServerRequest;
 use Viloveul\Router\Contracts\Dispatcher;
+use Viloveul\Http\Contracts\ServerRequest;
 
 class ProfileController
 {
@@ -85,7 +85,7 @@ class ProfileController
             ]);
         }
         if ($user = User::where('id', $id)->where('status', 1)->first()) {
-            $attr = $this->request->loadPostTo(new AttrAssignment);
+            $attr = $this->request->loadPostTo(new AttrAssignment());
             foreach ($attr->getAttributes() as $name => $value) {
                 $o = $user->profile()->firstOrNew(compact('name'), [
                     'id' => $this->helper->uuid(),

@@ -3,12 +3,12 @@
 namespace App\Controller;
 
 use App\Component\Helper;
-use App\Component\Privilege;
 use App\Component\Setting;
-use App\Entity\Setting as SettingModel;
+use App\Component\Privilege;
 use Viloveul\Http\Contracts\Response;
-use Viloveul\Http\Contracts\ServerRequest;
+use App\Entity\Setting as SettingModel;
 use Viloveul\Router\Contracts\Dispatcher;
+use Viloveul\Http\Contracts\ServerRequest;
 
 class SettingController
 {

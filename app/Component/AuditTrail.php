@@ -2,8 +2,8 @@
 
 namespace App\Component;
 
-use App\Component\Helper;
 use App\Entity\Audit;
+use App\Component\Helper;
 use App\Entity\AuditDetail;
 use Viloveul\Auth\Contracts\Authentication;
 

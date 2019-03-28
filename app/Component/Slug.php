@@ -17,7 +17,7 @@ class Slug
 
     public static function create()
     {
-        return new static;
+        return new static();
     }
 
     /**
@@ -35,7 +35,7 @@ class Slug
 
         do {
             if ($res = $this->check($model, $field, $slug . $suffix)) {
-                if (!is_null($id) && $res->id == $id) {
+                if (null !== $id && $res->id == $id) {
                     return $slug . $suffix;
                 } else {
                     $increase++;

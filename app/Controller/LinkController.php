@@ -3,9 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Link;
-use App\Entity\Menu;
 use App\Component\Helper;
-use App\Component\Setting;
 use App\Component\Privilege;
 use App\Component\AttrAssignment;
 use Viloveul\Pagination\Parameter;
@@ -16,7 +14,7 @@ use Viloveul\Auth\Contracts\Authentication;
 use Viloveul\Config\Contracts\Configuration;
 use Viloveul\Pagination\Builder as Pagination;
 
-class MenuController
+class LinkController
 {
     /**
      * @var mixed
@@ -51,11 +49,6 @@ class MenuController
     /**
      * @var mixed
      */
-    protected $setting;
-
-    /**
-     * @var mixed
-     */
     protected $user;
 
     /**
@@ -63,7 +56,6 @@ class MenuController
      * @param Response       $response
      * @param Privilege      $privilege
      * @param Configuration  $config
-     * @param Setting        $setting
      * @param Helper         $helper
      * @param Authentication $auth
      * @param Dispatcher     $router
@@ -73,7 +65,6 @@ class MenuController
         Response $response,
         Privilege $privilege,
         Configuration $config,
-        Setting $setting,
         Helper $helper,
         Authentication $auth,
         Dispatcher $router
@@ -82,7 +73,6 @@ class MenuController
         $this->response = $response;
         $this->privilege = $privilege;
         $this->config = $config;
-        $this->setting = $setting;
         $this->helper = $helper;
         $this->user = $auth->getUser();
         $this->route = $router->routed();
@@ -102,20 +92,20 @@ class MenuController
         $data = array_only($attr->getAttributes(), [
             'label',
             'description',
-            'content',
+            'url',
+            'icon',
         ]);
-        $menu = new Menu();
+        $link = new Link();
         foreach ($data as $key => $value) {
-            $menu->{$key} = $value;
+            $link->{$key} = $value;
         }
-        $menu->status = 1;
-        $menu->content = is_scalar($menu->content) ? $menu->content : json_encode($menu->content);
-        $menu->author_id = $this->user->get('sub');
-        $menu->created_at = date('Y-m-d H:i:s');
-        $menu->id = $this->helper->uuid();
-        if ($menu->save()) {
+        $link->status = 1;
+        $link->author_id = $this->user->get('sub');
+        $link->created_at = date('Y-m-d H:i:s');
+        $link->id = $this->helper->uuid();
+        if ($link->save()) {
             return $this->response->withPayload([
-                'data' => $menu,
+                'data' => $link,
             ]);
         } else {
             return $this->response->withErrors(500, ['Something Wrong !!!']);
@@ -128,21 +118,21 @@ class MenuController
      */
     public function delete(string $id)
     {
-        if ($menu = Menu::where('id', $id)->first()) {
-            if ($this->privilege->check($this->route->getName(), 'access', $menu->author_id) !== true) {
+        if ($link = Link::where('id', $id)->first()) {
+            if ($this->privilege->check($this->route->getName(), 'access', $link->author_id) !== true) {
                 return $this->response->withErrors(403, [
                     "No direct access for route: {$this->route->getName()}",
                 ]);
             }
-            $menu->status = 3;
-            $menu->deleted_at = date('Y-m-d H:i:s');
-            if ($menu->save()) {
+            $link->status = 3;
+            $link->deleted_at = date('Y-m-d H:i:s');
+            if ($link->save()) {
                 return $this->response->withStatus(201);
             } else {
                 return $this->response->withErrors(500, ['Something Wrong !!!']);
             }
         } else {
-            return $this->response->withErrors(404, ['Menu not found']);
+            return $this->response->withErrors(404, ['Link not found']);
         }
     }
 
@@ -152,25 +142,12 @@ class MenuController
      */
     public function detail(string $id)
     {
-        if ($tmp = Menu::where('id', $id)->first()) {
-            if ($this->privilege->check($this->route->getName(), 'access', $tmp->author_id) !== true) {
-                return $this->response->withErrors(403, [
-                    "No direct access for route: {$this->route->getName()}",
-                ]);
-            }
-            $menu = $tmp->toArray();
-            $items = [];
-            $links = Link::select(['id', 'label', 'icon', 'url'])->where('status', 1)->get();
-            foreach ($links->toArray() ?: [] as $link) {
-                $items[$link['id']] = $link;
-            }
-            $decoded = json_decode($menu['content'], true) ?: [];
-            $menu['items'] = $this->parseRecursive(is_array($decoded) ? $decoded : [], $items) ?: [];
+        if ($link = Link::where('id', $id)->first()) {
             return $this->response->withPayload([
-                'data' => $menu,
+                'data' => $link,
             ]);
         } else {
-            return $this->response->withErrors(404, ['Menu not found']);
+            return $this->response->withErrors(404, ['Link not found']);
         }
     }
 
@@ -180,10 +157,10 @@ class MenuController
     public function index()
     {
         $parameter = new Parameter('search', $_GET);
-        $parameter->setBaseUrl("{$this->config->basepath}/menu/index");
+        $parameter->setBaseUrl("{$this->config->basepath}/link/index");
         $pagination = new Pagination($parameter);
         $pagination->prepare(function () {
-            $model = Menu::select(['id', 'label', 'description', 'author_id', 'status', 'created_at']);
+            $model = Link::query();
             $parameter = $this->getParameter();
             foreach ($parameter->getConditions() as $key => $value) {
                 $model->where($key, 'like', "%{$value}%");
@@ -204,8 +181,8 @@ class MenuController
      */
     public function update(string $id)
     {
-        if ($menu = Menu::where('id', $id)->first()) {
-            if ($this->privilege->check($this->route->getName(), 'access', $menu->author_id) !== true) {
+        if ($link = Link::where('id', $id)->first()) {
+            if ($this->privilege->check($this->route->getName(), 'access', $link->author_id) !== true) {
                 return $this->response->withErrors(403, [
                     "No direct access for route: {$this->route->getName()}",
                 ]);
@@ -214,45 +191,23 @@ class MenuController
             $data = array_only($attr->getAttributes(), [
                 'label',
                 'description',
-                'content',
+                'url',
+                'icon',
             ]);
             foreach ($data as $key => $value) {
-                $menu->{$key} = $value;
+                $link->{$key} = $value;
             }
-            $menu->content = json_encode($menu->content ?: []);
-            $menu->status = 1;
-            $menu->updated_at = date('Y-m-d H:i:s');
-            if ($menu->save()) {
+            $link->status = 1;
+            $link->updated_at = date('Y-m-d H:i:s');
+            if ($link->save()) {
                 return $this->response->withPayload([
-                    'data' => $menu,
+                    'data' => $link,
                 ]);
             } else {
                 return $this->response->withErrors(500, ['Something Wrong !!!']);
             }
         } else {
-            return $this->response->withErrors(404, ['Menu not found']);
+            return $this->response->withErrors(404, ['Link not found']);
         }
-    }
-
-    /**
-     * @param  array   $items
-     * @param  array   $ids
-     * @return mixed
-     */
-    protected function parseRecursive(array $items, array $ids = [])
-    {
-        $menus = [];
-        foreach ($items as $item) {
-            $menu = (array) $item;
-            if (array_key_exists($menu['id'], $ids)) {
-                $chids = isset($menu['children']) ? $menu['children'] : [];
-                $menu = array_merge($ids[$menu['id']], [
-                    'children' => $chids,
-                ]);
-                $menu['children'] = $this->parseRecursive($menu['children'] ?: [], $ids);
-                $menus[] = $menu;
-            }
-        }
-        return $menus;
     }
 }

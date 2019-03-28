@@ -2,8 +2,8 @@
 
 namespace App\Entity;
 
-use App\Entity\User;
 use App\Model;
+use App\Entity\User;
 
 class Menu extends Model
 {
@@ -14,10 +14,8 @@ class Menu extends Model
         'id',
         'author_id',
         'label',
-        'icon',
-        'type',
         'description',
-        'url',
+        'content',
         'status',
         'created_at',
         'updated_at',

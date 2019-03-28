@@ -2,8 +2,8 @@
 
 namespace App\Component;
 
-use App\Entity\Setting as SettingModel;
 use Viloveul\Cache\Contracts\Cache;
+use App\Entity\Setting as SettingModel;
 use Viloveul\Event\Contracts\Dispatcher as Event;
 
 class Setting

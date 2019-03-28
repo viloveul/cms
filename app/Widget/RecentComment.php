@@ -2,8 +2,8 @@
 
 namespace App\Widget;
 
-use App\Component\Widget;
 use App\Entity\Comment;
+use App\Component\Widget;
 
 class RecentComment extends Widget
 {

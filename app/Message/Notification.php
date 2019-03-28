@@ -2,8 +2,8 @@
 
 namespace App\Message;
 
-use App\Entity\Notification as Model;
 use Viloveul\Transport\Passenger;
+use App\Entity\Notification as Model;
 
 class Notification extends Passenger
 {

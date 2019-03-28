@@ -2,8 +2,8 @@
 
 namespace App\Widget;
 
-use App\Component\Widget;
 use App\Entity\Post;
+use App\Component\Widget;
 
 class RecentPost extends Widget
 {

@@ -2,8 +2,8 @@
 
 namespace App\Command;
 
-use App\Component\Dummy;
 use App\Entity\User;
+use App\Component\Dummy;
 use Viloveul\Console\Command;
 use Viloveul\Container\ContainerAwareTrait;
 use Viloveul\Container\Contracts\ContainerAware;

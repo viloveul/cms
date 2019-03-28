@@ -2,13 +2,13 @@
 
 namespace App\Command;
 
+use App\Entity\Role;
 use App\Component\Helper;
 use App\Component\Schema;
-use App\Entity\Role;
 use Viloveul\Console\Command;
+use Viloveul\Router\Contracts\Collection;
 use Viloveul\Container\ContainerAwareTrait;
 use Viloveul\Container\Contracts\ContainerAware;
-use Viloveul\Router\Contracts\Collection;
 
 class InstallCommand extends Command implements ContainerAware
 {
@@ -119,6 +119,16 @@ class InstallCommand extends Command implements ContainerAware
         } else {
             $this->writeInfo('Table exist. alter table menu.');
             $installer->alter('menu');
+        }
+        $this->writeNormal('--------------------------------------------------------------');
+
+
+        if (!$installer->check('link')) {
+            $this->writeInfo('check and create table link if not exists.');
+            $installer->install('link');
+        } else {
+            $this->writeInfo('Table exist. alter table link.');
+            $installer->alter('link');
         }
         $this->writeNormal('--------------------------------------------------------------');
 

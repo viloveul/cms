@@ -2,14 +2,14 @@
 
 namespace App\Command;
 
-use App\Component\Helper;
 use App\Entity\Role;
 use App\Entity\User;
 use RuntimeException;
-use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Question\Question;
+use App\Component\Helper;
 use Viloveul\Console\Command;
 use Viloveul\Container\ContainerAwareTrait;
+use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Question\Question;
 use Viloveul\Container\Contracts\ContainerAware;
 
 class AdminCommand extends Command implements ContainerAware

@@ -2,9 +2,9 @@
 
 namespace App\Entity;
 
+use App\Model;
 use App\Entity\Post;
 use App\Entity\User;
-use App\Model;
 
 class Comment extends Model
 {

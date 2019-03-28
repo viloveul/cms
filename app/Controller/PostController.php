@@ -2,21 +2,21 @@
 
 namespace App\Controller;
 
-use App\Component\AttrAssignment;
-use App\Component\AuditTrail;
-use App\Component\Helper;
-use App\Component\Privilege;
-use App\Component\Setting;
-use App\Component\Slug;
 use App\Entity\Post;
+use App\Component\Slug;
+use App\Component\Helper;
+use App\Component\Setting;
+use App\Component\Privilege;
+use App\Component\AuditTrail;
+use App\Component\AttrAssignment;
+use Viloveul\Pagination\Parameter;
+use Viloveul\Http\Contracts\Response;
+use Viloveul\Router\Contracts\Dispatcher;
 use App\Validation\Post as PostValidation;
+use Viloveul\Http\Contracts\ServerRequest;
 use Viloveul\Auth\Contracts\Authentication;
 use Viloveul\Config\Contracts\Configuration;
-use Viloveul\Http\Contracts\Response;
-use Viloveul\Http\Contracts\ServerRequest;
 use Viloveul\Pagination\Builder as Pagination;
-use Viloveul\Pagination\Parameter;
-use Viloveul\Router\Contracts\Dispatcher;
 
 class PostController
 {
@@ -108,7 +108,7 @@ class PostController
                 "No direct access for route: {$this->route->getName()}",
             ]);
         }
-        $attr = $this->request->loadPostTo(new AttrAssignment);
+        $attr = $this->request->loadPostTo(new AttrAssignment());
         if (!$attr->has('slug')) {
             $attr->slug = Slug::create()->generate(Post::class, 'slug', $attr->get('title'), null);
         }
@@ -246,7 +246,7 @@ class PostController
                     "No direct access for route: {$this->route->getName()}",
                 ]);
             }
-            $attr = $this->request->loadPostTo(new AttrAssignment);
+            $attr = $this->request->loadPostTo(new AttrAssignment());
             $validator = new PostValidation($attr->getAttributes(), compact('id'));
             if ($validator->validate('update')) {
                 $previous = $post->getAttributes();
