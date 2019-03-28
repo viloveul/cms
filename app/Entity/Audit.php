@@ -2,9 +2,9 @@
 
 namespace App\Entity;
 
-use App\Entity\AuditDetail;
-use App\Entity\User;
 use App\Model;
+use App\Entity\User;
+use App\Entity\AuditDetail;
 
 class Audit extends Model
 {

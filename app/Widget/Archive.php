@@ -2,8 +2,8 @@
 
 namespace App\Widget;
 
-use App\Component\Widget;
 use App\Entity\Tag;
+use App\Component\Widget;
 
 class Archive extends Widget
 {
@@ -15,9 +15,12 @@ class Archive extends Widget
         'level' => 1,
     ];
 
+    /**
+     * @return mixed
+     */
     public function results(): array
     {
-    	$tags = Tag::where('type', $this->options['type'])->where('status', 1)->get();
+        $tags = Tag::where('type', $this->options['type'])->where('status', 1)->get();
         return $tags->toArray();
     }
 }

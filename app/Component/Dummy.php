@@ -2,11 +2,11 @@
 
 namespace App\Component;
 
-use App\Component\Helper;
-use App\Entity\Comment;
-use App\Entity\Post;
 use App\Entity\Tag;
+use App\Entity\Post;
 use App\Entity\User;
+use App\Entity\Comment;
+use App\Component\Helper;
 use Viloveul\Container\ContainerFactory;
 
 class Dummy

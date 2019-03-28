@@ -2,21 +2,21 @@
 
 namespace App\Controller;
 
-use App\Component\AttrAssignment;
-use App\Component\AuditTrail;
-use App\Component\Helper;
-use App\Component\Privilege;
-use App\Component\Setting;
-use App\Entity\Comment;
 use App\Entity\Post;
+use App\Entity\Comment;
+use App\Component\Helper;
+use App\Component\Setting;
+use App\Component\Privilege;
+use App\Component\AuditTrail;
+use App\Component\AttrAssignment;
+use Viloveul\Pagination\Parameter;
+use Viloveul\Http\Contracts\Response;
 use App\Validation\Comment as Validation;
+use Viloveul\Router\Contracts\Dispatcher;
+use Viloveul\Http\Contracts\ServerRequest;
 use Viloveul\Auth\Contracts\Authentication;
 use Viloveul\Config\Contracts\Configuration;
-use Viloveul\Http\Contracts\Response;
-use Viloveul\Http\Contracts\ServerRequest;
 use Viloveul\Pagination\Builder as Pagination;
-use Viloveul\Pagination\Parameter;
-use Viloveul\Router\Contracts\Dispatcher;
 
 class CommentController
 {
@@ -103,7 +103,7 @@ class CommentController
      */
     public function create()
     {
-        $attributes = $this->request->loadPostTo(new AttrAssignment);
+        $attributes = $this->request->loadPostTo(new AttrAssignment());
         $post = Post::select('comment_enabled')
             ->where('id', $attributes->get('post_id'))
             ->where('status', 1)
@@ -243,7 +243,7 @@ class CommentController
                     "No direct access for route: {$this->route->getName()}",
                 ]);
             }
-            $attr = $this->request->loadPostTo(new AttrAssignment);
+            $attr = $this->request->loadPostTo(new AttrAssignment());
             $validator = new Validation($attr->getAttributes());
             if ($validator->validate('update')) {
                 $previous = $comment->getAttributes();

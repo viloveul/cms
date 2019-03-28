@@ -3,17 +3,17 @@
 namespace App\Middleware;
 
 use Exception;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Server\MiddlewareInterface;
-use Psr\Http\Server\RequestHandlerInterface;
-use Viloveul\Auth\Contracts\Authentication;
-use Viloveul\Auth\InvalidTokenException;
-use Viloveul\Config\Contracts\Configuration;
-use Viloveul\Container\ContainerAwareTrait;
-use Viloveul\Container\Contracts\ContainerAware;
 use Viloveul\Http\Contracts\Response;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Viloveul\Auth\InvalidTokenException;
 use Viloveul\Router\Contracts\Dispatcher;
+use Viloveul\Auth\Contracts\Authentication;
+use Viloveul\Container\ContainerAwareTrait;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+use Viloveul\Config\Contracts\Configuration;
+use Viloveul\Container\Contracts\ContainerAware;
 
 class Auth implements MiddlewareInterface, ContainerAware
 {

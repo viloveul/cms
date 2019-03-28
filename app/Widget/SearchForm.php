@@ -10,7 +10,7 @@ class SearchForm extends Widget
      * @var array
      */
     protected $options = [
-        'placeholder' => 'Search...'
+        'placeholder' => 'Search...',
     ];
 
     public function results(): array

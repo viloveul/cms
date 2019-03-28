@@ -2,8 +2,8 @@
 
 namespace App\Entity;
 
-use App\Entity\Audit;
 use App\Model;
+use App\Entity\Audit;
 
 class AuditDetail extends Model
 {

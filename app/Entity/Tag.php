@@ -2,8 +2,8 @@
 
 namespace App\Entity;
 
-use App\Entity\Post;
 use App\Model;
+use App\Entity\Post;
 
 class Tag extends Model
 {

@@ -3,10 +3,10 @@
 namespace App\Component;
 
 use App\Entity\Role;
-use App\Entity\RoleChild;
 use App\Entity\UserRole;
-use Viloveul\Auth\Contracts\Authentication;
+use App\Entity\RoleChild;
 use Viloveul\Cache\Contracts\Cache;
+use Viloveul\Auth\Contracts\Authentication;
 
 class Privilege
 {

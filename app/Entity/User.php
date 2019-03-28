@@ -2,10 +2,10 @@
 
 namespace App\Entity;
 
-use App\Entity\Role;
-use App\Entity\UserPassword;
-use App\Entity\UserProfile;
 use App\Model;
+use App\Entity\Role;
+use App\Entity\UserProfile;
+use App\Entity\UserPassword;
 
 class User extends Model
 {

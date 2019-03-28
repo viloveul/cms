@@ -2,20 +2,20 @@
 
 namespace App\Controller;
 
-use App\Component\AttrAssignment;
-use App\Component\AuditTrail;
-use App\Component\Helper;
-use App\Component\Privilege;
-use App\Component\Setting;
 use App\Entity\User;
+use App\Component\Helper;
+use App\Component\Setting;
+use Viloveul\Auth\UserData;
+use App\Component\Privilege;
 use App\Entity\UserPassword;
-use App\Validation\User as Validation;
+use App\Component\AuditTrail;
+use App\Component\AttrAssignment;
 use PHPMailer\PHPMailer\Exception;
 use PHPMailer\PHPMailer\PHPMailer;
-use Viloveul\Auth\Contracts\Authentication;
-use Viloveul\Auth\UserData;
 use Viloveul\Http\Contracts\Response;
+use App\Validation\User as Validation;
 use Viloveul\Http\Contracts\ServerRequest;
+use Viloveul\Auth\Contracts\Authentication;
 
 class AuthController
 {
@@ -94,7 +94,7 @@ class AuthController
      */
     public function forgot()
     {
-        $attr = $this->request->loadPostTo(new AttrAssignment);
+        $attr = $this->request->loadPostTo(new AttrAssignment());
         $validator = new Validation($attr->getAttributes());
         if ($validator->validate('forgot')) {
             if ($user = User::where('email', $attr->get('email'))->where('status', 1)->first()) {
@@ -133,7 +133,7 @@ class AuthController
      */
     public function login()
     {
-        $attr = $this->request->loadPostTo(new AttrAssignment);
+        $attr = $this->request->loadPostTo(new AttrAssignment());
         $validator = new Validation($attr->getAttributes());
         if ($validator->validate('login')) {
             $data = array_only($attr->getAttributes(), ['username', 'password']);
@@ -189,7 +189,7 @@ class AuthController
      */
     public function register()
     {
-        $attr = $this->request->loadPostTo(new AttrAssignment);
+        $attr = $this->request->loadPostTo(new AttrAssignment());
         $validator = new Validation($attr->getAttributes());
         if ($validator->validate('insert')) {
             $user = new User();

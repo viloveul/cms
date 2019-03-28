@@ -2,18 +2,18 @@
 
 namespace App\Controller;
 
-use App\Component\AttrAssignment;
-use App\Component\Privilege;
-use App\Component\Slug;
 use App\Entity\Tag;
+use App\Component\Slug;
+use App\Component\Privilege;
+use App\Component\AttrAssignment;
+use Viloveul\Pagination\Parameter;
 use App\Validation\Tag as Validation;
+use Viloveul\Http\Contracts\Response;
+use Viloveul\Router\Contracts\Dispatcher;
+use Viloveul\Http\Contracts\ServerRequest;
 use Viloveul\Auth\Contracts\Authentication;
 use Viloveul\Config\Contracts\Configuration;
-use Viloveul\Http\Contracts\Response;
-use Viloveul\Http\Contracts\ServerRequest;
 use Viloveul\Pagination\Builder as Pagination;
-use Viloveul\Pagination\Parameter;
-use Viloveul\Router\Contracts\Dispatcher;
 
 class TagController
 {
@@ -98,7 +98,7 @@ class TagController
                 "No direct access for route: {$this->route->getName()}",
             ]);
         }
-        $attr = $this->request->loadPostTo(new AttrAssignment);
+        $attr = $this->request->loadPostTo(new AttrAssignment());
         if (!$attr->has('slug')) {
             $attr->slug = Slug::create()->generate(Tag::class, 'slug', $attr->get('title'), null);
         }
@@ -215,7 +215,7 @@ class TagController
                     "No direct access for route: {$this->route->getName()}",
                 ]);
             }
-            $attr = $this->request->loadPostTo(new AttrAssignment);
+            $attr = $this->request->loadPostTo(new AttrAssignment());
             $validator = new Validation($attr->getAttributes(), compact('id'));
             if ($validator->validate('update')) {
                 $data = array_only($attr->getAttributes(), [

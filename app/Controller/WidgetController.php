@@ -2,14 +2,14 @@
 
 namespace App\Controller;
 
-use App\Component\Privilege;
 use App\Component\Setting;
-use Viloveul\Container\ContainerAwareTrait;
-use Viloveul\Container\ContainerException;
-use Viloveul\Container\Contracts\ContainerAware;
+use App\Component\Privilege;
 use Viloveul\Http\Contracts\Response;
-use Viloveul\Http\Contracts\ServerRequest;
 use Viloveul\Router\Contracts\Dispatcher;
+use Viloveul\Container\ContainerException;
+use Viloveul\Http\Contracts\ServerRequest;
+use Viloveul\Container\ContainerAwareTrait;
+use Viloveul\Container\Contracts\ContainerAware;
 
 class WidgetController implements ContainerAware
 {

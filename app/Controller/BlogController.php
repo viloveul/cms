@@ -2,16 +2,16 @@
 
 namespace App\Controller;
 
-use App\Component\Setting;
-use App\Entity\Comment;
-use App\Entity\Post;
 use App\Entity\Tag;
+use App\Entity\Post;
 use App\Entity\User;
-use Viloveul\Config\Contracts\Configuration;
+use App\Entity\Comment;
+use App\Component\Setting;
+use Viloveul\Pagination\Parameter;
 use Viloveul\Http\Contracts\Response;
 use Viloveul\Http\Contracts\ServerRequest;
+use Viloveul\Config\Contracts\Configuration;
 use Viloveul\Pagination\Builder as Pagination;
-use Viloveul\Pagination\Parameter;
 
 class BlogController
 {

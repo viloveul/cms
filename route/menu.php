@@ -23,16 +23,6 @@ $router->add(
 );
 
 /**
- * menus by type
- */
-$router->add(
-    'menu.load',
-    new Route('GET /menu/load/{:type}', [
-        App\Controller\MenuController::class, 'load',
-    ])
-);
-
-/**
  * get user
  */
 $router->add(

@@ -2,8 +2,8 @@
 
 namespace App\Widget;
 
-use App\Component\Setting;
 use App\Component\Widget;
+use App\Component\Setting;
 use Viloveul\Container\ContainerAwareTrait;
 use Viloveul\Container\Contracts\ContainerAware;
 

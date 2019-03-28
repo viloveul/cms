@@ -2,18 +2,18 @@
 
 namespace App\Controller;
 
+use Countable;
 use App\Component\Privilege;
 use App\Entity\Notification;
-use App\Message\Notification as NotificationPassenger;
-use Countable;
+use Viloveul\Pagination\Parameter;
+use Viloveul\Http\Contracts\Response;
+use Viloveul\Transport\Contracts\Bus;
+use Viloveul\Router\Contracts\Dispatcher;
+use Viloveul\Http\Contracts\ServerRequest;
 use Viloveul\Auth\Contracts\Authentication;
 use Viloveul\Config\Contracts\Configuration;
-use Viloveul\Http\Contracts\Response;
-use Viloveul\Http\Contracts\ServerRequest;
 use Viloveul\Pagination\Builder as Pagination;
-use Viloveul\Pagination\Parameter;
-use Viloveul\Router\Contracts\Dispatcher;
-use Viloveul\Transport\Contracts\Bus;
+use App\Message\Notification as NotificationPassenger;
 
 class NotificationController implements Countable
 {

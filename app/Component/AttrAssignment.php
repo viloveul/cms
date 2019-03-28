@@ -2,8 +2,8 @@
 
 namespace App\Component;
 
-use Viloveul\Http\Contracts\ServerRequestAssignment as IServerRequestAssignment;
 use Viloveul\Support\AttrAwareTrait;
+use Viloveul\Http\Contracts\ServerRequestAssignment as IServerRequestAssignment;
 
 class AttrAssignment implements IServerRequestAssignment
 {

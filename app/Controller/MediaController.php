@@ -2,18 +2,18 @@
 
 namespace App\Controller;
 
-use App\Component\AuditTrail;
+use App\Entity\Media;
 use App\Component\Helper;
 use App\Component\Privilege;
-use App\Entity\Media;
+use App\Component\AuditTrail;
+use Viloveul\Pagination\Parameter;
+use Viloveul\Http\Contracts\Response;
+use Viloveul\Media\Contracts\Uploader;
+use Viloveul\Router\Contracts\Dispatcher;
+use Viloveul\Http\Contracts\ServerRequest;
 use Viloveul\Auth\Contracts\Authentication;
 use Viloveul\Config\Contracts\Configuration;
-use Viloveul\Http\Contracts\Response;
-use Viloveul\Http\Contracts\ServerRequest;
-use Viloveul\Media\Contracts\Uploader;
 use Viloveul\Pagination\Builder as Pagination;
-use Viloveul\Pagination\Parameter;
-use Viloveul\Router\Contracts\Dispatcher;
 
 class MediaController
 {

@@ -2,21 +2,21 @@
 
 namespace App\Controller;
 
-use App\Component\AttrAssignment;
-use App\Component\AuditTrail;
-use App\Component\Helper;
-use App\Component\Privilege;
-use App\Component\Setting;
-use App\Entity\Notification;
 use App\Entity\User;
+use App\Component\Helper;
+use App\Component\Setting;
+use App\Component\Privilege;
+use App\Entity\Notification;
+use App\Component\AuditTrail;
+use App\Component\AttrAssignment;
+use Viloveul\Pagination\Parameter;
+use Viloveul\Http\Contracts\Response;
 use App\Validation\User as Validation;
+use Viloveul\Router\Contracts\Dispatcher;
+use Viloveul\Http\Contracts\ServerRequest;
 use Viloveul\Auth\Contracts\Authentication;
 use Viloveul\Config\Contracts\Configuration;
-use Viloveul\Http\Contracts\Response;
-use Viloveul\Http\Contracts\ServerRequest;
 use Viloveul\Pagination\Builder as Pagination;
-use Viloveul\Pagination\Parameter;
-use Viloveul\Router\Contracts\Dispatcher;
 
 class UserController
 {
@@ -108,7 +108,7 @@ class UserController
                 "No direct access for route: {$this->route->getName()}",
             ]);
         }
-        $attr = $this->request->loadPostTo(new AttrAssignment);
+        $attr = $this->request->loadPostTo(new AttrAssignment());
         $validator = new Validation($attr->getAttributes());
         if ($validator->validate('insert')) {
             $user = new User();
@@ -289,7 +289,7 @@ class UserController
             ]);
         }
         if ($user = User::where('id', $id)->first()) {
-            $attr = $this->request->loadPostTo(new AttrAssignment);
+            $attr = $this->request->loadPostTo(new AttrAssignment());
             $attr->get('password') or $attr->forget('password');
             $validator = new Validation($attr->getAttributes(), ['id' => $id]);
             if ($validator->validate('update')) {

@@ -2,8 +2,8 @@
 
 namespace App\Entity;
 
-use App\Entity\User;
 use App\Model;
+use App\Entity\User;
 
 class UserPassword extends Model
 {

@@ -2,14 +2,14 @@
 
 namespace App\Component;
 
-use App\Component\Privilege;
+use Ramsey\Uuid\Uuid;
 use App\Component\Setting;
+use App\Component\Privilege;
+use Viloveul\Transport\Contracts\Bus;
+use Viloveul\Auth\Contracts\Authentication;
 use App\Entity\Notification as NotificationModel;
 use App\Message\Notification as NotificationPassenger;
 use Ramsey\Uuid\Exception\UnsatisfiedDependencyException;
-use Ramsey\Uuid\Uuid;
-use Viloveul\Auth\Contracts\Authentication;
-use Viloveul\Transport\Contracts\Bus;
 
 class Helper
 {

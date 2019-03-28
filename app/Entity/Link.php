@@ -2,20 +2,20 @@
 
 namespace App\Entity;
 
-use App\Entity\Menu;
-use App\Entity\User;
 use App\Model;
+use App\Entity\User;
 
-class MenuItem extends Model
+class Link extends Model
 {
     /**
      * @var array
      */
     protected $fillable = [
-        'menu_id',
         'author_id',
         'label',
         'url',
+        'icon',
+        'description',
         'status',
         'created_at',
         'updated_at',
@@ -25,7 +25,7 @@ class MenuItem extends Model
     /**
      * @var string
      */
-    protected $table = 'menu_item';
+    protected $table = 'link';
 
     /**
      * @return mixed
@@ -33,14 +33,6 @@ class MenuItem extends Model
     public function author()
     {
         return $this->belongsTo(User::class);
-    }
-
-    /**
-     * @return mixed
-     */
-    public function menu()
-    {
-        return $this->belongsTo(Menu::class);
     }
 
     /**

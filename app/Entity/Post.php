@@ -2,10 +2,10 @@
 
 namespace App\Entity;
 
-use App\Entity\Comment;
+use App\Model;
 use App\Entity\Tag;
 use App\Entity\User;
-use App\Model;
+use App\Entity\Comment;
 
 class Post extends Model
 {
