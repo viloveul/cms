@@ -24,7 +24,7 @@ class RecentPost extends Widget
             ->where('status', 1)
             ->where('type', $this->options['type'])
             ->with(['author'])
-            ->orderBy('id', 'desc')
+            ->orderBy('created_at', 'desc')
             ->take($this->options['size'])
             ->get()
             ->map(function ($post) {

@@ -52,6 +52,28 @@ class Helper
     }
 
     /**
+     * @param  array   $items
+     * @param  array   $ids
+     * @return mixed
+     */
+    public function parseRecursive(array $items, array $ids = []): array
+    {
+        $results = [];
+        foreach ($items as $item) {
+            $object = (array) $item;
+            if (array_key_exists($object['id'], $ids)) {
+                $chids = isset($object['children']) ? $object['children'] : [];
+                $object = array_merge($ids[$object['id']], [
+                    'children' => $chids,
+                ]);
+                $object['children'] = $this->parseRecursive($object['children'] ?: [], $ids);
+                $results[] = $object;
+            }
+        }
+        return $results;
+    }
+
+    /**
      * @param $target
      * @param string    $subject
      * @param string    $content

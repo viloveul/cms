@@ -122,7 +122,6 @@ class InstallCommand extends Command implements ContainerAware
         }
         $this->writeNormal('--------------------------------------------------------------');
 
-
         if (!$installer->check('link')) {
             $this->writeInfo('check and create table link if not exists.');
             $installer->install('link');

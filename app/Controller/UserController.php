@@ -246,10 +246,10 @@ class UserController
                     ],
                 ]);
             } else {
-                return $this->response->withErrors(400, ['User not actived.']);
+                return $this->response->withErrors(401, ['User not actived.']);
             }
         } else {
-            return $this->response->withErrors(400, ['Invalid Credentials']);
+            return $this->response->withErrors(401, ['Invalid Credentials']);
         }
     }
 

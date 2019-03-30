@@ -18,9 +18,9 @@ return [
         # token name on header for jwt
         'name' => env('VILOVEUL_AUTH_NAME', 'Bearer'),
         # private key for generate jwt
-        'private' => env('VILOVEUL_AUTH_PRIVATE_KEY', dirname(__DIR__) . '/var/private.pem'),
+        'private' => env('VILOVEUL_AUTH_PRIVATE_KEY', realpath(dirname(__DIR__) . '/var/private.pem')),
         # public key for read jwt
-        'public' => env('VILOVEUL_AUTH_PUBLIC_KEY', dirname(__DIR__) . '/var/public.pem'),
+        'public' => env('VILOVEUL_AUTH_PUBLIC_KEY', realpath(dirname(__DIR__) . '/var/public.pem')),
         # phrase
         'phrase' => env('VILOVEUL_AUTH_PASSPHRASE', 'viloveul'),
     ],
@@ -64,7 +64,7 @@ return [
         'password' => env('VILOVEUL_SMTP_PASSWORD', 'yourP@sSw0rd.'),
     ],
     'transports' => [
-        'default' => env('VILOVEUL_TRANSPORT_DSN', 'amqp://localhost:5672//'),
+        'default' => env('VILOVEUL_TRANSPORT_DSN', 'amqp://localhost:5672/%2f'),
     ],
     'commands' => [
         App\Command\InstallCommand::class,
