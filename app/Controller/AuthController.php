@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Message\Mailer;
 use App\Component\Helper;
 use App\Component\Setting;
 use Viloveul\Auth\UserData;
@@ -13,6 +14,7 @@ use App\Component\AttrAssignment;
 use PHPMailer\PHPMailer\Exception;
 use PHPMailer\PHPMailer\PHPMailer;
 use Viloveul\Http\Contracts\Response;
+use Viloveul\Transport\Contracts\Bus;
 use App\Validation\User as Validation;
 use Viloveul\Http\Contracts\ServerRequest;
 use Viloveul\Auth\Contracts\Authentication;
@@ -28,6 +30,11 @@ class AuthController
      * @var mixed
      */
     protected $auth;
+
+    /**
+     * @var mixed
+     */
+    protected $bus;
 
     /**
      * @var mixed
@@ -66,6 +73,7 @@ class AuthController
      * @param Setting        $setting
      * @param AuditTrail     $audit
      * @param PHPMailer      $mailer
+     * @param Bus            $bus
      * @param Authentication $auth
      * @param Helper         $helper
      */
@@ -76,6 +84,7 @@ class AuthController
         Setting $setting,
         AuditTrail $audit,
         PHPMailer $mailer,
+        Bus $bus,
         Authentication $auth,
         Helper $helper
     ) {
@@ -85,6 +94,7 @@ class AuthController
         $this->setting = $setting;
         $this->audit = $audit;
         $this->mailer = $mailer;
+        $this->bus = $bus;
         $this->auth = $auth;
         $this->helper = $helper;
     }
@@ -101,21 +111,32 @@ class AuthController
                 $string = substr(preg_replace('/[^0-9A-Z]+/', '', base64_encode(mt_rand() . time())), 0, 8);
                 $expired = strtotime('+1 HOUR');
                 UserPassword::create([
+                    'id' => $this->helper->uuid(),
                     'user_id' => $user->id,
                     'password' => password_hash($string, PASSWORD_DEFAULT),
                     'expired' => $expired,
                     'status' => 0,
                 ]);
                 $this->audit->record($user->id, 'user', 'request_password');
-                $mailer = clone $this->mailer;
-                try {
-                    $mailer->addAddress($user->email);
-                    $mailer->Subject = 'Request Password';
-                    $mailer->Body = "This is your password: <code>{$string}</code>. Expired in 1 hour.";
-                    $mailer->send();
-                    $message = 'mail sent.';
-                } catch (Exception $e) {
-                    $message = $e->getMessage();
+
+                $message = 'mail sent.';
+                $mail = new Mailer([
+                    'email' => $user->email,
+                    'subject' => 'Request Password',
+                    'body' => "This is your password: <code>{$string}</code>. Expired in 1 hour.",
+                ]);
+                $this->bus->process($mail);
+
+                if ($this->bus->getExceptions()) {
+                    $mailer = clone $this->mailer;
+                    try {
+                        $mailer->addAddress($user->email);
+                        $mailer->Subject = 'Request Password';
+                        $mailer->Body = "This is your password: <code>{$string}</code>. Expired in 1 hour.";
+                        $mailer->send();
+                    } catch (Exception $e) {
+                        $message = $e->getMessage();
+                    }
                 }
                 return $this->response->withPayload([
                     'data' => $message,

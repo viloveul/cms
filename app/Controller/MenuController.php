@@ -165,7 +165,7 @@ class MenuController
                 $items[$link['id']] = $link;
             }
             $decoded = json_decode($menu['content'], true) ?: [];
-            $menu['items'] = $this->parseRecursive(is_array($decoded) ? $decoded : [], $items) ?: [];
+            $menu['items'] = $this->helper->parseRecursive(is_array($decoded) ? $decoded : [], $items) ?: [];
             return $this->response->withPayload([
                 'data' => $menu,
             ]);
@@ -232,27 +232,5 @@ class MenuController
         } else {
             return $this->response->withErrors(404, ['Menu not found']);
         }
-    }
-
-    /**
-     * @param  array   $items
-     * @param  array   $ids
-     * @return mixed
-     */
-    protected function parseRecursive(array $items, array $ids = [])
-    {
-        $menus = [];
-        foreach ($items as $item) {
-            $menu = (array) $item;
-            if (array_key_exists($menu['id'], $ids)) {
-                $chids = isset($menu['children']) ? $menu['children'] : [];
-                $menu = array_merge($ids[$menu['id']], [
-                    'children' => $chids,
-                ]);
-                $menu['children'] = $this->parseRecursive($menu['children'] ?: [], $ids);
-                $menus[] = $menu;
-            }
-        }
-        return $menus;
     }
 }

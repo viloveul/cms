@@ -2,8 +2,10 @@
 
 namespace App\Widget;
 
+use App\Entity\Link;
+use App\Component\Helper;
 use App\Component\Widget;
-use App\Component\Setting;
+use App\Entity\Menu as Model;
 use Viloveul\Container\ContainerAwareTrait;
 use Viloveul\Container\Contracts\ContainerAware;
 
@@ -15,7 +17,7 @@ class Menu extends Widget implements ContainerAware
      * @var array
      */
     protected $options = [
-        'type' => 'navmenu',
+        'id' => '0',
     ];
 
     /**
@@ -23,6 +25,13 @@ class Menu extends Widget implements ContainerAware
      */
     public function results(): array
     {
-        return $this->getContainer()->get(Setting::class)->get('menu-' . $this->options['type']) ?: [];
+        $items = [];
+        $content = Model::select('content')->where('id', $this->options['id'])->value('content');
+        $links = Link::select(['id', 'label', 'icon', 'url'])->where('status', 1)->get();
+        foreach ($links->toArray() ?: [] as $link) {
+            $items[$link['id']] = $link;
+        }
+        $decoded = json_decode($content, true) ?: [];
+        return $this->getContainer()->get(Helper::class)->parseRecursive(is_array($decoded) ? $decoded : [], $items) ?: [];
     }
 }
