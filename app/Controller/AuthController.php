@@ -18,6 +18,7 @@ use Viloveul\Transport\Contracts\Bus;
 use App\Validation\User as Validation;
 use Viloveul\Http\Contracts\ServerRequest;
 use Viloveul\Auth\Contracts\Authentication;
+use Viloveul\Transport\Contracts\ErrorCollection;
 
 class AuthController
 {
@@ -119,7 +120,6 @@ class AuthController
                 ]);
                 $this->audit->record($user->id, 'user', 'request_password');
 
-                $message = 'mail sent.';
                 $mail = new Mailer([
                     'email' => $user->email,
                     'subject' => 'Request Password',
@@ -127,20 +127,31 @@ class AuthController
                 ]);
                 $this->bus->process($mail);
 
-                if ($this->bus->getExceptions()) {
-                    $mailer = clone $this->mailer;
-                    try {
-                        $mailer->addAddress($user->email);
-                        $mailer->Subject = 'Request Password';
-                        $mailer->Body = "This is your password: <code>{$string}</code>. Expired in 1 hour.";
-                        $mailer->send();
-                    } catch (Exception $e) {
-                        $message = $e->getMessage();
+                $e = $this->bus->error(function (ErrorCollection $error) use ($user, $string) {
+                    if ($error->count() > 0) {
+                        $error->clear();
+                        try {
+                            $mailer = clone $this->mailer;
+                            $mailer->addAddress($user->email);
+                            $mailer->Subject = 'Request Password';
+                            $mailer->Body = "This is your password: <code>{$string}</code>. Expired in 1 hour.";
+                            $mailer->send();
+                        } catch (Exception $e) {
+                            $error->add($e);
+                        }
                     }
+                    return $error;
+                });
+
+                if ($e->count() > 0) {
+                    return $this->response->withErrors(500, [
+                        $e->top()->getMessage()
+                    ]);
+                } else {
+                    return $this->response->withPayload([
+                        'data' => 'Mail sent',
+                    ]);
                 }
-                return $this->response->withPayload([
-                    'data' => $message,
-                ]);
             } else {
                 return $this->response->withErrors(500, ['Something wrong !!!']);
             }

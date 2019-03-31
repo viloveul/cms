@@ -106,6 +106,7 @@ class NotificationController implements Countable
                 $notification->status = 1;
                 $notification->save();
                 $this->bus->process(new NotificationPassenger($userId));
+                $this->bus->error()->clear();
             }
             return $this->response->withPayload([
                 'data' => $notification,
