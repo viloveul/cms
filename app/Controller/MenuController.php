@@ -7,6 +7,7 @@ use App\Entity\Menu;
 use App\Component\Helper;
 use App\Component\Setting;
 use App\Component\Privilege;
+use App\Component\AuditTrail;
 use App\Component\AttrAssignment;
 use Viloveul\Pagination\Parameter;
 use Viloveul\Http\Contracts\Response;
@@ -18,6 +19,11 @@ use Viloveul\Pagination\Builder as Pagination;
 
 class MenuController
 {
+    /**
+     * @var mixed
+     */
+    protected $audit;
+
     /**
      * @var mixed
      */
@@ -65,6 +71,7 @@ class MenuController
      * @param Configuration  $config
      * @param Setting        $setting
      * @param Helper         $helper
+     * @param AuditTrail     $audit
      * @param Authentication $auth
      * @param Dispatcher     $router
      */
@@ -75,6 +82,7 @@ class MenuController
         Configuration $config,
         Setting $setting,
         Helper $helper,
+        AuditTrail $audit,
         Authentication $auth,
         Dispatcher $router
     ) {
@@ -84,6 +92,7 @@ class MenuController
         $this->config = $config;
         $this->setting = $setting;
         $this->helper = $helper;
+        $this->audit = $audit;
         $this->user = $auth->getUser();
         $this->route = $router->routed();
     }
@@ -114,6 +123,7 @@ class MenuController
         $menu->created_at = date('Y-m-d H:i:s');
         $menu->id = $this->helper->uuid();
         if ($menu->save()) {
+            $this->audit->create($menu->id, 'menu');
             return $this->response->withPayload([
                 'data' => $menu,
             ]);
@@ -137,6 +147,7 @@ class MenuController
             $menu->status = 3;
             $menu->deleted_at = date('Y-m-d H:i:s');
             if ($menu->save()) {
+                $this->audit->delete($menu->id, 'menu');
                 return $this->response->withStatus(201);
             } else {
                 return $this->response->withErrors(500, ['Something Wrong !!!']);
@@ -216,6 +227,7 @@ class MenuController
                 'description',
                 'content',
             ]);
+            $previous = $menu->getAttributes();
             foreach ($data as $key => $value) {
                 $menu->{$key} = $value;
             }
@@ -223,6 +235,7 @@ class MenuController
             $menu->status = 1;
             $menu->updated_at = date('Y-m-d H:i:s');
             if ($menu->save()) {
+                $this->audit->update($id, 'menu', $menu->getAttributes(), $previous);
                 return $this->response->withPayload([
                     'data' => $menu,
                 ]);

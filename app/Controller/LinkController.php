@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Link;
 use App\Component\Helper;
 use App\Component\Privilege;
+use App\Component\AuditTrail;
 use App\Component\AttrAssignment;
 use Viloveul\Pagination\Parameter;
 use Viloveul\Http\Contracts\Response;
@@ -16,6 +17,11 @@ use Viloveul\Pagination\Builder as Pagination;
 
 class LinkController
 {
+    /**
+     * @var mixed
+     */
+    protected $audit;
+
     /**
      * @var mixed
      */
@@ -57,6 +63,7 @@ class LinkController
      * @param Privilege      $privilege
      * @param Configuration  $config
      * @param Helper         $helper
+     * @param AuditTrail     $audit
      * @param Authentication $auth
      * @param Dispatcher     $router
      */
@@ -66,6 +73,7 @@ class LinkController
         Privilege $privilege,
         Configuration $config,
         Helper $helper,
+        AuditTrail $audit,
         Authentication $auth,
         Dispatcher $router
     ) {
@@ -74,6 +82,7 @@ class LinkController
         $this->privilege = $privilege;
         $this->config = $config;
         $this->helper = $helper;
+        $this->audit = $audit;
         $this->user = $auth->getUser();
         $this->route = $router->routed();
     }
@@ -104,6 +113,7 @@ class LinkController
         $link->created_at = date('Y-m-d H:i:s');
         $link->id = $this->helper->uuid();
         if ($link->save()) {
+            $this->audit->create($link->id, 'link');
             return $this->response->withPayload([
                 'data' => $link,
             ]);
@@ -127,6 +137,7 @@ class LinkController
             $link->status = 3;
             $link->deleted_at = date('Y-m-d H:i:s');
             if ($link->save()) {
+                $this->audit->delete($link->id, 'link');
                 return $this->response->withStatus(201);
             } else {
                 return $this->response->withErrors(500, ['Something Wrong !!!']);
@@ -194,12 +205,14 @@ class LinkController
                 'url',
                 'icon',
             ]);
+            $previous = $link->getAttributes();
             foreach ($data as $key => $value) {
                 $link->{$key} = $value;
             }
             $link->status = 1;
             $link->updated_at = date('Y-m-d H:i:s');
             if ($link->save()) {
+                $this->audit->update($id, 'link', $link->getAttributes(), $previous);
                 return $this->response->withPayload([
                     'data' => $link,
                 ]);

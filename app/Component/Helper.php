@@ -94,6 +94,7 @@ class Helper
                         'content' => $content,
                     ]);
                     $this->bus->process(new NotificationPassenger($id));
+                    $this->bus->error()->clear();
                 }
             }
         }
