@@ -1,9 +1,5 @@
 <?php
 
-error_reporting(-1);
-// sleep(100);
-ini_set('display_errors', 'On');
-
 define('VILOVEUL_WORKDIR', __DIR__);
 
 // require composer autoloader
@@ -13,6 +9,8 @@ require_once __DIR__ . '/vendor/autoload.php';
 $dotenv = new Dotenv\Dotenv(__DIR__);
 $dotenv->load();
 
+$config = Viloveul\Config\ConfigFactory::load(__DIR__ . '/config/main.php');
+
 // initialize container with several components
 $container = Viloveul\Container\ContainerFactory::instance([
     App\Component\Slug::class => App\Component\Slug::class,
@@ -21,8 +19,6 @@ $container = Viloveul\Container\ContainerFactory::instance([
     App\Component\Helper::class => App\Component\Helper::class,
     App\Component\AuditTrail::class => App\Component\AuditTrail::class,
 ]);
-
-$config = Viloveul\Config\ConfigFactory::load(__DIR__ . '/config/main.php');
 
 // initialize application object
 $app = new App\Kernel($container, $config);

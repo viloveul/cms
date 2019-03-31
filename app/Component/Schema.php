@@ -13,16 +13,11 @@ class Schema
     protected $builder;
 
     /**
-     * @var string
-     */
-    protected $connectionName = 'viloveul';
-
-    /**
      * @param Database $db
      */
     public function __construct(Database $db)
     {
-        $connection = $db->getConnection($this->connectionName);
+        $connection = $db->getConnection();
         $this->builder = $connection->getSchemaBuilder();
     }
 
