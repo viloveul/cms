@@ -26,20 +26,18 @@ return [
     ],
     # db config (@see eloquent orm)
     'db' => [
-        'viloveul' => [
-            // database driver
-            'driver' => env('VILOVEUL_DB_DRIVER', 'mysql'),
-            // database host
-            'host' => env('VILOVEUL_DB_HOST', 'localhost'),
-            // database port
-            'port' => env('VILOVEUL_DB_PORT', 3306),
-            'database' => env('VILOVEUL_DB_NAME', 'viloveul_cms'),
-            'username' => env('VILOVEUL_DB_USERNAME', 'viloveul'),
-            'password' => env('VILOVEUL_DB_PASSWD', 'viloveul'),
-            'prefix' => env('VILOVEUL_DB_PREFIX', 'tbl_'),
-            'charset' => env('VILOVEUL_DB_CHARSET', 'utf8'),
-            'collation' => env('VILOVEUL_DB_COLLATION', 'utf8_general_ci'),
-        ],
+        // database driver
+        'driver' => env('VILOVEUL_DB_DRIVER', 'mysql'),
+        // database host
+        'host' => env('VILOVEUL_DB_HOST', 'localhost'),
+        // database port
+        'port' => env('VILOVEUL_DB_PORT', 3306),
+        'database' => env('VILOVEUL_DB_NAME', 'viloveul_cms'),
+        'username' => env('VILOVEUL_DB_USERNAME', 'viloveul'),
+        'password' => env('VILOVEUL_DB_PASSWD', 'viloveul'),
+        'prefix' => env('VILOVEUL_DB_PREFIX', 'tbl_'),
+        'charset' => env('VILOVEUL_DB_CHARSET', 'utf8'),
+        'collation' => env('VILOVEUL_DB_COLLATION', 'utf8_general_ci'),
     ],
     'cache' => [
         /* ADAPTER (APCU|REDIS) */
@@ -63,9 +61,7 @@ return [
         'username' => env('VILOVEUL_SMTP_USERNAME', 'your@server.com'),
         'password' => env('VILOVEUL_SMTP_PASSWORD', 'yourP@sSw0rd.'),
     ],
-    'transports' => [
-        'default' => env('VILOVEUL_TRANSPORT_DSN', 'amqp://localhost:5672/%2f'),
-    ],
+    'transport' => env('VILOVEUL_TRANSPORT_DSN', 'amqp://localhost:5672/%2f'),
     'commands' => [
         App\Command\InstallCommand::class,
         App\Command\DummyCommand::class,

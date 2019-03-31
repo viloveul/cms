@@ -19,5 +19,5 @@ class Model extends Eloquent
     /**
      * @var string
      */
-    protected $connection = 'viloveul';
+    protected $connection = 'default';
 }
