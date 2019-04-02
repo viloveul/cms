@@ -23,16 +23,6 @@ $router->add(
 );
 
 /**
- * get all tags
- */
-$router->add(
-    'tag.all',
-    new Route('GET /tag/all', [
-        App\Controller\TagController::class, 'all',
-    ])
-);
-
-/**
  * get user
  */
 $router->add(

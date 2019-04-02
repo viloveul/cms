@@ -7,6 +7,7 @@ use App\Component\Slug;
 use App\Component\Privilege;
 use App\Component\AttrAssignment;
 use Viloveul\Pagination\Parameter;
+use Viloveul\Pagination\ResultSet;
 use App\Validation\Tag as Validation;
 use Viloveul\Http\Contracts\Response;
 use Viloveul\Router\Contracts\Dispatcher;
@@ -69,23 +70,6 @@ class TagController
         $this->config = $config;
         $this->user = $auth->getUser();
         $this->route = $router->routed();
-    }
-
-    /**
-     * @return mixed
-     */
-    public function all()
-    {
-        $tag = Tag::select(['id', 'title', 'slug', 'type', 'parent_id']);
-        foreach ($_GET as $key => $value) {
-            $tag->where($key, $value);
-        }
-        $tag->where('status', 1);
-        return $this->response->withPayload([
-            'data' => $tag->get()->map(function ($tag) {
-                return $tag->getAttributes();
-            }),
-        ]);
     }
 
     /**
@@ -187,20 +171,20 @@ class TagController
         $parameter = new Parameter('search', $_GET);
         $parameter->setBaseUrl("{$this->config->basepath}/tag/index");
         $pagination = new Pagination($parameter);
-        $pagination->prepare(function () {
+        $pagination->with(function ($conditions, $size, $page, $order, $sort) {
             $model = Tag::query();
-            $parameter = $this->getParameter();
-            foreach ($parameter->getConditions() as $key => $value) {
+            foreach ($conditions as $key => $value) {
                 $model->where($key, 'like', "%{$value}%");
             }
-            $this->total = $model->count();
-            $this->data = $model->orderBy($parameter->getOrderBy(), $parameter->getSortOrder())
-                ->skip(($parameter->getCurrentPage() * $parameter->getPageSize()) - $parameter->getPageSize())
-                ->take($parameter->getPageSize())
-                ->get()
-                ->toArray();
+            $total = $model->count();
+            $result = $model->orderBy($order, $sort)->skip(($page * $size) - $size)->take($size)->get();
+            return new ResultSet($total, $result->toArray());
         });
-        return $this->response->withPayload($pagination->getResults());
+        return $this->response->withPayload([
+            'meta' => $pagination->getMeta(),
+            'data' => $pagination->getData(),
+            'links' => $pagination->getLinks(),
+        ]);
     }
 
     /**

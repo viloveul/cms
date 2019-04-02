@@ -8,6 +8,7 @@ use App\Entity\User;
 use App\Entity\Comment;
 use App\Component\Setting;
 use Viloveul\Pagination\Parameter;
+use Viloveul\Pagination\ResultSet;
 use Viloveul\Http\Contracts\Response;
 use Viloveul\Http\Contracts\ServerRequest;
 use Viloveul\Config\Contracts\Configuration;
@@ -59,7 +60,8 @@ class BlogController
     public function archive(string $slug)
     {
         if ($archive = Tag::where('slug', $slug)->first()) {
-            $model = Post::query()->select([
+            $model = Post::query();
+            $model->select([
                 'id',
                 'author_id',
                 'created_at',
@@ -69,12 +71,20 @@ class BlogController
                 'type',
                 'comment_enabled',
             ]);
+            $model->withCount('comments');
+            $model->with([
+                'author' => function ($query) {
+                    $query->select(['id', 'email', 'username', 'name', 'status']);
+                },
+                'tags' => function ($query) {
+                    $query->select(['tag_id', 'post_id', 'title', 'type', 'slug']);
+                },
+            ]);
             $parameter = new Parameter('search', $_GET);
             $parameter->setBaseUrl("{$this->config->basepath}/blog/archive/{$slug}");
             $pagination = new Pagination($parameter);
-            $pagination->prepare(function () use ($model, $slug) {
-                $parameter = $this->getParameter();
-                foreach ($parameter->getConditions() as $key => $value) {
+            $pagination->with(function ($conditions, $size, $page, $order, $sort) use ($model, $slug) {
+                foreach ($conditions as $key => $value) {
                     if (in_array($key, ['id', 'author_id', 'type', 'comment_enabled'])) {
                         $model->where($key, $value);
                     } else {
@@ -83,32 +93,20 @@ class BlogController
                 }
                 $model->where('type', 'post');
                 $model->where('status', 1);
-
-                $model->withCount('comments');
-                $model->with([
-                    'author' => function ($query) {
-                        $query->select(['id', 'email', 'username', 'name', 'status']);
-                    },
-                    'tags' => function ($query) {
-                        $query->select(['tag_id', 'post_id', 'title', 'type', 'slug']);
-                    },
-                ]);
-
                 $model->whereHas('tags', function ($query) use ($slug) {
                     $query->where('slug', $slug);
                     $query->where('status', 1);
                 });
 
-                $this->total = $model->count();
-                $this->data = $model->orderBy($parameter->getOrderBy(), $parameter->getSortOrder())
-                    ->skip(($parameter->getCurrentPage() * $parameter->getPageSize()) - $parameter->getPageSize())
-                    ->take($parameter->getPageSize())
-                    ->get()
-                    ->toArray();
+                $total = $model->count();
+                $result = $model->orderBy($order, $sort)->skip(($page * $size) - $size)->take($size)->get();
+                return new ResultSet($total, $result->toArray());
             });
-            $results = $pagination->getResults();
-            $results['meta']['archive'] = $archive;
-            return $this->response->withPayload($results);
+            return $this->response->withPayload([
+                'meta' => array_merge($pagination->getMeta(), compact('archive')),
+                'data' => $pagination->getData(),
+                'links' => $pagination->getLinks(),
+            ]);
         }
         return $this->response->withErrors(404, ["Archive {$slug} not found."]);
     }
@@ -119,7 +117,8 @@ class BlogController
     public function author(string $name)
     {
         if ($author = User::where('username', $name)->first()) {
-            $model = Post::query()->select([
+            $model = Post::query();
+            $model->select([
                 'id',
                 'author_id',
                 'created_at',
@@ -129,12 +128,20 @@ class BlogController
                 'type',
                 'comment_enabled',
             ]);
+            $model->withCount('comments');
+            $model->with([
+                'author' => function ($query) {
+                    $query->select(['id', 'email', 'username', 'name', 'status']);
+                },
+                'tags' => function ($query) {
+                    $query->select(['tag_id', 'post_id', 'title', 'type', 'slug']);
+                },
+            ]);
             $parameter = new Parameter('search', $_GET);
             $parameter->setBaseUrl("{$this->config->basepath}/blog/author/{$name}");
             $pagination = new Pagination($parameter);
-            $pagination->prepare(function () use ($model, $author) {
-                $parameter = $this->getParameter();
-                foreach ($parameter->getConditions() as $key => $value) {
+            $pagination->with(function ($conditions, $size, $page, $order, $sort) use ($model, $author) {
+                foreach ($conditions as $key => $value) {
                     if (in_array($key, ['id', 'author_id', 'type', 'comment_enabled'])) {
                         $model->where($key, $value);
                     } else {
@@ -143,28 +150,18 @@ class BlogController
                 }
                 $model->where('status', 1);
                 $model->where('author_id', $author->id);
-
-                $model->withCount('comments');
-                $model->with([
-                    'author' => function ($query) {
-                        $query->select(['id', 'email', 'username', 'name', 'status']);
-                    },
-                    'tags' => function ($query) {
-                        $query->select(['tag_id', 'post_id', 'title', 'type', 'slug']);
-                    },
-                ]);
-
-                $this->total = $model->count();
-                $this->data = $model->orderBy($parameter->getOrderBy(), $parameter->getSortOrder())
-                    ->skip(($parameter->getCurrentPage() * $parameter->getPageSize()) - $parameter->getPageSize())
-                    ->take($parameter->getPageSize())
-                    ->get()
-                    ->toArray();
+                $total = $model->count();
+                $result = $model->orderBy($order, $sort)->skip(($page * $size) - $size)->take($size)->get();
+                return new ResultSet($total, $result->toArray());
             });
-            $results = $pagination->getResults();
-            $results['meta']['author'] = $author;
-            $results['meta']['profile'] = $author->profile->pluck('value', 'name');
-            return $this->response->withPayload($results);
+            return $this->response->withPayload([
+                'meta' => array_merge($pagination->getMeta(), [
+                    'author' => $author,
+                    'profile' => $author->profile->pluck('value', 'name'),
+                ]),
+                'data' => $pagination->getData(),
+                'links' => $pagination->getLinks(),
+            ]);
         }
         return $this->response->withErrors(404, ["Author {$name} not found."]);
     }
@@ -176,28 +173,26 @@ class BlogController
     {
         if ($post = Post::where('id', $post_id)->where('status', 1)->where('comment_enabled', 1)->first()) {
             $model = Comment::query();
+            $model->where('status', 1);
+            $model->where('post_id', $post_id);
+            $model->with([
+                'author' => function ($query) {
+                    $query->select(['id', 'email', 'username', 'name', 'status']);
+                },
+            ]);
             $parameter = new Parameter('search', $_GET);
             $parameter->setBaseUrl("{$this->config->basepath}/blog/comments/{$post_id}");
             $pagination = new Pagination($parameter);
-            $pagination->prepare(function () use ($model, $post_id) {
-                $parameter = $this->getParameter();
-                $model->where('status', 1);
-                $model->where('post_id', $post_id);
-                $model->with([
-                    'author' => function ($query) {
-                        $query->select(['id', 'email', 'username', 'name', 'status']);
-                    },
-                ]);
-
-                $this->total = $model->count();
-                $this->data = $model->orderBy($parameter->getOrderBy(), $parameter->getSortOrder())
-                    ->skip(($parameter->getCurrentPage() * $parameter->getPageSize()) - $parameter->getPageSize())
-                    ->take($parameter->getPageSize())
-                    ->get()
-                    ->toArray();
+            $pagination->with(function ($conditions, $size, $page, $order, $sort) use ($model) {
+                $total = $model->count();
+                $result = $model->orderBy($order, $sort)->skip(($page * $size) - $size)->take($size)->get();
+                return new ResultSet($total, $result->toArray());
             });
-            $results = $pagination->getResults();
-            return $this->response->withPayload($results);
+            return $this->response->withPayload([
+                'meta' => $pagination->getMeta(),
+                'data' => $pagination->getData(),
+                'links' => $pagination->getLinks(),
+            ]);
         } else {
             return $this->response->withErrors(404, ['Comments not found or not enabled.']);
         }
@@ -219,7 +214,8 @@ class BlogController
 
     public function index()
     {
-        $model = Post::query()->select([
+        $model = Post::query();
+        $model->select([
             'id',
             'author_id',
             'created_at',
@@ -229,12 +225,21 @@ class BlogController
             'type',
             'comment_enabled',
         ]);
+        $model->withCount('comments');
+        $model->with([
+            'author' => function ($query) {
+                $query->select(['id', 'email', 'username', 'name', 'status']);
+            },
+            'tags' => function ($query) {
+                $query->select(['tag_id', 'post_id', 'title', 'type', 'slug']);
+            },
+        ]);
+
         $parameter = new Parameter('search', $_GET);
         $parameter->setBaseUrl("{$this->config->basepath}/blog/index");
         $pagination = new Pagination($parameter);
-        $pagination->prepare(function () use ($model) {
-            $parameter = $this->getParameter();
-            foreach ($parameter->getConditions() as $key => $value) {
+        $pagination->with(function ($conditions, $size, $page, $order, $sort) use ($model) {
+            foreach ($conditions as $key => $value) {
                 if (in_array($key, ['id', 'author_id', 'type', 'comment_enabled'])) {
                     $model->where($key, $value);
                 } else {
@@ -244,24 +249,15 @@ class BlogController
             $model->where('type', 'post');
             $model->where('status', 1);
 
-            $model->withCount('comments');
-            $model->with([
-                'author' => function ($query) {
-                    $query->select(['id', 'email', 'username', 'name', 'status']);
-                },
-                'tags' => function ($query) {
-                    $query->select(['tag_id', 'post_id', 'title', 'type', 'slug']);
-                },
-            ]);
-
-            $this->total = $model->count();
-            $this->data = $model->orderBy($parameter->getOrderBy(), $parameter->getSortOrder())
-                ->skip(($parameter->getCurrentPage() * $parameter->getPageSize()) - $parameter->getPageSize())
-                ->take($parameter->getPageSize())
-                ->get()
-                ->toArray();
+            $total = $model->count();
+            $result = $model->orderBy($order, $sort)->skip(($page * $size) - $size)->take($size)->get();
+            return new ResultSet($total, $result->toArray());
         });
 
-        return $this->response->withPayload($pagination->getResults());
+        return $this->response->withPayload([
+            'meta' => $pagination->getMeta(),
+            'data' => $pagination->getData(),
+            'links' => $pagination->getLinks(),
+        ]);
     }
 }
