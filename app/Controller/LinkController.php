@@ -8,6 +8,7 @@ use App\Component\Privilege;
 use App\Component\AuditTrail;
 use App\Component\AttrAssignment;
 use Viloveul\Pagination\Parameter;
+use Viloveul\Pagination\ResultSet;
 use Viloveul\Http\Contracts\Response;
 use Viloveul\Router\Contracts\Dispatcher;
 use Viloveul\Http\Contracts\ServerRequest;
@@ -170,20 +171,20 @@ class LinkController
         $parameter = new Parameter('search', $_GET);
         $parameter->setBaseUrl("{$this->config->basepath}/link/index");
         $pagination = new Pagination($parameter);
-        $pagination->prepare(function () {
+        $pagination->with(function ($conditions, $size, $page, $order, $sort) {
             $model = Link::query();
-            $parameter = $this->getParameter();
-            foreach ($parameter->getConditions() as $key => $value) {
+            foreach ($conditions as $key => $value) {
                 $model->where($key, 'like', "%{$value}%");
             }
-            $this->total = $model->count();
-            $this->data = $model->orderBy($parameter->getOrderBy(), $parameter->getSortOrder())
-                ->skip(($parameter->getCurrentPage() * $parameter->getPageSize()) - $parameter->getPageSize())
-                ->take($parameter->getPageSize())
-                ->get()
-                ->toArray();
+            $total = $model->count();
+            $result = $model->orderBy($order, $sort)->skip(($page * $size) - $size)->take($size)->get();
+            return new ResultSet($total, $result->toArray());
         });
-        return $this->response->withPayload($pagination->getResults());
+        return $this->response->withPayload([
+            'meta' => $pagination->getMeta(),
+            'data' => $pagination->getData(),
+            'links' => $pagination->getLinks(),
+        ]);
     }
 
     /**

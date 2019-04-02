@@ -23,16 +23,6 @@ $router->add(
 );
 
 /**
- * all users
- */
-$router->add(
-    'role.all',
-    new Route('GET /role/all', [
-        App\Controller\RoleController::class, 'all',
-    ])
-);
-
-/**
  * get user
  */
 $router->add(

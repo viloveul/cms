@@ -145,7 +145,7 @@ class AuthController
 
                 if ($e->count() > 0) {
                     return $this->response->withErrors(500, [
-                        $e->top()->getMessage()
+                        $e->top()->getMessage(),
                     ]);
                 } else {
                     return $this->response->withPayload([

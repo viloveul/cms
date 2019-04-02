@@ -7,6 +7,7 @@ use App\Component\Helper;
 use App\Component\Privilege;
 use App\Component\AuditTrail;
 use Viloveul\Pagination\Parameter;
+use Viloveul\Pagination\ResultSet;
 use Viloveul\Http\Contracts\Response;
 use Viloveul\Media\Contracts\Uploader;
 use Viloveul\Router\Contracts\Dispatcher;
@@ -162,20 +163,14 @@ class MediaController
         $parameter->setBaseUrl("{$this->config->basepath}/media/index");
         $pagination = new Pagination($parameter);
         $request = $this->request;
-        $pagination->prepare(function () use ($request) {
+        $pagination->with(function ($conditions, $size, $page, $order, $sort) use ($request) {
             $model = Media::query()->with('author');
-            $parameter = $this->getParameter();
-            foreach ($parameter->getConditions() as $key => $value) {
+            foreach ($conditions as $key => $value) {
                 $model->where($key, 'like', "%{$value}%");
             }
-            $this->total = $model->count();
-            $data = $model->orderBy($parameter->getOrderBy(), $parameter->getSortOrder())
-                ->skip(($parameter->getCurrentPage() * $parameter->getPageSize()) - $parameter->getPageSize())
-                ->take($parameter->getPageSize())
-                ->get()
-                ->toArray();
-
-            $this->data = array_map(function ($o) use ($request) {
+            $total = $model->count();
+            $result = $model->orderBy($order, $sort)->skip(($page * $size) - $size)->take($size)->get();
+            $data = array_map(function ($o) use ($request) {
                 $o['url'] = vsprintf('%s/uploads/%s/%s/%s/%s', [
                     $request->getBaseUrl(),
                     $o['year'],
@@ -190,10 +185,16 @@ class MediaController
                     ]);
                 }
                 return $o;
-            }, $data);
+            }, $result->toArray());
+
+            return new ResultSet($total, $data);
         });
 
-        return $this->response->withPayload($pagination->getResults());
+        return $this->response->withPayload([
+            'meta' => $pagination->getMeta(),
+            'data' => $pagination->getData(),
+            'links' => $pagination->getLinks(),
+        ]);
     }
 
     /**

@@ -6,6 +6,7 @@ use Countable;
 use App\Component\Privilege;
 use App\Entity\Notification;
 use Viloveul\Pagination\Parameter;
+use Viloveul\Pagination\ResultSet;
 use Viloveul\Http\Contracts\Response;
 use Viloveul\Transport\Contracts\Bus;
 use Viloveul\Router\Contracts\Dispatcher;
@@ -123,21 +124,21 @@ class NotificationController implements Countable
         $parameter->setBaseUrl("{$this->config->basepath}/notification/index");
         $pagination = new Pagination($parameter);
         $request = $this->request;
-        $pagination->prepare(function () use ($request, $userId) {
+        $pagination->with(function ($conditions, $size, $page, $order, $sort) use ($request, $userId) {
             $model = Notification::query()->select(['id', 'subject', 'content', 'status']);
-            $parameter = $this->getParameter();
-            foreach ($parameter->getConditions() as $key => $value) {
+            foreach ($conditions as $key => $value) {
                 $model->where($key, 'like', "%{$value}%");
             }
             $model->where('receiver_id', $userId);
-            $this->total = $model->count();
-            $this->data = $model->orderBy($parameter->getOrderBy(), $parameter->getSortOrder())
-                ->skip(($parameter->getCurrentPage() * $parameter->getPageSize()) - $parameter->getPageSize())
-                ->take($parameter->getPageSize())
-                ->get()
-                ->toArray();
+            $total = $model->count();
+            $result = $model->orderBy($order, $sort)->skip(($page * $size) - $size)->take($size)->get();
+            return new ResultSet($total, $result->toArray());
         });
 
-        return $this->response->withPayload($pagination->getResults());
+        return $this->response->withPayload([
+            'meta' => $pagination->getMeta(),
+            'data' => $pagination->getData(),
+            'links' => $pagination->getLinks(),
+        ]);
     }
 }
