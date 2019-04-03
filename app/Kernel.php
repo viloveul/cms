@@ -15,10 +15,7 @@ use Viloveul\Cache\ApcuAdapter;
 use Viloveul\Cache\RedisAdapter;
 use Viloveul\Auth\Authentication;
 use PHPMailer\PHPMailer\PHPMailer;
-use Viloveul\Config\Configuration;
 use Viloveul\Router\NotFoundException;
-use Viloveul\Container\ContainerFactory;
-use Psr\Http\Message\UriInterface as IUri;
 use Viloveul\Cache\Contracts\Cache as ICache;
 use Viloveul\Transport\Contracts\Bus as IBus;
 use Viloveul\Event\Dispatcher as EventDispatcher;
@@ -50,13 +47,11 @@ class Kernel
      * @param  IConfiguration $config
      * @return mixed
      */
-    public function __construct(IContainer $container = null, IConfiguration $config = null)
+    public function __construct(IContainer $container, IConfiguration $config)
     {
-        $this->container = $container ?: ContainerFactory::instance();
+        $this->container = $container;
 
-        $this->container->set(IConfiguration::class, function () use ($config) {
-            return null === $config ? new Configuration() : $config;
-        });
+        $this->container->set(IResponse::class, Response::class);
 
         $this->container->set(IRouteCollection::class, RouteCollection::class);
 
@@ -64,28 +59,21 @@ class Kernel
 
         $this->container->set(IMiddlewareCollection::class, MiddlewareCollection::class);
 
-        $this->container->set(ICache::class, function (IConfiguration $config) {
-            $adapter = array_get($config->all(), 'cache.adapter') ?: 'apcu';
-            $lifetime = array_get($config->all(), 'cache.lifetime') ?: 3600;
-            $prefix = array_get($config->all(), 'cache.prefix') ?: 'viloveul';
-            if ('redis' === $adapter) {
-                $host = array_get($config->all(), 'cache.host') ?: '127.0.0.1';
-                $port = array_get($config->all(), 'cache.port') ?: 6379;
-                $pass = array_get($config->all(), 'cache.pass') ?: null;
-                $cache = new RedisAdapter($host, $port, $pass);
-            } else {
-                $cache = new ApcuAdapter();
-            }
-            $cache->setDefaultLifeTime($lifetime);
-            $cache->setPrefix($prefix);
+        $this->container->set(IConfiguration::class, function () use ($config) {
+            return $config;
+        });
 
-            return new Cache($cache);
+        $this->container->set(IServerRequest::class, function () {
+            return RequestFactory::fromGlobals();
+        });
+
+        $this->container->set(IUploader::class, function (IConfiguration $config, IServerRequest $request) {
+            return new Uploader($request, $config->get('upload'));
         });
 
         $this->container->set(IRouteDispatcher::class, function (IConfiguration $config, IRouteCollection $routes) {
             $router = new RouteDispatcher($routes);
             $router->setBase($config->get('basepath') ?: '/');
-
             return $router;
         });
 
@@ -102,48 +90,48 @@ class Kernel
             return $bus;
         });
 
-        $this->container->set(IServerRequest::class, function () {
-            return RequestFactory::fromGlobals();
-        });
-
-        $this->container->set(IUri::class, function (IServerRequest $request) {
-            return $request->getUri();
-        });
-
-        $this->container->set(IResponse::class, Response::class);
-
         $this->container->set(IAuthentication::class, function (IConfiguration $config, IServerRequest $request) {
             $auth = new Authentication(
-                array_get($config->all(), 'auth.phrase'),
+                $config->get('auth.phrase'),
                 $request->getServer('HTTP_HOST')
             );
-            $auth->setPrivateKey(array_get($config->all(), 'auth.private'));
-            $auth->setPublicKey(array_get($config->all(), 'auth.public'));
+            $auth->setPrivateKey($config->get('auth.private'));
+            $auth->setPublicKey($config->get('auth.public'));
 
             return $auth;
         });
 
-        $this->container->set(IUploader::class, function (IServerRequest $request, IConfiguration $config) {
-            return new Uploader($request, $config->get('upload'));
+        $this->container->set(ICache::class, function (IConfiguration $config) {
+            $adapter = $config->get('cache.adapter') ?: 'apcu';
+            $lifetime = $config->get('cache.lifetime') ?: 3600;
+            $prefix = $config->get('cache.prefix') ?: 'viloveul';
+            if ('redis' === $adapter) {
+                $host = $config->get('cache.host') ?: '127.0.0.1';
+                $port = $config->get('cache.port') ?: 6379;
+                $pass = $config->get('cache.pass') ?: null;
+                $cache = new RedisAdapter($host, $port, $pass);
+            } else {
+                $cache = new ApcuAdapter();
+            }
+            $cache->setDefaultLifeTime($lifetime);
+            $cache->setPrefix($prefix);
+            return new Cache($cache);
         });
-
-        $this->container->set(IConsole::class, Console::class);
 
         $this->container->set(PHPMailer::class, function (IConfiguration $config) {
             $mailer = new PHPMailer(true);
             $mailer->isSMTP();
             $mailer->isHTML(true);
             $mailer->SMTPAuth = true;
-            $mailer->SMTPSecure = array_get($config->all(), 'smtpmail.secure');
-            $mailer->Host = array_get($config->all(), 'smtpmail.host');
-            $mailer->Username = array_get($config->all(), 'smtpmail.username');
-            $mailer->Password = array_get($config->all(), 'smtpmail.password');
-            $mailer->Port = array_get($config->all(), 'smtpmail.port');
+            $mailer->SMTPSecure = $config->get('smtpmail.secure');
+            $mailer->Host = $config->get('smtpmail.host');
+            $mailer->Username = $config->get('smtpmail.username');
+            $mailer->Password = $config->get('smtpmail.password');
+            $mailer->Port = $config->get('smtpmail.port');
             $mailer->setFrom(
-                array_get($config->all(), 'smtpmail.username'),
-                array_get($config->all(), 'smtpmail.name')
+                $config->get('smtpmail.username'),
+                $config->get('smtpmail.name')
             );
-
             return $mailer;
         });
     }
@@ -154,7 +142,7 @@ class Kernel
     public function console(): IConsole
     {
         $this->container->get(Database::class)->load();
-        $console = $this->container->get(IConsole::class);
+        $console = $this->container->make(Console::class);
         $console->boot();
 
         return $console;
@@ -193,8 +181,8 @@ class Kernel
         try {
             $this->container->get(Database::class)->load();
             $request = $this->container->get(IServerRequest::class);
-            $uri = $this->container->get(IUri::class);
             $router = $this->container->get(IRouteDispatcher::class);
+            $uri = $request->getUri();
             $router->dispatch($request->getMethod(), $uri->getPath());
             $route = $router->routed();
             $this->middleware($route->getMiddlewares());

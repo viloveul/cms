@@ -74,7 +74,6 @@ your local ready : http://localhost:19911
 | | <code>POST /profile/detail/{:id}</code> | set profile user |
 | ROLE | <code>POST /role/create</code> | create new role user |
 | | <code>GET /role/index</code> | get all created roles |
-| | <code>GET /role/all</code> | get all created roles |
 | | <code>GET /role/detail/{:id}</code> | get detail role |
 | | <code>POST /role/assign/{:id}</code> | Assign some role to another role (parent-child) |
 | | <code>POST /role/unassign/{:id}</code> | delete assigned role from other role |
@@ -82,7 +81,6 @@ your local ready : http://localhost:19911
 | | <code>DELETE /role/delete/{:id}</code> | delete role |
 | TAG atau KATEGORI | <code>POST /tag/create</code> | Create new tag |
 | | <code>GET /tag/index</code> | Get all tag |
-| | <code>GET /tag/all</code> | Get all tag |
 | | <code>GET /tag/detail/{:id}</code> | Get detail tag |
 | | <code>POST /tag/update/{:id}</code> | Update tag |
 | | <code>DELETE /tag/delete/{:id}</code> | Delete tag |
