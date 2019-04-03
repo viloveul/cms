@@ -45,7 +45,7 @@ return [
         /* LIFETIME CACHE BEFORE DELETE */
         'lifetime' => env('VILOVEUL_CACHE_LIFETIME', 3600),
         /* CACHE PREFIX */
-        'prefix' => env('VILOVEUL_CACHE_PREFIX', 'viloveul_'),
+        'prefix' => env('VILOVEUL_CACHE_PREFIX', 'viloveul'),
         /* CACHE HOST (REDIS) */
         'host' => env('VILOVEUL_CACHE_HOST', '127.0.0.1'),
         /* CACHE PORT (REDIS) */
