@@ -37,10 +37,7 @@ class AuditTrail
         $this->user = $auth->getUser();
         $this->helper = $helper;
         $this->agent = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : 'Console';
-        $this->ip = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '127.0.0.1';
-        if (isset($_SERVER['HTTP_X_FORWARDER_FOR'])) {
-            $this->ip .= ':' . $_SERVER['HTTP_X_FORWARDER_FOR'];
-        }
+        $this->ip = $this->ipOrHost();
     }
 
     /**
@@ -110,5 +107,19 @@ class AuditTrail
             'type' => strtoupper($type),
             'created_at' => date('Y-m-d H:i:s'),
         ]);
+    }
+
+    /**
+     * @return mixed
+     */
+    protected function ipOrHost()
+    {
+        $ips = [];
+        foreach (['HTTP_X_REAL_IP', 'HTTP_X_FORWARDER_FOR', 'REMOTE_ADDR'] as $ip) {
+            if (array_key_exists($ip, $_SERVER) && !in_array($_SERVER[$ip], $ips)) {
+                $ips[] = $_SERVER[$ip];
+            }
+        }
+        return $ips ? implode(':', $ips) : '127.0.0.1';
     }
 }
