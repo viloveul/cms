@@ -102,16 +102,6 @@ return [
     },
 
     /*
-    | REGISTER DATABASE
-    | @see config/main.php
-     */
-    App\Database::class => function (Configuration $config) {
-        $db = new App\Database();
-        $db->addConnection($config->get('db') ?: [], 'default');
-        return $db;
-    },
-
-    /*
     | REGISTER PHPMAILER
     | @see config/main.php
      */
