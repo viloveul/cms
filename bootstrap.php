@@ -14,22 +14,14 @@ $dotenv->load();
 
 $config = Viloveul\Config\ConfigFactory::load(__DIR__ . '/config/main.php');
 
+// load components
+$components = require_once __DIR__ . '/config/components.php';
+
 // initialize container with several components
-$container = Viloveul\Container\ContainerFactory::instance([
-    App\Component\Slug::class => App\Component\Slug::class,
-    App\Component\Privilege::class => App\Component\Privilege::class,
-    App\Component\Setting::class => App\Component\Setting::class,
-    App\Component\Helper::class => App\Component\Helper::class,
-    App\Component\AuditTrail::class => App\Component\AuditTrail::class,
-]);
+$container = Viloveul\Container\ContainerFactory::instance($components);
 
 // initialize application object
 $app = new App\Kernel($container, $config);
-
-/**
- * Load all middlewares
- */
-$app->middleware($container->make(App\Middleware\Auth::class));
 
 /**
  * Load all routes
