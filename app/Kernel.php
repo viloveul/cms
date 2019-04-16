@@ -12,9 +12,7 @@ class Kernel extends Application
     public function initialize()
     {
         $this->container->get(Database::class)->load();
-        $this->middleware([
-            $this->container->make(Auth::class),
-        ]);
+        $this->middleware(Auth::class);
     }
 
     /**

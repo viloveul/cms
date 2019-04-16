@@ -9,15 +9,45 @@ use Psr\Http\Server\MiddlewareInterface;
 use Viloveul\Auth\InvalidTokenException;
 use Viloveul\Router\Contracts\Dispatcher;
 use Viloveul\Auth\Contracts\Authentication;
-use Viloveul\Container\ContainerAwareTrait;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Viloveul\Config\Contracts\Configuration;
-use Viloveul\Container\Contracts\ContainerAware;
 
-class Auth implements MiddlewareInterface, ContainerAware
+class Auth implements MiddlewareInterface
 {
-    use ContainerAwareTrait;
+    /**
+     * @var mixed
+     */
+    protected $auth;
+
+    /**
+     * @var mixed
+     */
+    protected $config;
+
+    /**
+     * @var mixed
+     */
+    protected $response;
+
+    /**
+     * @var mixed
+     */
+    protected $route;
+
+    /**
+     * @param Configuration  $config
+     * @param Authentication $auth
+     * @param Response       $response
+     * @param Dispatcher     $router
+     */
+    public function __construct(Configuration $config, Authentication $auth, Response $response, Dispatcher $router)
+    {
+        $this->config = $config;
+        $this->auth = $auth;
+        $this->response = $response;
+        $this->route = $router->routed();
+    }
 
     /**
      * @param ServerRequestInterface  $request
@@ -25,36 +55,23 @@ class Auth implements MiddlewareInterface, ContainerAware
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $next): ResponseInterface
     {
-        $container = $this->getContainer();
-        $config = $container->get(Configuration::class);
-        $route = $container->get(Dispatcher::class)->routed();
-        $auth = $container->get(Authentication::class);
-
         [$name, $token] = sscanf($request->getServer('HTTP_AUTHORIZATION'), "%s %s");
 
-        if ($config->get('auth.name') === $name && !empty($token) && !in_array($token, ['null', 'undefined'])) {
-            $auth->setToken($token);
-        }
-
-        $ignores = ['auth.login', 'auth.register', 'auth.forgot'];
-
-        $file = $config->get('root') . '/config/allowed.php';
-
-        if (is_file($file)) {
-            $allowed = require $file;
-            $ignores = array_merge($allowed, $ignores);
+        if ($this->config->get('auth.name') === $name && !empty($token) && !in_array($token, ['null', 'undefined'])) {
+            $this->auth->setToken($token);
         }
 
         try {
-            $auth->authenticate();
+            $this->auth->authenticate();
         } catch (Exception $e) {
-            if (!in_array($route->getName(), $ignores)) {
+            $named = $this->route->getName();
+            if (strlen($named) !== 0) {
                 if ($e instanceof InvalidTokenException) {
-                    return $container->get(Response::class)->withErrors(401, [
+                    return $this->response->withErrors(401, [
                         'Token Invalid',
                     ]);
                 }
-                return $container->get(Response::class)->withErrors(401, [
+                return $this->response->withErrors(401, [
                     $e->getMessage(),
                 ]);
             }

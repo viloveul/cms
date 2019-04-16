@@ -202,17 +202,19 @@ class InstallCommand extends Command implements ContainerAware
             $installer->alter('audit_detail');
         }
         $accessors = [];
-        foreach ($container->get(Collection::class)->all() as $key => $value) {
-            $this->writeNormal('--------------------------------------------------------------');
-            $this->writeInfo('Create access : ' . $key);
-            $access = Role::firstOrCreate(
-                ['name' => $key],
-                [
-                    'type' => 'access',
-                    'id' => $container->get(Helper::class)->uuid(),
-                ]
-            );
-            $accessors[] = $access->id;
+        foreach ($container->get(Collection::class)->all() as $route) {
+            if ($key = $route->getName()) {
+                $this->writeNormal('--------------------------------------------------------------');
+                $this->writeInfo('Create access : ' . $key);
+                $access = Role::firstOrCreate(
+                    ['name' => $key],
+                    [
+                        'type' => 'access',
+                        'id' => $container->get(Helper::class)->uuid(),
+                    ]
+                );
+                $accessors[] = $access->id;
+            }
         }
         $this->writeNormal('--------------------------------------------------------------');
         $this->writeInfo('Create role group admin');
