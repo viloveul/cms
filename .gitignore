@@ -1,7 +1,9 @@
 /.env
 /vendor
+/node_modules
 /bundle.zip
 /composer.lock
+/package-lock.json
 /public/uploads/*
 /var/private.pem
 /var/public.pem

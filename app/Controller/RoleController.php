@@ -10,6 +10,7 @@ use Viloveul\Pagination\Parameter;
 use Viloveul\Pagination\ResultSet;
 use Viloveul\Http\Contracts\Response;
 use App\Validation\Role as Validation;
+use Viloveul\Database\Contracts\Query;
 use Viloveul\Router\Contracts\Dispatcher;
 use Viloveul\Http\Contracts\ServerRequest;
 use Viloveul\Config\Contracts\Configuration;
@@ -82,9 +83,9 @@ class RoleController
                 "No direct access for route: {$this->route->getName()}",
             ]);
         }
-        if ($role = Role::where('id', $id)->where('status', 1)->first()) {
+        if ($role = Role::where(['id' => $id, 'status' => 1])->getResult()) {
             $ids = (array) $this->request->getPost('childs') ?: [];
-            $role->childs()->attach($ids);
+            $role->sync('childRelations', $ids, Query::SYNC_ATTACH);
             $role->load('childs');
             $this->privilege->clear();
             return $this->response->withStatus(201)->withPayload([
@@ -115,14 +116,11 @@ class RoleController
                 $role->{$key} = $value;
             }
             $role->created_at = date('Y-m-d H:i:s');
-            $role->id = $this->helper->uuid();
-            if ($role->save()) {
-                return $this->response->withPayload([
-                    'data' => $role->getAttributes(),
-                ]);
-            } else {
-                return $this->response->withErrors(500, ['Something Wrong !!!']);
-            }
+            $role->id = str_uuid();
+            $role->save();
+            return $this->response->withPayload([
+                'data' => $role->getAttributes(),
+            ]);
         } else {
             return $this->response->withErrors(400, $validator->errors());
         }
@@ -139,7 +137,7 @@ class RoleController
                 "No direct access for route: {$this->route->getName()}",
             ]);
         }
-        if ($role = Role::where('id', $id)->with('childs')->first()) {
+        if ($role = Role::where(['id' => $id])->with('childs')->getResult()) {
             return $this->response->withPayload([
                 'data' => $role,
             ]);
@@ -162,12 +160,14 @@ class RoleController
         $parameter->setBaseUrl("{$this->config->basepath}/role/index");
         $pagination = new Pagination($parameter);
         $pagination->with(function ($conditions, $size, $page, $order, $sort) {
-            $model = Role::query();
+            $model = new Role();
             foreach ($conditions as $key => $value) {
-                $model->where($key, 'like', "%{$value}%");
+                $model->where([$key => "%{$value}%"], Query::OPERATOR_LIKE);
             }
             $total = $model->count();
-            $result = $model->orderBy($order, $sort)->skip(($page * $size) - $size)->take($size)->get();
+            $result = $model->orderBy($order, $sort === 'ASC' ? Query::SORT_ASC : Query::SORT_DESC)
+                ->limit($size, ($page * $size) - $size)
+                ->getResults();
             return new ResultSet($total, $result->toArray());
         });
         return $this->response->withPayload([
@@ -188,9 +188,9 @@ class RoleController
                 "No direct access for route: {$this->route->getName()}",
             ]);
         }
-        if ($role = Role::where('id', $id)->where('status', 1)->first()) {
+        if ($role = Role::where(['id' => $id, 'status' => 1])->getResult()) {
             $ids = (array) $this->request->getPost('childs') ?: [];
-            $role->childs()->detach($ids);
+            $role->sync('childRelations', $ids, Query::SYNC_DETACH);
             $role->load('childs');
             $this->privilege->clear();
             return $this->response->withStatus(201)->withPayload([
@@ -211,7 +211,7 @@ class RoleController
                 "No direct access for route: {$this->route->getName()}",
             ]);
         }
-        if ($role = Role::where('id', $id)->first()) {
+        if ($role = Role::where(['id' => $id])->getResult()) {
             $attr = $this->request->loadPostTo(new AttrAssignment());
             $with = $attr->get('type') === 'group' ? ':' : '.';
             $attr->set('name', preg_replace('/[^a-z0-9\-\_]+/', $with, strtolower($attr->get('name') ?: $role->name)), true);
@@ -222,13 +222,10 @@ class RoleController
                     $role->{$key} = $value;
                 }
                 $role->updated_at = date('Y-m-d H:i:s');
-                if ($role->save()) {
-                    return $this->response->withPayload([
-                        'data' => $role->getAttributes(),
-                    ]);
-                } else {
-                    return $this->response->withErrors(500, ['Something Wrong !!!']);
-                }
+                $role->save();
+                return $this->response->withPayload([
+                    'data' => $role->getAttributes(),
+                ]);
             } else {
                 return $this->response->withErrors(400, $validator->errors());
             }

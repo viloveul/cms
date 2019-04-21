@@ -2,48 +2,34 @@
 
 namespace App\Entity;
 
-use App\Model;
-use App\Entity\User;
+use App\Entity\RoleChild;
+use Viloveul\Database\Model;
 
 class Role extends Model
 {
-    /**
-     * @var array
-     */
-    protected $fillable = [
-        'id',
-        'name',
-        'type',
-        'status',
-        'created_at',
-    ];
-
-    /**
-     * @var string
-     */
-    protected $table = 'role';
-
-    /**
-     * @return mixed
-     */
-    public function childs()
+    public function relations(): array
     {
-        return $this->belongsToMany(__CLASS__, 'role_child', 'role_id', 'child_id')->where('status', 1);
+        return [
+            'childRelations' => [
+                'type' => static::HAS_MANY,
+                'class' => RoleChild::class,
+                'keys' => [
+                    'id' => 'role_id',
+                ],
+            ],
+            'childs' => [
+                'type' => static::HAS_MANY,
+                'class' => __CLASS__,
+                'through' => 'childRelations',
+                'keys' => [
+                    'child_id' => 'id',
+                ],
+            ],
+        ];
     }
 
-    /**
-     * @param $value
-     */
-    public function setStatusAttribute($value)
+    public function table(): string
     {
-        $this->attributes['status'] = abs($value);
-    }
-
-    /**
-     * @return mixed
-     */
-    public function users()
-    {
-        return $this->belongsToMany(User::class, 'user_role')->where('status', 1);
+        return '{{ role }}';
     }
 }

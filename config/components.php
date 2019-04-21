@@ -33,10 +33,21 @@ return [
     | REGISTER DATABASE
     | @see config/main.php
      */
-    App\Database::class => function (Configuration $config) {
-        $db = new App\Database();
-        $db->addConnection($config->get('db') ?: [], 'default');
-        return $db;
+    Viloveul\Database\Contracts\Manager::class => function (Configuration $config) {
+        $charset = $config->get('db.charset');
+        $collation = $config->get('db.collation');
+        $connection = new Viloveul\MySql\Connection(
+            $config->get('db.username'),
+            $config->get('db.password'),
+            $config->get('db.database'),
+            $config->get('db.host'),
+            $config->get('db.port'),
+            $config->get('db.prefix'),
+            [PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES '{$charset}' COLLATE '{$collation}'"]
+        );
+        $man = Viloveul\Database\DatabaseFactory::instance();
+        $man->addConnection($connection, 'default');
+        return $man;
     },
 
     /*

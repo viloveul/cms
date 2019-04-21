@@ -3,12 +3,12 @@
 namespace App\Controller;
 
 use App\Entity\Media;
-use App\Component\Helper;
 use App\Component\Privilege;
 use App\Component\AuditTrail;
 use Viloveul\Pagination\Parameter;
 use Viloveul\Pagination\ResultSet;
 use Viloveul\Http\Contracts\Response;
+use Viloveul\Database\Contracts\Query;
 use Viloveul\Media\Contracts\Uploader;
 use Viloveul\Router\Contracts\Dispatcher;
 use Viloveul\Http\Contracts\ServerRequest;
@@ -27,11 +27,6 @@ class MediaController
      * @var mixed
      */
     protected $config;
-
-    /**
-     * @var mixed
-     */
-    protected $helper;
 
     /**
      * @var mixed
@@ -63,7 +58,6 @@ class MediaController
      * @param Response       $response
      * @param Privilege      $privilege
      * @param Configuration  $config
-     * @param Helper         $helper
      * @param AuditTrail     $audit
      * @param Dispatcher     $router
      * @param Authentication $auth
@@ -73,7 +67,6 @@ class MediaController
         Response $response,
         Privilege $privilege,
         Configuration $config,
-        Helper $helper,
         AuditTrail $audit,
         Dispatcher $router,
         Authentication $auth
@@ -82,7 +75,6 @@ class MediaController
         $this->response = $response;
         $this->privilege = $privilege;
         $this->config = $config;
-        $this->helper = $helper;
         $this->audit = $audit;
         $this->route = $router->routed();
         $this->user = $auth->getUser();
@@ -94,7 +86,7 @@ class MediaController
      */
     public function delete(string $id)
     {
-        if ($media = Media::where('id', $id)->first()) {
+        if ($media = Media::where(['id' => $id])->getResult()) {
             if ($this->privilege->check($this->route->getName(), 'access', $media->author_id) !== true) {
                 return $this->response->withErrors(403, [
                     "No direct access for route: {$this->route->getName()}",
@@ -102,12 +94,9 @@ class MediaController
             }
             $media->status = 3;
             $media->deleted_at = date('Y-m-d H:i:s');
-            if ($media->save()) {
-                $this->audit->delete($id, 'media');
-                return $this->response->withStatus(201);
-            } else {
-                return $this->response->withErrors(500, ['Something Wrong !!!']);
-            }
+            $media->save();
+            $this->audit->delete($id, 'media');
+            return $this->response->withStatus(201);
         } else {
             return $this->response->withErrors(404, ['Media not found']);
         }
@@ -119,7 +108,7 @@ class MediaController
      */
     public function detail(string $id)
     {
-        if ($media = Media::where('id', $id)->with('author')->first()) {
+        if ($media = Media::where(['id' => $id])->with('author')->getResult()) {
             if ($this->privilege->check($this->route->getName(), 'access', $media->author_id) !== true) {
                 return $this->response->withErrors(403, [
                     "No direct access for route: {$this->route->getName()}",
@@ -164,12 +153,14 @@ class MediaController
         $pagination = new Pagination($parameter);
         $request = $this->request;
         $pagination->with(function ($conditions, $size, $page, $order, $sort) use ($request) {
-            $model = Media::query()->with('author');
+            $model = Media::with('author');
             foreach ($conditions as $key => $value) {
-                $model->where($key, 'like', "%{$value}%");
+                $model->where([$key => "%{$value}%"], Query::OPERATOR_LIKE);
             }
             $total = $model->count();
-            $result = $model->orderBy($order, $sort)->skip(($page * $size) - $size)->take($size)->get();
+            $result = $model->orderBy($order, $sort === 'ASC' ? Query::SORT_ASC : Query::SORT_DESC)
+                ->limit($size, ($page * $size) - $size)
+                ->getResults();
             $data = array_map(function ($o) use ($request) {
                 $o['url'] = vsprintf('%s/uploads/%s/%s/%s/%s', [
                     $request->getBaseUrl(),
@@ -207,12 +198,12 @@ class MediaController
         $response = $this->response;
         $user = $this->user;
         $audit = $this->audit;
-        $helper = $this->helper;
-        return $uploader->upload('*', function ($uploadedFiles, $errors, $files) use ($request, $response, $user, $audit, $helper) {
+        return $uploader->upload('*', function ($uploadedFiles, $errors, $files) use ($request, $response, $user, $audit) {
             $results = [];
             foreach ($uploadedFiles as $uploadedFile) {
-                $media = Media::create([
-                    'id' => $helper->uuid(),
+                $media = new Media();
+                $media->setAttributes([
+                    'id' => str_uuid(),
                     'author_id' => $user->get('sub') ?: 0,
                     'name' => $uploadedFile['name'],
                     'filename' => $uploadedFile['filename'],
@@ -225,6 +216,7 @@ class MediaController
                     'status' => 1,
                     'created_at' => date('Y-m-d H:i:s'),
                 ]);
+                $media->save();
                 $audit->create($media->id, 'media');
                 $url = vsprintf('%s/uploads/%s/%s/%s/%s', [
                     $request->getBaseUrl(),

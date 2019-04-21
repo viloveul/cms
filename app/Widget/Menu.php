@@ -26,8 +26,8 @@ class Menu extends Widget implements ContainerAware
     public function results(): array
     {
         $items = [];
-        $content = Model::select('content')->where('id', $this->options['id'])->value('content');
-        $links = Link::select(['id', 'label', 'icon', 'url'])->where('status', 1)->get();
+        $content = Model::select('content')->where(['id' => $this->options['id']])->getValue('content');
+        $links = Link::select(['id', 'label', 'icon', 'url'])->where(['status' => 1])->getResults();
         foreach ($links->toArray() ?: [] as $link) {
             $items[$link['id']] = $link;
         }

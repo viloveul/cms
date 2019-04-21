@@ -9,6 +9,7 @@ use Viloveul\Pagination\Parameter;
 use Viloveul\Pagination\ResultSet;
 use Viloveul\Http\Contracts\Response;
 use Viloveul\Transport\Contracts\Bus;
+use Viloveul\Database\Contracts\Query;
 use Viloveul\Router\Contracts\Dispatcher;
 use Viloveul\Http\Contracts\ServerRequest;
 use Viloveul\Auth\Contracts\Authentication;
@@ -88,9 +89,9 @@ class NotificationController implements Countable
         $uid = $this->user->get('sub');
         return $this->response->withPayload([
             'data' => [
-                'total' => Notification::where('receiver_id', $uid)->count(),
-                'unread' => Notification::where('receiver_id', $uid)->where('status', 0)->count(),
-                'read' => Notification::where('receiver_id', $uid)->where('status', 1)->count(),
+                'total' => Notification::where(['receiver_id' => $uid])->count(),
+                'unread' => Notification::where(['receiver_id' => $uid, 'status' => 0])->count(),
+                'read' => Notification::where(['receiver_id' => $uid, 'status' => 1])->count(),
             ],
         ]);
     }
@@ -102,7 +103,7 @@ class NotificationController implements Countable
     public function detail(string $id)
     {
         $userId = $this->user->get('sub');
-        if ($notification = Notification::where('id', $id)->where('receiver_id', $userId)->with('author')->first()) {
+        if ($notification = Notification::where(['id' => $id, 'receiver_id' => $userId])->with('author')->getResult()) {
             if ($notification->status == 0) {
                 $notification->status = 1;
                 $notification->save();
@@ -125,13 +126,15 @@ class NotificationController implements Countable
         $pagination = new Pagination($parameter);
         $request = $this->request;
         $pagination->with(function ($conditions, $size, $page, $order, $sort) use ($request, $userId) {
-            $model = Notification::query()->select(['id', 'subject', 'content', 'status']);
+            $model = Notification::select(['id', 'subject', 'content', 'status']);
             foreach ($conditions as $key => $value) {
-                $model->where($key, 'like', "%{$value}%");
+                $model->where([$key => "%{$value}%"], Query::OPERATOR_LIKE);
             }
-            $model->where('receiver_id', $userId);
+            $model->where(['receiver_id' => $userId]);
             $total = $model->count();
-            $result = $model->orderBy($order, $sort)->skip(($page * $size) - $size)->take($size)->get();
+            $result = $model->orderBy($order, $sort === 'ASC' ? Query::SORT_ASC : Query::SORT_DESC)
+                ->limit($size, ($page * $size) - $size)
+                ->getResults();
             return new ResultSet($total, $result->toArray());
         });
 

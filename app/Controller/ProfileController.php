@@ -3,7 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\User;
-use App\Component\Helper;
+use App\Entity\UserProfile;
 use App\Component\Privilege;
 use App\Component\AttrAssignment;
 use Viloveul\Http\Contracts\Response;
@@ -12,11 +12,6 @@ use Viloveul\Http\Contracts\ServerRequest;
 
 class ProfileController
 {
-    /**
-     * @var mixed
-     */
-    protected $helper;
-
     /**
      * @var mixed
      */
@@ -41,20 +36,17 @@ class ProfileController
      * @param ServerRequest $request
      * @param Response      $response
      * @param Privilege     $privilege
-     * @param Helper        $helper
      * @param Dispatcher    $router
      */
     public function __construct(
         ServerRequest $request,
         Response $response,
         Privilege $privilege,
-        Helper $helper,
         Dispatcher $router
     ) {
         $this->request = $request;
         $this->response = $response;
         $this->privilege = $privilege;
-        $this->helper = $helper;
         $this->route = $router->routed();
     }
 
@@ -64,9 +56,9 @@ class ProfileController
      */
     public function detail(string $id)
     {
-        if ($user = User::where('id', $id)->where('status', 1)->first()) {
+        if ($user = User::where(['id' => $id, 'status' => 1])->getResult()) {
             return $this->response->withPayload([
-                'data' => $user->profile->pluck('value', 'name'),
+                'data' => $user->profile->convertList('name', 'value'),
             ]);
         } else {
             return $this->response->withErrors(400, ['User not actived.']);
@@ -84,18 +76,18 @@ class ProfileController
                 "No direct access for route: {$this->route->getName()}",
             ]);
         }
-        if ($user = User::where('id', $id)->where('status', 1)->first()) {
+        if ($user = User::where(['id' => $id, 'status' => 1])->getResult()) {
             $attr = $this->request->loadPostTo(new AttrAssignment());
             foreach ($attr->getAttributes() as $name => $value) {
-                $o = $user->profile()->firstOrNew(compact('name'), [
-                    'id' => $this->helper->uuid(),
+                $o = UserProfile::getResultOrInstance(compact('name'), [
+                    'id' => str_uuid(),
                 ]);
                 $o->value = $value;
                 $o->last_modified = date('Y-m-d H:i:s');
                 $o->save();
             }
             return $this->response->withPayload([
-                'data' => $user->profile->pluck('value', 'name'),
+                'data' => $user->profile->convertList('name', 'value'),
             ]);
         } else {
             return $this->response->withErrors(400, ['User not actived.']);

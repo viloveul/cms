@@ -12,7 +12,7 @@ class Slug
      */
     public function check(string $model, string $field, string $slug)
     {
-        return $model::query()->where($field, $slug)->first();
+        return $model::select('id')->where([$field => $slug])->getValue('id');
     }
 
     public static function create()
@@ -35,7 +35,7 @@ class Slug
 
         do {
             if ($res = $this->check($model, $field, $slug . $suffix)) {
-                if (null !== $id && $res->id == $id) {
+                if (null !== $id && $res == $id) {
                     return $slug . $suffix;
                 } else {
                     $increase++;

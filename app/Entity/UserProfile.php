@@ -2,32 +2,26 @@
 
 namespace App\Entity;
 
-use App\Model;
 use App\Entity\User;
+use Viloveul\Database\Model;
 
 class UserProfile extends Model
 {
-    /**
-     * @var array
-     */
-    protected $fillable = [
-        'id',
-        'user_id',
-        'name',
-        'value',
-        'last_modified',
-    ];
-
-    /**
-     * @var string
-     */
-    protected $table = 'user_profile';
-
-    /**
-     * @return mixed
-     */
-    public function user()
+    public function relations(): array
     {
-        return $this->belongsTo(User::class);
+        return [
+            'user' => [
+                'type' => static::HAS_ONE,
+                'class' => User::class,
+                'keys' => [
+                    'user_id' => 'id',
+                ],
+            ],
+        ];
+    }
+
+    public function table(): string
+    {
+        return '{{ user_profile }}';
     }
 }

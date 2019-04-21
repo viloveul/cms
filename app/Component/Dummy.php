@@ -6,16 +6,9 @@ use App\Entity\Tag;
 use App\Entity\Post;
 use App\Entity\User;
 use App\Entity\Comment;
-use App\Component\Helper;
-use Viloveul\Container\ContainerFactory;
 
 class Dummy
 {
-    /**
-     * @var mixed
-     */
-    protected $helper;
-
     /**
      * @var array
      */
@@ -24,7 +17,7 @@ class Dummy
     /**
      * @var array
      */
-    protected $tagIds = [];
+    protected $tagId = [];
 
     /**
      * @var mixed
@@ -37,15 +30,15 @@ class Dummy
     public function __construct(User $user)
     {
         $this->user = $user;
-        $this->helper = ContainerFactory::instance()->get(Helper::class);
     }
 
     public function comments()
     {
         foreach (array_unique($this->postIds) as $id) {
             for ($i = 0; $i < 5; $i++) {
-                Comment::create([
-                    'id' => $this->helper->uuid(),
+                $comment = new Comment();
+                $comment->setAttributes([
+                    'id' => str_uuid(),
                     'post_id' => $id,
                     'author_id' => $this->user->id,
                     'name' => $this->user->name,
@@ -53,14 +46,15 @@ class Dummy
                     'content' => 'This is sample random comment ' . $i . '-' . mt_rand(),
                     'status' => 1,
                 ]);
+                $comment->save();
             }
         }
     }
 
     public function posts()
     {
-        $page = Post::firstOrCreate(['slug' => 'lorem-ipsum'], [
-            'id' => $this->helper->uuid(),
+        $page = Post::getResultOrCreate(['slug' => 'lorem-ipsum'], [
+            'id' => str_uuid(),
             'author_id' => $this->user->id,
             'title' => 'Lorem Ipsum',
             'type' => 'page',
@@ -70,8 +64,8 @@ class Dummy
             'comment_enabled' => 0,
         ]);
 
-        $post = Post::firstOrCreate(['slug' => 'hello-world'], [
-            'id' => $this->helper->uuid(),
+        $post = Post::getResultOrCreate(['slug' => 'hello-world'], [
+            'id' => str_uuid(),
             'author_id' => $this->user->id,
             'title' => 'Hello World !!',
             'type' => 'post',
@@ -80,12 +74,12 @@ class Dummy
             'status' => 1,
             'comment_enabled' => 1,
         ]);
-        $post->tags()->sync($this->tagIds);
+        $post->sync('tagRelations', [$this->tagId]);
 
         // generate random
         for ($i = 0; $i < 10; $i++) {
-            $o = Post::firstOrCreate(['slug' => 'random-' . $i], [
-                'id' => $this->helper->uuid(),
+            $o = Post::getResultOrCreate(['slug' => 'random-' . $i], [
+                'id' => str_uuid(),
                 'author_id' => $this->user->id,
                 'title' => 'Random ' . $i,
                 'type' => 'post',
@@ -94,7 +88,7 @@ class Dummy
                 'status' => 1,
                 'comment_enabled' => 1,
             ]);
-            $o->tags()->sync($this->tagIds);
+            $o->sync('tagRelations', [$this->tagId]);
             $this->postIds[] = $o->id;
         }
     }
@@ -108,13 +102,13 @@ class Dummy
 
     public function tags()
     {
-        $tag = Tag::firstOrCreate(['slug' => 'no-category'], [
-            'id' => $this->helper->uuid(),
+        $tag = Tag::getResultOrCreate(['slug' => 'no-category'], [
+            'id' => str_uuid(),
             'type' => 'category',
             'title' => 'No Category',
             'status' => 1,
             'author_id' => $this->user->id,
         ]);
-        $this->tagIds[] = $tag->id;
+        $this->tagId = $tag->id;
     }
 }

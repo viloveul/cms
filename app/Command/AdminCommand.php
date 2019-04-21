@@ -5,17 +5,13 @@ namespace App\Command;
 use App\Entity\Role;
 use App\Entity\User;
 use RuntimeException;
-use App\Component\Helper;
+use App\Entity\UserRole;
 use Viloveul\Console\Command;
-use Viloveul\Container\ContainerAwareTrait;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Question\Question;
-use Viloveul\Container\Contracts\ContainerAware;
 
-class AdminCommand extends Command implements ContainerAware
+class AdminCommand extends Command
 {
-    use ContainerAwareTrait;
-
     /**
      * @var string
      */
@@ -73,13 +69,10 @@ class AdminCommand extends Command implements ContainerAware
         $this->writeNormal('--------------------------------------------------------------');
 
         $this->writeInfo('Create user admin');
-        $user = User::firstOrNew(
-            ['username' => 'admin'],
-            [
-                'id' => $this->getContainer()->get(Helper::class)->uuid(),
-                'name' => 'Administrator',
-            ]
-        );
+        $user = User::getResultOrInstance(['username' => 'admin'], [
+            'id' => str_uuid(),
+            'name' => 'Administrator',
+        ]);
         $user->email = $email;
         $user->password = password_hash($password, PASSWORD_DEFAULT);
         $user->status = 1;
@@ -87,10 +80,11 @@ class AdminCommand extends Command implements ContainerAware
 
         $this->writeNormal('--------------------------------------------------------------');
         $this->writeInfo('assign user admin to all roles');
-        $roleIds = Role::all()->map(function ($role) {
-            return $role->id;
-        });
-        $user->roles()->sync($roleIds->toArray());
+        $roles = Role::getResults()->toArray();
+        $roleIds = array_map(function($role) {
+            return $role['id'];
+        }, $roles);
+        $user->sync('roleRelations', $roleIds);
         $this->writeInfo('execution complete.');
     }
 

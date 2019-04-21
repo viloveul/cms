@@ -2,21 +2,17 @@
 
 namespace App\Entity;
 
-use App\Model;
+use Viloveul\Database\Model;
 
 class Setting extends Model
 {
-    /**
-     * @var array
-     */
-    protected $fillable = [
-        'id',
-        'name',
-        'option',
-    ];
+    public function relations(): array
+    {
+        return [];
+    }
 
-    /**
-     * @var string
-     */
-    protected $table = 'setting';
+    public function table(): string
+    {
+        return '{{ setting }}';
+    }
 }
