@@ -29,7 +29,9 @@ class Mailer extends Passenger
 
     public function handle(): void
     {
-        $this->setAttribute('data', $this->configs);
+        foreach ($this->configs as $key => $value) {
+            $this->setAttribute($key, $value);
+        }
     }
 
     public function point(): string

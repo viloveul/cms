@@ -3,7 +3,6 @@
 namespace App\Controller;
 
 use App\Entity\User;
-use App\Component\Helper;
 use App\Component\Setting;
 use App\Component\Privilege;
 use App\Entity\Notification;
@@ -31,11 +30,6 @@ class UserController
      * @var mixed
      */
     protected $config;
-
-    /**
-     * @var mixed
-     */
-    protected $helper;
 
     /**
      * @var mixed
@@ -74,7 +68,6 @@ class UserController
      * @param Configuration  $config
      * @param Setting        $setting
      * @param AuditTrail     $audit
-     * @param Helper         $helper
      * @param Authentication $auth
      * @param Dispatcher     $router
      */
@@ -85,7 +78,6 @@ class UserController
         Configuration $config,
         Setting $setting,
         AuditTrail $audit,
-        Helper $helper,
         Authentication $auth,
         Dispatcher $router
     ) {
@@ -95,7 +87,6 @@ class UserController
         $this->config = $config;
         $this->setting = $setting;
         $this->audit = $audit;
-        $this->helper = $helper;
         $this->route = $router->routed();
         $this->user = $auth->getUser();
     }

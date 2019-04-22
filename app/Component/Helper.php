@@ -8,7 +8,6 @@ use App\Component\Privilege;
 use Viloveul\Transport\Contracts\Bus;
 use Viloveul\Auth\Contracts\Authentication;
 use App\Entity\Notification as NotificationModel;
-use App\Message\Notification as NotificationPassenger;
 
 class Helper
 {
@@ -87,15 +86,13 @@ class Helper
                 if ($id != $me) {
                     $notif = new NotificationModel();
                     $notif->setAttributes([
-                        'id' => $this->uuid(),
+                        'id' => str_uuid(),
                         'author_id' => $me,
                         'receiver_id' => $id,
                         'subject' => $subject,
                         'content' => $content,
                     ]);
                     $notif->save();
-                    $this->bus->process(new NotificationPassenger($id));
-                    $this->bus->error()->clear();
                 }
             }
         }
