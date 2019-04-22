@@ -14,15 +14,15 @@ Edit file .env anda sesuai kebutuhan :
 | VILOVEUL_AUTH_PRIVATE_KEY | string | path ke file private key |
 | VILOVEUL_AUTH_PUBLIC_KEY | string | path ke file public key |
 | VILOVEUL_AUTH_PASSPHRASE | string | phrase untuk encrypt (require) |
-| VILOVEUL_DB_DRIVER | string | @see eloquent orm |
-| VILOVEUL_DB_HOST | string | @see eloquent orm |
-| VILOVEUL_DB_PORT | string | @see eloquent orm |
-| VILOVEUL_DB_NAME | string | @see eloquent orm |
-| VILOVEUL_DB_USERNAME | string | @see eloquent orm |
-| VILOVEUL_DB_PASSWD | string | @see eloquent orm |
-| VILOVEUL_DB_PREFIX | string | @see eloquent orm |
-| VILOVEUL_DB_CHARSET | string | @see eloquent orm |
-| VILOVEUL_DB_COLLATION | string | @see eloquent orm |
+| VILOVEUL_DB_DRIVER | string | |
+| VILOVEUL_DB_HOST | string | |
+| VILOVEUL_DB_PORT | string | |
+| VILOVEUL_DB_NAME | string | |
+| VILOVEUL_DB_USERNAME | string | |
+| VILOVEUL_DB_PASSWD | string | |
+| VILOVEUL_DB_PREFIX | string | |
+| VILOVEUL_DB_CHARSET | string | |
+| VILOVEUL_DB_COLLATION | string | |
 | VILOVEUL_CACHE_ADAPTER | string | Adapter untuk cache (default = redis, opsi = redis or apcu) |
 | VILOVEUL_CACHE_LIFETIME | number | waktu caching |
 | VILOVEUL_CACHE_HOST | string | available for redis adapter |
