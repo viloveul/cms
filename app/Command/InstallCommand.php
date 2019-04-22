@@ -4,7 +4,6 @@ namespace App\Command;
 
 use App\Entity\Role;
 use App\Component\Schema;
-use App\Entity\RoleChild;
 use Viloveul\Console\Command;
 use Viloveul\Router\Contracts\Collection;
 use Viloveul\Container\ContainerAwareTrait;
@@ -24,7 +23,9 @@ class InstallCommand extends Command implements ContainerAware
      */
     public function handle()
     {
-        if (!is_file(__DIR__ . '/../../var/public.pem')) {
+        $targetPrivateKey = env('VILOVEUL_AUTH_PRIVATE_KEY', __DIR__ . '/../../var/private.pem');
+        $targetPublicKey = env('VILOVEUL_AUTH_PUBLIC_KEY', __DIR__ . '/../../var/public.pem');
+        if (!is_file($targetPublicKey)) {
             if (!env('VILOVEUL_AUTH_PASSPHRASE')) {
                 $this->writeError('Please put VILOVEUL_AUTH_PASSPHRASE as a non-empty string or not null on your .env');
                 exit();
@@ -37,12 +38,12 @@ class InstallCommand extends Command implements ContainerAware
                 'digest_alg' => 'RSA-SHA256',
             ]);
 
-            $priv = fopen(__DIR__ . '/../../var/private.pem', 'w');
+            $priv = fopen($targetPrivateKey, 'w');
             fwrite($priv, $privkey);
             fclose($priv);
 
             $details = openssl_pkey_get_details($res);
-            $pub = fopen(__DIR__ . '/../../var/public.pem', 'w');
+            $pub = fopen($targetPublicKey, 'w');
             fwrite($pub, $details['key']);
             fclose($pub);
         }
