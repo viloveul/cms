@@ -67,5 +67,6 @@ return [
         App\Command\DummyCommand::class,
         App\Command\AdminCommand::class,
         App\Command\DevelCommand::class,
+        App\Command\EnviCommand::class,
     ],
 ];
