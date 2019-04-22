@@ -39,11 +39,6 @@ class AuthController
     /**
      * @var mixed
      */
-    protected $mailer;
-
-    /**
-     * @var mixed
-     */
     protected $privilege;
 
     /**
@@ -67,7 +62,6 @@ class AuthController
      * @param Privilege      $privilege
      * @param Setting        $setting
      * @param AuditTrail     $audit
-     * @param PHPMailer      $mailer
      * @param Bus            $bus
      * @param Authentication $auth
      */
@@ -77,7 +71,6 @@ class AuthController
         Privilege $privilege,
         Setting $setting,
         AuditTrail $audit,
-        PHPMailer $mailer,
         Bus $bus,
         Authentication $auth
     ) {
@@ -86,7 +79,6 @@ class AuthController
         $this->privilege = $privilege;
         $this->setting = $setting;
         $this->audit = $audit;
-        $this->mailer = $mailer;
         $this->bus = $bus;
         $this->auth = $auth;
     }
@@ -94,7 +86,7 @@ class AuthController
     /**
      * @return mixed
      */
-    public function forgot()
+    public function forgot(PHPMailer $phpmail)
     {
         $attr = $this->request->loadPostTo(new AttrAssignment());
         $validator = new Validation($attr->getAttributes());
@@ -120,11 +112,11 @@ class AuthController
                 ]);
                 $this->bus->process($mail);
 
-                $e = $this->bus->error(function (ErrorCollection $error) use ($user, $string) {
+                $e = $this->bus->error(function (ErrorCollection $error) use ($user, $string, $phpmail) {
                     if ($error->count() > 0) {
                         $error->clear();
                         try {
-                            $mailer = clone $this->mailer;
+                            $mailer = clone $phpmail;
                             $mailer->addAddress($user->email);
                             $mailer->Subject = 'Request Password';
                             $mailer->Body = "This is your password: <code>{$string}</code>. Expired in 1 hour.";

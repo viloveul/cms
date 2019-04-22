@@ -22,6 +22,6 @@ class AuditDetail extends Model
 
     public function table(): string
     {
-        return '{{ audit_trail }}';
+        return '{{ audit_detail }}';
     }
 }

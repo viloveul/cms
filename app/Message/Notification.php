@@ -32,7 +32,7 @@ class Notification extends Passenger
 
     public function point(): string
     {
-        return 'viloveul.system.queue';
+        return 'viloveul.system.worker';
     }
 
     public function task(): string

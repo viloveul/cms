@@ -8,3 +8,4 @@
 /var/public.pem
 /vendor
 /node_modules
+/.vscode

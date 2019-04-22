@@ -14,7 +14,6 @@
         "sort-packages": true
     },
     "require": {
-        "phpmailer/phpmailer": "^6.0",
         "viloveul/database": "1.0.*|v1.x-dev",
         "viloveul/mysql": "1.0.*|v1.x-dev",
         "viloveul/kernel": "1.0.*|v1.x-dev",
@@ -32,6 +31,9 @@
         "viloveul/support": "1.0.*|v1.x-dev",
         "viloveul/transport": "1.0.*|v1.x-dev",
         "viloveul/validation": "1.0.*|v1.x-dev"
+    },
+    "suggest": {
+        "phpmailer/phpmailer": "require for email"
     },
     "autoload": {
         "psr-4": {

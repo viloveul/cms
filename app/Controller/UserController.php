@@ -288,7 +288,7 @@ class UserController
         }
         if ($user = User::where(['id' => $id])->getResult()) {
             $attr = $this->request->loadPostTo(new AttrAssignment());
-            $attr->get('password') or $attr->forget('password');
+            $attr->get('password') or $attr->delete('password');
             $validator = new Validation($attr->getAttributes(), ['id' => $id]);
             if ($validator->validate('update')) {
                 $previous = $user->getAttributes();

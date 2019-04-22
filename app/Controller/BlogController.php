@@ -76,7 +76,7 @@ class BlogController
                 $query->select(['id', 'email', 'username', 'name', 'status']);
             });
             $model->with('tags', function ($query) {
-                $query->select(['tag_id', 'post_id', 'title', 'type', 'slug']);
+                $query->select(['id', 'title', 'type', 'slug']);
             });
             $parameter = new Parameter('search', $_GET);
             $parameter->setBaseUrl("{$this->config->basepath}/blog/archive/{$slug}");
@@ -136,7 +136,7 @@ class BlogController
                 $query->select(['id', 'email', 'username', 'name', 'status']);
             });
             $model->with('tags', function ($query) {
-                $query->select(['tag_id', 'post_id', 'title', 'type', 'slug']);
+                $query->select(['id', 'title', 'type', 'slug']);
             });
             $parameter = new Parameter('search', $_GET);
             $parameter->setBaseUrl("{$this->config->basepath}/blog/author/{$name}");
@@ -235,7 +235,7 @@ class BlogController
             $query->select(['id', 'email', 'username', 'name', 'status']);
         });
         $model->with('tags', function ($query) {
-            $query->select(['tag_id', 'post_id', 'title', 'type', 'slug']);
+            $query->select(['id', 'title', 'type', 'slug']);
         });
 
         $parameter = new Parameter('search', $_GET);
