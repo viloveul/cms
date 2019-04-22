@@ -107,9 +107,8 @@ class CommentController
     {
         $attributes = $this->request->loadPostTo(new AttrAssignment());
         $post = Post::select('comment_enabled')
-            ->where('id', $attributes->get('post_id'))
-            ->where('status', 1)
-            ->first();
+            ->where(['id' => $attributes->get('post_id'), 'status' => 1])
+            ->getResult();
 
         if ($post && $post->comment_enabled != 0) {
             if ($id = $this->user->get('sub')) {
