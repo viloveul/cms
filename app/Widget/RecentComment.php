@@ -4,6 +4,7 @@ namespace App\Widget;
 
 use App\Entity\Comment;
 use App\Component\Widget;
+use Viloveul\Database\Contracts\Query;
 
 class RecentComment extends Widget
 {
@@ -22,7 +23,7 @@ class RecentComment extends Widget
         $comments = Comment::where(['status' => 1])
             ->with('post')
             ->with('author')
-            ->orderBy('created_at', 'desc')
+            ->orderBy('created_at', Query::SORT_DESC)
             ->limit($this->options['size'])
             ->getResults();
         return $comments->toArray();
