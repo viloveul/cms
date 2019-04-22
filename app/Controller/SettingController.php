@@ -2,7 +2,6 @@
 
 namespace App\Controller;
 
-use App\Component\Helper;
 use App\Component\Setting;
 use App\Component\Privilege;
 use Viloveul\Http\Contracts\Response;
@@ -12,11 +11,6 @@ use Viloveul\Http\Contracts\ServerRequest;
 
 class SettingController
 {
-    /**
-     * @var mixed
-     */
-    protected $helper;
-
     /**
      * @var mixed
      */
@@ -47,7 +41,6 @@ class SettingController
      * @param Response      $response
      * @param Privilege     $privilege
      * @param Setting       $setting
-     * @param Helper        $helper
      * @param Dispatcher    $router
      */
     public function __construct(
@@ -55,14 +48,12 @@ class SettingController
         Response $response,
         Privilege $privilege,
         Setting $setting,
-        Helper $helper,
         Dispatcher $router
     ) {
         $this->request = $request;
         $this->response = $response;
         $this->privilege = $privilege;
         $this->setting = $setting;
-        $this->helper = $helper;
         $this->route = $router->routed();
     }
 
@@ -92,8 +83,8 @@ class SettingController
             ]);
         }
         $value = $this->request->getBody()->getContents();
-        $model = SettingModel::firstOrNew(compact('name'), [
-            'id' => $this->helper->uuid(),
+        $model = SettingModel::getResultOrInstance(compact('name'), [
+            'id' => str_uuid(),
         ]);
         $model->option = is_scalar($value) ? $value : json_encode($value);
         $model->save();

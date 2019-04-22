@@ -24,15 +24,15 @@ class Notification extends Passenger
     {
         $this->setAttribute('user_id', $this->uid);
         $this->setAttribute('data', [
-            'total' => Model::where('receiver_id', $this->uid)->count(),
-            'unread' => Model::where('receiver_id', $this->uid)->where('status', 0)->count(),
-            'read' => Model::where('receiver_id', $this->uid)->where('status', 1)->count(),
+            'total' => Model::where(['receiver_id' => $this->uid])->count(),
+            'unread' => Model::where(['receiver_id' => $this->uid, 'status' => 0])->count(),
+            'read' => Model::where(['receiver_id' => $this->uid, 'status' => 1])->count(),
         ]);
     }
 
     public function point(): string
     {
-        return 'viloveul.system.queue';
+        return 'viloveul.system.worker';
     }
 
     public function task(): string

@@ -13,6 +13,7 @@ use Viloveul\Pagination\Parameter;
 use Viloveul\Pagination\ResultSet;
 use Viloveul\Http\Contracts\Response;
 use App\Validation\User as Validation;
+use Viloveul\Database\Contracts\Query;
 use Viloveul\Router\Contracts\Dispatcher;
 use Viloveul\Http\Contracts\ServerRequest;
 use Viloveul\Auth\Contracts\Authentication;
@@ -125,17 +126,14 @@ class UserController
             }
             $user->created_at = date('Y-m-d H:i:s');
             $user->password = password_hash($attr->get('password'), PASSWORD_DEFAULT);
-            $user->id = $this->helper->uuid();
-            if ($user->save()) {
-                $relations = $attr->get('relations') ?: [];
-                $user->roles()->sync($relations);
-                $this->audit->create($user->id, 'user');
-                return $this->response->withPayload([
-                    'data' => $user,
-                ]);
-            } else {
-                return $this->response->withErrors(500, ['Something Wrong !!!']);
-            }
+            $user->id = str_uuid();
+            $user->save();
+            $relations = $attr->get('relations') ?: [];
+            $user->sync('roleRelations', $relations);
+            $this->audit->create($user->id, 'user');
+            return $this->response->withPayload([
+                'data' => $user,
+            ]);
         } else {
             return $this->response->withErrors(400, $validator->errors());
         }
@@ -152,15 +150,12 @@ class UserController
                 "No direct access for route: {$this->route->getName()}",
             ]);
         }
-        if ($user = User::where('id', $id)->first()) {
+        if ($user = User::where(['id' => $id])->getResult()) {
             $user->status = 3;
             $user->deleted_at = date('Y-m-d H:i:s');
-            if ($user->save()) {
-                $this->audit->delete($user->id, 'user');
-                return $this->response->withStatus(201);
-            } else {
-                return $this->response->withErrors(500, ['Something Wrong !!!']);
-            }
+            $user->save();
+            $this->audit->delete($user->id, 'user');
+            return $this->response->withStatus(201);
         } else {
             return $this->response->withErrors(404, ['User not found']);
         }
@@ -177,7 +172,7 @@ class UserController
                 "No direct access for route: {$this->route->getName()}",
             ]);
         }
-        if ($user = User::where('id', $id)->with('roles')->first()) {
+        if ($user = User::where(['id' => $id])->with('roles')->getResult()) {
             if (!$user->picture) {
                 $user->picture = sprintf(
                     '%s/images/no-image.jpg',
@@ -206,12 +201,14 @@ class UserController
         $parameter->setBaseUrl("{$this->config->basepath}/user/index");
         $pagination = new Pagination($parameter);
         $pagination->with(function ($conditions, $size, $page, $order, $sort) {
-            $model = User::query();
+            $model = new User();
             foreach ($conditions as $key => $value) {
-                $model->where($key, 'like', "%{$value}%");
+                $model->where([$key => "%{$value}%"], Query::OPERATOR_LIKE);
             }
             $total = $model->count();
-            $result = $model->orderBy($order, $sort)->skip(($page * $size) - $size)->take($size)->get();
+            $result = $model->orderBy($order, $sort === 'ASC' ? Query::SORT_ASC : Query::SORT_DESC)
+                ->limit($size, ($page * $size) - $size)
+                ->getResults();
             return new ResultSet($total, $result->toArray());
         });
 
@@ -228,7 +225,7 @@ class UserController
     public function me()
     {
         if ($id = $this->user->get('sub')) {
-            if ($user = User::where('id', $id)->where('status', 1)->first()) {
+            if ($user = User::where(['id' => $id, 'status' => 1])->getResult()) {
                 if (!$user->picture) {
                     $user->picture = sprintf(
                         '%s/images/no-image.jpg',
@@ -240,9 +237,9 @@ class UserController
                     'meta' => [
                         'privileges' => $this->privilege->mine(),
                         'notification' => [
-                            'total' => Notification::where('receiver_id', $id)->count(),
-                            'unread' => Notification::where('receiver_id', $id)->where('status', 0)->count(),
-                            'read' => Notification::where('receiver_id', $id)->where('status', 1)->count(),
+                            'total' => Notification::where(['receiver_id' => $id])->count(),
+                            'unread' => Notification::where(['receiver_id' => $id, 'status' => 0])->count(),
+                            'read' => Notification::where(['receiver_id' => $id, 'status' => 1])->count(),
                         ],
                     ],
                 ]);
@@ -265,10 +262,10 @@ class UserController
                 "No direct access for route: {$this->route->getName()}",
             ]);
         }
-        if ($user = User::where('id', $id)->first()) {
+        if ($user = User::where(['id' => $id])->getResult()) {
             $body = $this->request->getBody()->getContents() ?: '[]';
             $relations = json_decode($body, true) ?: [];
-            is_array($relations) and $user->roles()->sync($relations);
+            is_array($relations) and $user->sync('roleRelations', $relations);
             $this->privilege->load();
             return $this->response->withPayload([
                 'data' => $user,
@@ -289,9 +286,9 @@ class UserController
                 "No direct access for route: {$this->route->getName()}",
             ]);
         }
-        if ($user = User::where('id', $id)->first()) {
+        if ($user = User::where(['id' => $id])->getResult()) {
             $attr = $this->request->loadPostTo(new AttrAssignment());
-            $attr->get('password') or $attr->forget('password');
+            $attr->get('password') or $attr->delete('password');
             $validator = new Validation($attr->getAttributes(), ['id' => $id]);
             if ($validator->validate('update')) {
                 $previous = $user->getAttributes();
@@ -309,14 +306,11 @@ class UserController
                 if ($password = $attr->get('password')) {
                     $user->password = password_hash($password, PASSWORD_DEFAULT);
                 }
-                if ($user->save()) {
-                    $this->audit->update($user->id, 'user', $user->getAttributes(), $previous);
-                    return $this->response->withPayload([
-                        'data' => $user,
-                    ]);
-                } else {
-                    return $this->response->withErrors(500, ['Something Wrong !!!']);
-                }
+                $user->save();
+                $this->audit->update($user->id, 'user', $user->getAttributes(), $previous);
+                return $this->response->withPayload([
+                    'data' => $user,
+                ]);
             } else {
                 return $this->response->withErrors(400, $validator->errors());
             }

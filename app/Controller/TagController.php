@@ -10,6 +10,7 @@ use Viloveul\Pagination\Parameter;
 use Viloveul\Pagination\ResultSet;
 use App\Validation\Tag as Validation;
 use Viloveul\Http\Contracts\Response;
+use Viloveul\Database\Contracts\Query;
 use Viloveul\Router\Contracts\Dispatcher;
 use Viloveul\Http\Contracts\ServerRequest;
 use Viloveul\Auth\Contracts\Authentication;
@@ -101,13 +102,11 @@ class TagController
             }
             $tag->author_id = $this->user->get('sub') ?: 0;
             $tag->created_at = date('Y-m-d H:i:s');
-            if ($tag->save()) {
-                return $this->response->withPayload([
-                    'data' => $tag->getAttributes(),
-                ]);
-            } else {
-                return $this->response->withErrors(500, ['Something Wrong !!!']);
-            }
+            $tag->id = str_uuid();
+            $tag->save();
+            return $this->response->withPayload([
+                'data' => $tag->getAttributes(),
+            ]);
         } else {
             return $this->response->withErrors(400, $validator->errors());
         }
@@ -119,7 +118,7 @@ class TagController
      */
     public function delete(int $id)
     {
-        if ($tag = Tag::where('id', $id)->first()) {
+        if ($tag = Tag::where(['id' => $id])->getResult()) {
             if ($this->privilege->check($this->route->getName(), 'access', $tag->author_id) !== true) {
                 return $this->response->withErrors(403, [
                     "No direct access for route: {$this->route->getName()}",
@@ -127,12 +126,8 @@ class TagController
             }
             $tag->status = 3;
             $tag->deleted_at = date('Y-m-d H:i:s');
-            if ($tag->save()) {
-                Tag::where('status', 1)->where('parent_id', $id)->update(['parent_id' => 0]);
-                return $this->response->withStatus(201);
-            } else {
-                return $this->response->withErrors(500, ['Something Wrong !!!']);
-            }
+            $tag->save();
+            return $this->response->withStatus(201);
         } else {
             return $this->response->withErrors(404, ['Tag not found']);
         }
@@ -144,7 +139,7 @@ class TagController
      */
     public function detail(int $id)
     {
-        if ($tag = Tag::where('id', $id)->with('childs')->first()) {
+        if ($tag = Tag::where(['id' => $id])->with('childs')->getResult()) {
             if ($this->privilege->check($this->route->getName(), 'access', $tag->author_id) !== true) {
                 return $this->response->withErrors(403, [
                     "No direct access for route: {$this->route->getName()}",
@@ -172,12 +167,14 @@ class TagController
         $parameter->setBaseUrl("{$this->config->basepath}/tag/index");
         $pagination = new Pagination($parameter);
         $pagination->with(function ($conditions, $size, $page, $order, $sort) {
-            $model = Tag::query();
+            $model = new Tag();
             foreach ($conditions as $key => $value) {
-                $model->where($key, 'like', "%{$value}%");
+                $model->where([$key => "%{$value}%"], Query::OPERATOR_LIKE);
             }
             $total = $model->count();
-            $result = $model->orderBy($order, $sort)->skip(($page * $size) - $size)->take($size)->get();
+            $result = $model->orderBy($order, $sort === 'ASC' ? Query::SORT_ASC : Query::SORT_DESC)
+                ->limit($size, ($page * $size) - $size)
+                ->getResults();
             return new ResultSet($total, $result->toArray());
         });
         return $this->response->withPayload([
@@ -193,7 +190,7 @@ class TagController
      */
     public function update(int $id)
     {
-        if ($tag = Tag::where('id', $id)->first()) {
+        if ($tag = Tag::where(['id' => $id])->getResult()) {
             if ($this->privilege->check($this->route->getName(), 'access', $tag->author_id) !== true) {
                 return $this->response->withErrors(403, [
                     "No direct access for route: {$this->route->getName()}",
@@ -213,13 +210,10 @@ class TagController
                 }
                 $tag->status = 1;
                 $tag->updated_at = date('Y-m-d H:i:s');
-                if ($tag->save()) {
-                    return $this->response->withPayload([
-                        'data' => $tag->getAttributes(),
-                    ]);
-                } else {
-                    return $this->response->withErrors(500, ['Something Wrong !!!']);
-                }
+                $tag->save();
+                return $this->response->withPayload([
+                    'data' => $tag->getAttributes(),
+                ]);
             } else {
                 return $this->response->withErrors(400, $validator->errors());
             }

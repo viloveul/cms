@@ -2,50 +2,35 @@
 
 namespace App\Entity;
 
-use App\Model;
 use App\Entity\Post;
+use App\Entity\PostTag;
+use Viloveul\Database\Model;
 
 class Tag extends Model
 {
-    /**
-     * @var array
-     */
-    protected $fillable = [
-        'id',
-        'parent_id',
-        'author_id',
-        'title',
-        'type',
-        'slug',
-        'status',
-    ];
-
-    /**
-     * @var string
-     */
-    protected $table = 'tag';
-
-    /**
-     * @return mixed
-     */
-    public function childs()
+    public function relations(): array
     {
-        return $this->hasMany(Tag::class, 'parent_id', 'id')->where('status', 1);
+        return [
+            'postRelations' => [
+                'type' => static::HAS_MANY,
+                'class' => PostTag::class,
+                'keys' => [
+                    'id' => 'tag_id',
+                ],
+            ],
+            'posts' => [
+                'type' => static::HAS_MANY,
+                'class' => Post::class,
+                'through' => 'postRelations',
+                'keys' => [
+                    'post_id' => 'id',
+                ],
+            ],
+        ];
     }
 
-    /**
-     * @return mixed
-     */
-    public function posts()
+    public function table(): string
     {
-        return $this->belongsToMany(Post::class, 'post_tag')->where('status', 1);
-    }
-
-    /**
-     * @param $value
-     */
-    public function setStatusAttribute($value)
-    {
-        $this->attributes['status'] = abs($value);
+        return '{{ tag }}';
     }
 }

@@ -2,32 +2,26 @@
 
 namespace App\Entity;
 
-use App\Model;
 use App\Entity\User;
+use Viloveul\Database\Model;
 
 class UserPassword extends Model
 {
-    /**
-     * @var array
-     */
-    protected $fillable = [
-        'id',
-        'user_id',
-        'password',
-        'expired',
-        'status',
-    ];
-
-    /**
-     * @var string
-     */
-    protected $table = 'user_password';
-
-    /**
-     * @return mixed
-     */
-    public function user()
+    public function relations(): array
     {
-        return $this->belongsTo(User::class);
+        return [
+            'uset' => [
+                'type' => static::HAS_ONE,
+                'class' => User::class,
+                'keys' => [
+                    'uset_id' => 'id',
+                ],
+            ],
+        ];
+    }
+
+    public function table(): string
+    {
+        return '{{ user_password }}';
     }
 }

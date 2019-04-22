@@ -12,6 +12,7 @@ use App\Component\AttrAssignment;
 use Viloveul\Pagination\Parameter;
 use Viloveul\Pagination\ResultSet;
 use Viloveul\Http\Contracts\Response;
+use Viloveul\Database\Contracts\Query;
 use Viloveul\Router\Contracts\Dispatcher;
 use App\Validation\Post as PostValidation;
 use Viloveul\Http\Contracts\ServerRequest;
@@ -135,26 +136,23 @@ class PostController
             if ($post->status == 1) {
                 $post->status = (!$this->setting->get('moderations.post') || $this->privilege->check('moderator:post', 'group'));
             }
-            $post->id = $this->helper->uuid();
-            if ($post->save()) {
-                $tags = $attr->get('relations') ?: [];
-                $post->tags()->sync($tags);
-                $post->load('tags');
-                $this->audit->create($post->id, 'post');
-                if ($users = $this->privilege->getRoleUsers('post.publish')) {
-                    $this->helper->sendNotification(
-                        $users,
-                        'New Post Created',
-                        $post->name . ' send new post. {post#' . $post->id . '}'
-                    );
-                }
-
-                return $this->response->withPayload([
-                    'data' => $post,
-                ]);
-            } else {
-                return $this->response->withErrors(500, ['Something Wrong !!!']);
+            $post->id = str_uuid();
+            $post->save();
+            $tags = $attr->get('relations') ?: [];
+            $post->sync('tagRelations', $tags);
+            $post->load('tags');
+            $this->audit->create($post->id, 'post');
+            if ($users = $this->privilege->getRoleUsers('post.publish')) {
+                $this->helper->sendNotification(
+                    $users,
+                    'New Post Created',
+                    $post->name . ' send new post. {post#' . $post->id . '}'
+                );
             }
+
+            return $this->response->withPayload([
+                'data' => $post,
+            ]);
         } else {
             return $this->response->withErrors(400, $validator->errors());
         }
@@ -166,7 +164,7 @@ class PostController
      */
     public function delete(string $id)
     {
-        if ($post = Post::where('id', $id)->first()) {
+        if ($post = Post::where(['id' => $id])->getResult()) {
             if ($this->privilege->check($this->route->getName(), 'access', $post->author_id) !== true) {
                 return $this->response->withErrors(403, [
                     "No direct access for route: {$this->route->getName()}",
@@ -174,12 +172,9 @@ class PostController
             }
             $post->status = 3;
             $post->deleted_at = date('Y-m-d H:i:s');
-            if ($post->save()) {
-                $this->audit->delete($id, 'post');
-                return $this->response->withStatus(201);
-            } else {
-                return $this->response->withErrors(500, ['Something Wrong !!!']);
-            }
+            $post->save();
+            $this->audit->delete($id, 'post');
+            return $this->response->withStatus(201);
         } else {
             return $this->response->withErrors(404, ['Post not found']);
         }
@@ -191,7 +186,7 @@ class PostController
      */
     public function detail(string $id)
     {
-        if ($post = Post::where('id', $id)->with(['author', 'tags'])->first()) {
+        if ($post = Post::where(['id' => $id])->with(['author', 'tags'])->getResult()) {
             if ($this->privilege->check($this->route->getName(), 'access', $post->author_id) !== true) {
                 return $this->response->withErrors(403, [
                     "No direct access for route: {$this->route->getName()}",
@@ -219,12 +214,14 @@ class PostController
         $parameter->setBaseUrl("{$this->config->basepath}/post/index");
         $pagination = new Pagination($parameter);
         $pagination->with(function ($conditions, $size, $page, $order, $sort) {
-            $model = Post::query()->with('author');
+            $model = Post::with('author');
             foreach ($conditions as $key => $value) {
-                $model->where($key, 'like', "%{$value}%");
+                $model->where([$key => "%{$value}%"], Query::OPERATOR_LIKE);
             }
             $total = $model->count();
-            $result = $model->orderBy($order, $sort)->skip(($page * $size) - $size)->take($size)->get();
+            $result = $model->orderBy($order, $sort === 'ASC' ? Query::SORT_ASC : Query::SORT_DESC)
+                ->limit($size, ($page * $size) - $size)
+                ->getResults();
             return new ResultSet($total, $result->toArray());
         });
 
@@ -241,7 +238,7 @@ class PostController
      */
     public function update(string $id)
     {
-        if ($post = Post::where('id', $id)->first()) {
+        if ($post = Post::where(['id' => $id])->getResult()) {
             if ($this->privilege->check($this->route->getName(), 'access', $post->author_id) !== true) {
                 return $this->response->withErrors(403, [
                     "No direct access for route: {$this->route->getName()}",
@@ -269,17 +266,14 @@ class PostController
                 if ($post->status == 1) {
                     $post->status = (!$this->setting->get('moderations.post') || $this->privilege->check('moderator:post', 'group'));
                 }
-                if ($post->save()) {
-                    $this->audit->update($id, 'post', $post->getAttributes(), $previous);
-                    $tags = $attr->get('relations') ?: [];
-                    $post->tags()->sync($tags);
-                    $post->load('tags');
-                    return $this->response->withPayload([
-                        'data' => $post,
-                    ]);
-                } else {
-                    return $this->response->withErrors(500, ['Something Wrong !!!']);
-                }
+                $post->save();
+                $this->audit->update($id, 'post', $post->getAttributes(), $previous);
+                $tags = $attr->get('relations') ?: [];
+                $post->sync('tagRelations', $tags);
+                $post->load('tags');
+                return $this->response->withPayload([
+                    'data' => $post,
+                ]);
             } else {
                 return $this->response->withErrors(400, $validator->errors());
             }

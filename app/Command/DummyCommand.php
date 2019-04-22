@@ -5,13 +5,9 @@ namespace App\Command;
 use App\Entity\User;
 use App\Component\Dummy;
 use Viloveul\Console\Command;
-use Viloveul\Container\ContainerAwareTrait;
-use Viloveul\Container\Contracts\ContainerAware;
 
-class DummyCommand extends Command implements ContainerAware
+class DummyCommand extends Command
 {
-    use ContainerAwareTrait;
-
     /**
      * @var string
      */
@@ -24,7 +20,7 @@ class DummyCommand extends Command implements ContainerAware
     {
         $this->writeNormal('--------------------------------------------------------------');
         $this->writeInfo('Create content dummy');
-        $dummy = new Dummy(User::where('status', 1)->first());
+        $dummy = new Dummy(User::where(['status' => 1])->getResult());
         $dummy->run();
         $this->writeNormal('--------------------------------------------------------------');
         $this->writeInfo('Dump complete.');

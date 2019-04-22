@@ -54,6 +54,11 @@ RUN wget -O /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg
     apt-get install -y --no-install-recommends --no-install-suggests $SERVERDEP && \
     rm -rf /var/lib/apt/lists/*
 
+RUN curl -sL https://deb.nodesource.com/setup_10.x | bash - && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends --no-install-suggests nodejs && \
+    rm -rf /var/lib/apt/lists/*
+
 RUN php -r "copy('https://getcomposer.org/installer', '/tmp/composer-setup.php');" && \
     php /tmp/composer-setup.php --install-dir=/usr/bin/ --filename=composer && \
     apt-get autoremove -y && \

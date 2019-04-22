@@ -2,44 +2,34 @@
 
 namespace App\Entity;
 
-use App\Model;
 use App\Entity\User;
 use App\Entity\AuditDetail;
+use Viloveul\Database\Model;
 
 class Audit extends Model
 {
-    /**
-     * @var array
-     */
-    protected $fillable = [
-        'id',
-        'author_id',
-        'object_id',
-        'entity',
-        'ip',
-        'agent',
-        'type',
-        'created_at',
-    ];
-
-    /**
-     * @var string
-     */
-    protected $table = 'audit';
-
-    /**
-     * @return mixed
-     */
-    public function author()
+    public function relations(): array
     {
-        return $this->belongsTo(User::class);
+        return [
+            'details' => [
+                'type' => static::HAS_MANY,
+                'class' => AuditDetail::class,
+                'keys' => [
+                    'id' => 'audit_id',
+                ],
+            ],
+            'author' => [
+                'type' => static::HAS_ONE,
+                'class' => User::class,
+                'keys' => [
+                    'author_id' => 'id',
+                ],
+            ],
+        ];
     }
 
-    /**
-     * @return mixed
-     */
-    public function details()
+    public function table(): string
     {
-        return $this->hasMany(AuditDetail::class);
+        return '{{ audit }}';
     }
 }

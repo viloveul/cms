@@ -10,6 +10,7 @@ use App\Component\AttrAssignment;
 use Viloveul\Pagination\Parameter;
 use Viloveul\Pagination\ResultSet;
 use Viloveul\Http\Contracts\Response;
+use Viloveul\Database\Contracts\Query;
 use Viloveul\Router\Contracts\Dispatcher;
 use Viloveul\Http\Contracts\ServerRequest;
 use Viloveul\Auth\Contracts\Authentication;
@@ -112,15 +113,12 @@ class LinkController
         $link->status = 1;
         $link->author_id = $this->user->get('sub');
         $link->created_at = date('Y-m-d H:i:s');
-        $link->id = $this->helper->uuid();
-        if ($link->save()) {
-            $this->audit->create($link->id, 'link');
-            return $this->response->withPayload([
-                'data' => $link,
-            ]);
-        } else {
-            return $this->response->withErrors(500, ['Something Wrong !!!']);
-        }
+        $link->id = str_uuid();
+        $link->save();
+        $this->audit->create($link->id, 'link');
+        return $this->response->withPayload([
+            'data' => $link,
+        ]);
     }
 
     /**
@@ -129,7 +127,7 @@ class LinkController
      */
     public function delete(string $id)
     {
-        if ($link = Link::where('id', $id)->first()) {
+        if ($link = Link::where(['id' => $id])->getResult()) {
             if ($this->privilege->check($this->route->getName(), 'access', $link->author_id) !== true) {
                 return $this->response->withErrors(403, [
                     "No direct access for route: {$this->route->getName()}",
@@ -137,12 +135,9 @@ class LinkController
             }
             $link->status = 3;
             $link->deleted_at = date('Y-m-d H:i:s');
-            if ($link->save()) {
-                $this->audit->delete($link->id, 'link');
-                return $this->response->withStatus(201);
-            } else {
-                return $this->response->withErrors(500, ['Something Wrong !!!']);
-            }
+            $link->save();
+            $this->audit->delete($link->id, 'link');
+            return $this->response->withStatus(201);
         } else {
             return $this->response->withErrors(404, ['Link not found']);
         }
@@ -154,7 +149,7 @@ class LinkController
      */
     public function detail(string $id)
     {
-        if ($link = Link::where('id', $id)->first()) {
+        if ($link = Link::where(['id' => $id])->getResult()) {
             return $this->response->withPayload([
                 'data' => $link,
             ]);
@@ -172,12 +167,14 @@ class LinkController
         $parameter->setBaseUrl("{$this->config->basepath}/link/index");
         $pagination = new Pagination($parameter);
         $pagination->with(function ($conditions, $size, $page, $order, $sort) {
-            $model = Link::query();
+            $model = Link::newInstance();
             foreach ($conditions as $key => $value) {
-                $model->where($key, 'like', "%{$value}%");
+                $model->where([$key => "%{$value}%"], Query::OPERATOR_LIKE);
             }
             $total = $model->count();
-            $result = $model->orderBy($order, $sort)->skip(($page * $size) - $size)->take($size)->get();
+            $result = $model->orderBy($order, $sort === 'ASC' ? Query::SORT_ASC : Query::SORT_DESC)
+                ->limit($size, ($page * $size) - $size)
+                ->getResults();
             return new ResultSet($total, $result->toArray());
         });
         return $this->response->withPayload([
@@ -193,7 +190,7 @@ class LinkController
      */
     public function update(string $id)
     {
-        if ($link = Link::where('id', $id)->first()) {
+        if ($link = Link::where(['id' => $id])->getResult()) {
             if ($this->privilege->check($this->route->getName(), 'access', $link->author_id) !== true) {
                 return $this->response->withErrors(403, [
                     "No direct access for route: {$this->route->getName()}",
@@ -212,14 +209,11 @@ class LinkController
             }
             $link->status = 1;
             $link->updated_at = date('Y-m-d H:i:s');
-            if ($link->save()) {
-                $this->audit->update($id, 'link', $link->getAttributes(), $previous);
-                return $this->response->withPayload([
-                    'data' => $link,
-                ]);
-            } else {
-                return $this->response->withErrors(500, ['Something Wrong !!!']);
-            }
+            $link->save();
+            $this->audit->update($id, 'link', $link->getAttributes(), $previous);
+            return $this->response->withPayload([
+                'data' => $link,
+            ]);
         } else {
             return $this->response->withErrors(404, ['Link not found']);
         }

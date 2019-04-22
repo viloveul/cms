@@ -2,56 +2,34 @@
 
 namespace App\Entity;
 
-use App\Model;
 use App\Entity\Post;
 use App\Entity\User;
+use Viloveul\Database\Model;
 
 class Comment extends Model
 {
-    /**
-     * @var array
-     */
-    protected $fillable = [
-        'id',
-        'parent_id',
-        'post_id',
-        'author_id',
-        'name',
-        'email',
-        'website',
-        'content',
-        'status',
-        'created_at',
-        'updated_at',
-        'deleted_at',
-    ];
-
-    /**
-     * @var string
-     */
-    protected $table = 'comment';
-
-    /**
-     * @return mixed
-     */
-    public function author()
+    public function relations(): array
     {
-        return $this->belongsTo(User::class);
+        return [
+            'post' => [
+                'type' => static::HAS_ONE,
+                'class' => Post::class,
+                'keys' => [
+                    'post_id' => 'id',
+                ],
+            ],
+            'author' => [
+                'type' => static::HAS_ONE,
+                'class' => User::class,
+                'keys' => [
+                    'author_id' => 'id',
+                ],
+            ],
+        ];
     }
 
-    /**
-     * @return mixed
-     */
-    public function post()
+    public function table(): string
     {
-        return $this->belongsTo(Post::class);
-    }
-
-    /**
-     * @param $value
-     */
-    public function setStatusAttribute($value)
-    {
-        $this->attributes['status'] = abs($value);
+        return '{{ comment }}';
     }
 }

@@ -2,44 +2,26 @@
 
 namespace App\Entity;
 
-use App\Model;
 use App\Entity\User;
+use Viloveul\Database\Model;
 
 class Link extends Model
 {
-    /**
-     * @var array
-     */
-    protected $fillable = [
-        'author_id',
-        'label',
-        'url',
-        'icon',
-        'description',
-        'status',
-        'created_at',
-        'updated_at',
-        'deleted_at',
-    ];
-
-    /**
-     * @var string
-     */
-    protected $table = 'link';
-
-    /**
-     * @return mixed
-     */
-    public function author()
+    public function relations(): array
     {
-        return $this->belongsTo(User::class);
+        return [
+            'author' => [
+                'type' => static::HAS_ONE,
+                'class' => User::class,
+                'keys' => [
+                    'author_id' => 'id',
+                ],
+            ],
+        ];
     }
 
-    /**
-     * @param $value
-     */
-    public function setStatusAttribute($value)
+    public function table(): string
     {
-        $this->attributes['status'] = abs($value);
+        return '{{ link }}';
     }
 }

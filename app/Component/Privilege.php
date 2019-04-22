@@ -122,9 +122,9 @@ class Privilege
 
     public function load(): void
     {
-        $users = UserRole::all()->toArray();
-        $childs = RoleChild::all()->toArray();
-        $roles = Role::all()->toArray();
+        $users = UserRole::getResults()->toArray();
+        $childs = RoleChild::getResults()->toArray();
+        $roles = Role::where(['status' => 1])->getResults()->toArray();
 
         foreach ($roles as $role) {
             $this->roles[$role['id']][] = $role['name'] . '#' . $role['type'];

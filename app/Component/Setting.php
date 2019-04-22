@@ -57,7 +57,7 @@ class Setting
 
     public function load(): void
     {
-        $settings = SettingModel::all();
+        $settings = SettingModel::getResults();
         foreach ($settings as $setting) {
             $values = json_decode($setting->option, true);
             $this->options[$setting->name] = json_last_error() === JSON_ERROR_NONE ? $values : $setting->option;

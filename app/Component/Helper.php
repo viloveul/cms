@@ -9,7 +9,6 @@ use Viloveul\Transport\Contracts\Bus;
 use Viloveul\Auth\Contracts\Authentication;
 use App\Entity\Notification as NotificationModel;
 use App\Message\Notification as NotificationPassenger;
-use Ramsey\Uuid\Exception\UnsatisfiedDependencyException;
 
 class Helper
 {
@@ -86,26 +85,19 @@ class Helper
             $me = $this->user->get('sub') ?: '0';
             foreach ($target as $id) {
                 if ($id != $me) {
-                    NotificationModel::create([
+                    $notif = new NotificationModel();
+                    $notif->setAttributes([
                         'id' => $this->uuid(),
                         'author_id' => $me,
                         'receiver_id' => $id,
                         'subject' => $subject,
                         'content' => $content,
                     ]);
+                    $notif->save();
                     $this->bus->process(new NotificationPassenger($id));
                     $this->bus->error()->clear();
                 }
             }
-        }
-    }
-
-    public function uuid()
-    {
-        try {
-            return Uuid::uuid4()->toString();
-        } catch (UnsatisfiedDependencyException $e) {
-            throw $e;
         }
     }
 }

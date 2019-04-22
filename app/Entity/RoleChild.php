@@ -2,20 +2,22 @@
 
 namespace App\Entity;
 
-use App\Model;
+use Viloveul\Database\Model;
 
 class RoleChild extends Model
 {
-    /**
-     * @var array
-     */
-    protected $fillable = [
-        'role_id',
-        'child_id',
-    ];
+    public function primary()
+    {
+        return ['role_id', 'child_id'];
+    }
 
-    /**
-     * @var string
-     */
-    protected $table = 'role_child';
+    public function relations(): array
+    {
+        return [];
+    }
+
+    public function table(): string
+    {
+        return '{{ role_child }}';
+    }
 }
