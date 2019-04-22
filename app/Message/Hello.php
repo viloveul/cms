@@ -8,7 +8,7 @@ class Hello extends Passenger
 {
     public function handle(): void
     {
-        $this->setAttribute('data', ['hello']);
+        $this->setAttribute('say', ['hello' => 'world']);
     }
 
     public function point(): string

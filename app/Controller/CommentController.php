@@ -212,7 +212,7 @@ class CommentController
         $parameter->setBaseUrl("{$this->config->basepath}/comment/index");
         $pagination = new Pagination($parameter);
         $pagination->with(function ($conditions, $size, $page, $order, $sort) {
-            $model = Comment::query()->with('post');
+            $model = Comment::with('post');
             foreach ($conditions as $key => $value) {
                 $model->where([$key => "%{$value}%"], Query::OPERATOR_LIKE);
             }

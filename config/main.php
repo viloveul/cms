@@ -66,6 +66,6 @@ return [
         App\Command\InstallCommand::class,
         App\Command\DummyCommand::class,
         App\Command\AdminCommand::class,
-        App\Command\HelloCommand::class,
+        App\Command\DevelCommand::class,
     ],
 ];

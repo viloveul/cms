@@ -113,10 +113,10 @@ class TagController
     }
 
     /**
-     * @param  int     $id
+     * @param  string     $id
      * @return mixed
      */
-    public function delete(int $id)
+    public function delete(string $id)
     {
         if ($tag = Tag::where(['id' => $id])->getResult()) {
             if ($this->privilege->check($this->route->getName(), 'access', $tag->author_id) !== true) {
@@ -134,10 +134,10 @@ class TagController
     }
 
     /**
-     * @param  int     $id
+     * @param  string     $id
      * @return mixed
      */
-    public function detail(int $id)
+    public function detail(string $id)
     {
         if ($tag = Tag::where(['id' => $id])->with('childs')->getResult()) {
             if ($this->privilege->check($this->route->getName(), 'access', $tag->author_id) !== true) {
@@ -185,10 +185,10 @@ class TagController
     }
 
     /**
-     * @param  int     $id
+     * @param  string     $id
      * @return mixed
      */
-    public function update(int $id)
+    public function update(string $id)
     {
         if ($tag = Tag::where(['id' => $id])->getResult()) {
             if ($this->privilege->check($this->route->getName(), 'access', $tag->author_id) !== true) {

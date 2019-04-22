@@ -1,6 +1,6 @@
 class Hello {
-  exec (res) {
-    console.log(res)
+  exec (params, args) {
+    console.log(params, args)
   }
 }
 

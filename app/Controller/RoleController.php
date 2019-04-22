@@ -3,7 +3,6 @@
 namespace App\Controller;
 
 use App\Entity\Role;
-use App\Component\Helper;
 use App\Component\Privilege;
 use App\Component\AttrAssignment;
 use Viloveul\Pagination\Parameter;
@@ -22,11 +21,6 @@ class RoleController
      * @var mixed
      */
     protected $config;
-
-    /**
-     * @var mixed
-     */
-    protected $helper;
 
     /**
      * @var mixed
@@ -53,7 +47,6 @@ class RoleController
      * @param Response      $response
      * @param Privilege     $privilege
      * @param Configuration $config
-     * @param Helper        $helper
      * @param Dispatcher    $router
      */
     public function __construct(
@@ -61,14 +54,12 @@ class RoleController
         Response $response,
         Privilege $privilege,
         Configuration $config,
-        Helper $helper,
         Dispatcher $router
     ) {
         $this->request = $request;
         $this->response = $response;
         $this->privilege = $privilege;
         $this->config = $config;
-        $this->helper = $helper;
         $this->route = $router->routed();
     }
 

@@ -3,7 +3,6 @@
 namespace App\Controller;
 
 use App\Entity\Link;
-use App\Component\Helper;
 use App\Component\Privilege;
 use App\Component\AuditTrail;
 use App\Component\AttrAssignment;
@@ -28,11 +27,6 @@ class LinkController
      * @var mixed
      */
     protected $config;
-
-    /**
-     * @var mixed
-     */
-    protected $helper;
 
     /**
      * @var mixed
@@ -64,7 +58,6 @@ class LinkController
      * @param Response       $response
      * @param Privilege      $privilege
      * @param Configuration  $config
-     * @param Helper         $helper
      * @param AuditTrail     $audit
      * @param Authentication $auth
      * @param Dispatcher     $router
@@ -74,7 +67,6 @@ class LinkController
         Response $response,
         Privilege $privilege,
         Configuration $config,
-        Helper $helper,
         AuditTrail $audit,
         Authentication $auth,
         Dispatcher $router
@@ -83,7 +75,6 @@ class LinkController
         $this->response = $response;
         $this->privilege = $privilege;
         $this->config = $config;
-        $this->helper = $helper;
         $this->audit = $audit;
         $this->user = $auth->getUser();
         $this->route = $router->routed();

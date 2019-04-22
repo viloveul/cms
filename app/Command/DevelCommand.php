@@ -8,14 +8,14 @@ use Viloveul\Container\ContainerAwareTrait;
 use Viloveul\Transport\Contracts\Bus as IBus;
 use Viloveul\Container\Contracts\ContainerAware;
 
-class HelloCommand extends Command implements ContainerAware
+class DevelCommand extends Command implements ContainerAware
 {
     use ContainerAwareTrait;
 
     /**
      * @var string
      */
-    protected static $defaultName = 'hello:test';
+    protected static $defaultName = 'devel:test';
 
     public function handle()
     {
