@@ -12,6 +12,7 @@ use App\Component\AttrAssignment;
 use Viloveul\Pagination\Parameter;
 use Viloveul\Pagination\ResultSet;
 use Viloveul\Http\Contracts\Response;
+use Viloveul\Database\Contracts\Query;
 use Viloveul\Router\Contracts\Dispatcher;
 use Viloveul\Http\Contracts\ServerRequest;
 use Viloveul\Auth\Contracts\Authentication;
@@ -122,15 +123,12 @@ class MenuController
         $menu->content = is_scalar($menu->content) ? $menu->content : json_encode($menu->content);
         $menu->author_id = $this->user->get('sub');
         $menu->created_at = date('Y-m-d H:i:s');
-        $menu->id = $this->helper->uuid();
-        if ($menu->save()) {
-            $this->audit->create($menu->id, 'menu');
-            return $this->response->withPayload([
-                'data' => $menu,
-            ]);
-        } else {
-            return $this->response->withErrors(500, ['Something Wrong !!!']);
-        }
+        $menu->id = str_uuid();
+        $menu->save();
+        $this->audit->create($menu->id, 'menu');
+        return $this->response->withPayload([
+            'data' => $menu,
+        ]);
     }
 
     /**
@@ -139,7 +137,7 @@ class MenuController
      */
     public function delete(string $id)
     {
-        if ($menu = Menu::where('id', $id)->first()) {
+        if ($menu = Menu::where(['id' => $id])->getResult()) {
             if ($this->privilege->check($this->route->getName(), 'access', $menu->author_id) !== true) {
                 return $this->response->withErrors(403, [
                     "No direct access for route: {$this->route->getName()}",
@@ -147,12 +145,9 @@ class MenuController
             }
             $menu->status = 3;
             $menu->deleted_at = date('Y-m-d H:i:s');
-            if ($menu->save()) {
-                $this->audit->delete($menu->id, 'menu');
-                return $this->response->withStatus(201);
-            } else {
-                return $this->response->withErrors(500, ['Something Wrong !!!']);
-            }
+            $menu->save();
+            $this->audit->delete($menu->id, 'menu');
+            return $this->response->withStatus(201);
         } else {
             return $this->response->withErrors(404, ['Menu not found']);
         }
@@ -164,7 +159,7 @@ class MenuController
      */
     public function detail(string $id)
     {
-        if ($tmp = Menu::where('id', $id)->first()) {
+        if ($tmp = Menu::where(['id' => $id])->getResult()) {
             if ($this->privilege->check($this->route->getName(), 'access', $tmp->author_id) !== true) {
                 return $this->response->withErrors(403, [
                     "No direct access for route: {$this->route->getName()}",
@@ -172,7 +167,7 @@ class MenuController
             }
             $menu = $tmp->toArray();
             $items = [];
-            $links = Link::select(['id', 'label', 'icon', 'url'])->where('status', 1)->get();
+            $links = Link::select(['id', 'label', 'icon', 'url'])->where('status', 1)->getResults();
             foreach ($links->toArray() ?: [] as $link) {
                 $items[$link['id']] = $link;
             }
@@ -197,10 +192,12 @@ class MenuController
         $pagination->with(function ($conditions, $size, $page, $order, $sort) {
             $model = Menu::select(['id', 'label', 'description', 'author_id', 'status', 'created_at']);
             foreach ($conditions as $key => $value) {
-                $model->where($key, 'like', "%{$value}%");
+                $model->where([$key => "%{$value}%"], Query::OPERATOR_LIKE);
             }
             $total = $model->count();
-            $result = $model->orderBy($order, $sort)->skip(($page * $size) - $size)->take($size)->get();
+            $result = $model->orderBy($order, $sort === 'ASC' ? Query::SORT_ASC : Query::SORT_DESC)
+                ->limit($size, ($page * $size) - $size)
+                ->getResults();
             return new ResultSet($total, $result->toArray());
         });
         return $this->response->withPayload([
@@ -216,7 +213,7 @@ class MenuController
      */
     public function update(string $id)
     {
-        if ($menu = Menu::where('id', $id)->first()) {
+        if ($menu = Menu::where(['id' => $id])->getResult()) {
             if ($this->privilege->check($this->route->getName(), 'access', $menu->author_id) !== true) {
                 return $this->response->withErrors(403, [
                     "No direct access for route: {$this->route->getName()}",
@@ -235,14 +232,11 @@ class MenuController
             $menu->content = json_encode($menu->content ?: []);
             $menu->status = 1;
             $menu->updated_at = date('Y-m-d H:i:s');
-            if ($menu->save()) {
-                $this->audit->update($id, 'menu', $menu->getAttributes(), $previous);
-                return $this->response->withPayload([
-                    'data' => $menu,
-                ]);
-            } else {
-                return $this->response->withErrors(500, ['Something Wrong !!!']);
-            }
+            $menu->save();
+            $this->audit->update($id, 'menu', $menu->getAttributes(), $previous);
+            return $this->response->withPayload([
+                'data' => $menu,
+            ]);
         } else {
             return $this->response->withErrors(404, ['Menu not found']);
         }

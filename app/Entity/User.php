@@ -2,68 +2,56 @@
 
 namespace App\Entity;
 
-use App\Model;
 use App\Entity\Role;
+use App\Entity\UserRole;
 use App\Entity\UserProfile;
 use App\Entity\UserPassword;
+use Viloveul\Database\Model;
 
 class User extends Model
 {
     /**
      * @var array
      */
-    protected $fillable = [
-        'id',
-        'name',
-        'picture',
-        'email',
-        'username',
-        'password',
-        'status',
-        'created_at',
-        'updated_at',
-        'deleted_at',
-    ];
+    protected $protects = ['password', 'passwords'];
 
-    /**
-     * @var array
-     */
-    protected $hidden = ['password', 'passwords'];
-
-    /**
-     * @var string
-     */
-    protected $table = 'user';
-
-    /**
-     * @return mixed
-     */
-    public function passwords()
+    public function relations(): array
     {
-        return $this->hasMany(UserPassword::class);
+        return [
+            'roleRelations' => [
+                'type' => static::HAS_MANY,
+                'class' => UserRole::class,
+                'keys' => [
+                    'id' => 'user_id',
+                ],
+            ],
+            'roles' => [
+                'type' => static::HAS_MANY,
+                'class' => Role::class,
+                'through' => 'roleRelations',
+                'keys' => [
+                    'role_id' => 'id',
+                ],
+            ],
+            'profile' => [
+                'type' => static::HAS_MANY,
+                'class' => UserProfile::class,
+                'keys' => [
+                    'id' => 'user_id',
+                ],
+            ],
+            'passwords' => [
+                'type' => static::HAS_MANY,
+                'class' => UserPassword::class,
+                'keys' => [
+                    'id' => 'user_id',
+                ],
+            ],
+        ];
     }
 
-    /**
-     * @return mixed
-     */
-    public function profile()
+    public function table(): string
     {
-        return $this->hasMany(UserProfile::class);
-    }
-
-    /**
-     * @return mixed
-     */
-    public function roles()
-    {
-        return $this->belongsToMany(Role::class, 'user_role')->where('status', 1);
-    }
-
-    /**
-     * @param $value
-     */
-    public function setStatusAttribute($value)
-    {
-        $this->attributes['status'] = abs($value);
+        return '{{ user }}';
     }
 }

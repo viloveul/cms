@@ -2,20 +2,22 @@
 
 namespace App\Entity;
 
-use App\Model;
+use Viloveul\Database\Model;
 
 class UserRole extends Model
 {
-    /**
-     * @var array
-     */
-    protected $fillable = [
-        'user_id',
-        'role_id',
-    ];
+    public function primary()
+    {
+        return ['user_id', 'role_id'];
+    }
 
-    /**
-     * @var string
-     */
-    protected $table = 'user_role';
+    public function relations(): array
+    {
+        return [];
+    }
+
+    public function table(): string
+    {
+        return '{{ user_role }}';
+    }
 }

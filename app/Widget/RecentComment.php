@@ -19,11 +19,12 @@ class RecentComment extends Widget
      */
     public function results(): array
     {
-        $comments = Comment::where('status', 1)
-            ->with(['post', 'author'])
+        $comments = Comment::where(['status' => 1])
+            ->with('post')
+            ->with('author')
             ->orderBy('created_at', 'desc')
-            ->take($this->options['size'])
-            ->get();
+            ->limit($this->options['size'])
+            ->getResults();
         return $comments->toArray();
     }
 }

@@ -12,6 +12,7 @@ use App\Component\AttrAssignment;
 use Viloveul\Pagination\Parameter;
 use Viloveul\Pagination\ResultSet;
 use Viloveul\Http\Contracts\Response;
+use Viloveul\Database\Contracts\Query;
 use App\Validation\Comment as Validation;
 use Viloveul\Router\Contracts\Dispatcher;
 use Viloveul\Http\Contracts\ServerRequest;
@@ -133,23 +134,20 @@ class CommentController
                 }
                 $comment->status = (!$this->setting->get('moderations.comment') || $this->privilege->check('moderator:comment', 'group'));
                 $comment->created_at = date('Y-m-d H:i:s');
-                $comment->id = $this->helper->uuid();
-                if ($comment->save()) {
-                    if ($users = $this->privilege->getRoleUsers('moderator:comment', 'group')) {
-                        $this->helper->sendNotification(
-                            $users,
-                            'New Comment Posted',
-                            $comment->name . ' send new comment. {comment#' . $comment->id . '}'
-                        );
-                    }
-                    $comment->load('author');
-                    $this->audit->create($comment->id, 'comment');
-                    return $this->response->withPayload([
-                        'data' => $comment,
-                    ]);
-                } else {
-                    return $this->response->withErrors(500, ['Something Wrong !!!']);
+                $comment->id = str_uuid();
+                $comment->save();
+                if ($users = $this->privilege->getRoleUsers('moderator:comment', 'group')) {
+                    $this->helper->sendNotification(
+                        $users,
+                        'New Comment Posted',
+                        $comment->name . ' send new comment. {comment#' . $comment->id . '}'
+                    );
                 }
+                $this->audit->create($comment->id, 'comment');
+                $comment->load('author');
+                return $this->response->withPayload([
+                    'data' => $comment,
+                ]);
             } else {
                 return $this->response->withErrors(400, $validator->errors());
             }
@@ -164,7 +162,7 @@ class CommentController
      */
     public function delete(string $id)
     {
-        if ($comment = Comment::where('id', $id)->first()) {
+        if ($comment = Comment::where(['id' => $id])->getResult()) {
             if ($this->privilege->check($this->route->getName(), 'access', $comment->author_id) !== true) {
                 return $this->response->withErrors(403, [
                     "No direct access for route: {$this->route->getName()}",
@@ -172,12 +170,9 @@ class CommentController
             }
             $comment->status = 3;
             $comment->deleted_at = date('Y-m-d H:i:s');
-            if ($comment->save()) {
-                $this->audit->delete($comment->id, 'comment');
-                return $this->response->withStatus(201);
-            } else {
-                return $this->response->withErrors(500, ['Something Wrong !!!']);
-            }
+            $comment->save();
+            $this->audit->delete($comment->id, 'comment');
+            return $this->response->withStatus(201);
         } else {
             return $this->response->withErrors(404, ['Comment not found']);
         }
@@ -189,7 +184,7 @@ class CommentController
      */
     public function detail(string $id)
     {
-        if ($comment = Comment::where('id', $id)->with(['author', 'post'])->first()) {
+        if ($comment = Comment::where(['id' => $id])->with(['author', 'post'])->getResult()) {
             if ($this->privilege->check($this->route->getName(), 'access', $comment->author_id) !== true) {
                 return $this->response->withErrors(403, [
                     "No direct access for route: {$this->route->getName()}",
@@ -219,10 +214,12 @@ class CommentController
         $pagination->with(function ($conditions, $size, $page, $order, $sort) {
             $model = Comment::query()->with('post');
             foreach ($conditions as $key => $value) {
-                $model->where($key, 'like', "%{$value}%");
+                $model->where([$key => "%{$value}%"], Query::OPERATOR_LIKE);
             }
             $total = $model->count();
-            $result = $model->orderBy($order, $sort)->skip(($page * $size) - $size)->take($size)->get();
+            $result = $model->orderBy($order, $sort === 'ASC' ? Query::SORT_ASC : Query::SORT_DESC)
+                ->limit($size, ($page * $size) - $size)
+                ->getResults();
             return new ResultSet($total, $result->toArray());
         });
         return $this->response->withPayload([
@@ -238,7 +235,7 @@ class CommentController
      */
     public function update(string $id)
     {
-        if ($comment = Comment::where('id', $id)->first()) {
+        if ($comment = Comment::where(['id' => $id])->getResult()) {
             if ($this->privilege->check($this->route->getName(), 'access', $comment->author_id) !== true) {
                 return $this->response->withErrors(403, [
                     "No direct access for route: {$this->route->getName()}",
@@ -261,14 +258,11 @@ class CommentController
                     $comment->{$key} = $value;
                 }
                 $comment->updated_at = date('Y-m-d H:i:s');
-                if ($comment->save()) {
-                    $this->audit->update($comment->id, 'comment', $comment->getAttributes(), $previous);
-                    return $this->response->withPayload([
-                        'data' => $comment,
-                    ]);
-                } else {
-                    return $this->response->withErrors(500, ['Something Wrong !!!']);
-                }
+                $comment->save();
+                $this->audit->update($comment->id, 'comment', $comment->getAttributes(), $previous);
+                return $this->response->withPayload([
+                    'data' => $comment,
+                ]);
             } else {
                 return $this->response->withErrors(400, $validator->errors());
             }

@@ -2,7 +2,10 @@
 /.git
 /bundle.zip
 /composer.lock
+/package-lock.json
 /public/uploads/*
 /var/private.pem
 /var/public.pem
 /vendor
+/node_modules
+/.vscode

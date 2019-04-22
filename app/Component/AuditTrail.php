@@ -3,7 +3,6 @@
 namespace App\Component;
 
 use App\Entity\Audit;
-use App\Component\Helper;
 use App\Entity\AuditDetail;
 use Viloveul\Auth\Contracts\Authentication;
 
@@ -13,11 +12,6 @@ class AuditTrail
      * @var mixed
      */
     protected $agent;
-
-    /**
-     * @var mixed
-     */
-    protected $helper;
 
     /**
      * @var mixed
@@ -32,10 +26,9 @@ class AuditTrail
     /**
      * @param Authentication $auth
      */
-    public function __construct(Authentication $auth, Helper $helper)
+    public function __construct(Authentication $auth)
     {
         $this->user = $auth->getUser();
-        $this->helper = $helper;
         $this->agent = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : 'Console';
         $this->ip = $this->ipOrHost();
     }
@@ -80,12 +73,14 @@ class AuditTrail
         foreach ($current as $field => $value) {
             $old = array_key_exists($field, $previous) ? $previous[$field] : null;
             if ($value != $old) {
-                AuditDetail::create([
-                    'id' => $this->helper->uuid(),
+                $detail = new AuditDetail();
+                $detail->setAttributes([
+                    'id' => str_uuid(),
                     'audit_id' => $audit->id,
                     'resource' => $field,
                     'previous' => $old,
                 ]);
+                $detail->save();
             }
         }
     }
@@ -97,8 +92,9 @@ class AuditTrail
      */
     protected function audit(string $id, string $entity, string $type = 'CREATE'): Audit
     {
-        return Audit::create([
-            'id' => $this->helper->uuid(),
+        $audit = new Audit();
+        $audit->setAttributes([
+            'id' => str_uuid(),
             'object_id' => $id,
             'author_id' => $this->user->get('sub') ?: 0,
             'entity' => $entity,
@@ -107,6 +103,8 @@ class AuditTrail
             'type' => strtoupper($type),
             'created_at' => date('Y-m-d H:i:s'),
         ]);
+        $audit->save();
+        return $audit;
     }
 
     /**

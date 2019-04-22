@@ -6,4 +6,5 @@ composer run bootstrap --working-dir=/viloveul
 composer clear-cache
 php sbin/viloveulc cms:install
 php sbin/viloveulc cms:admin --email=$ADMIN_EMAIL --password=$ADMIN_PASSWORD
+npm install --prefix /viloveul
 exec /usr/bin/supervisord -c /viloveul/config/supervisor.conf

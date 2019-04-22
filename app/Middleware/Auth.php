@@ -56,7 +56,6 @@ class Auth implements MiddlewareInterface
     public function process(ServerRequestInterface $request, RequestHandlerInterface $next): ResponseInterface
     {
         [$name, $token] = sscanf($request->getServer('HTTP_AUTHORIZATION'), "%s %s");
-
         if ($this->config->get('auth.name') === $name && !empty($token) && !in_array($token, ['null', 'undefined'])) {
             $this->auth->setToken($token);
         }

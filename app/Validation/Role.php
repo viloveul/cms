@@ -52,7 +52,7 @@ class Role extends Validator
      */
     public function unique($field, $value, array $params, array $fields)
     {
-        if ($role = RoleModel::where($field, $value)->first()) {
+        if ($role = RoleModel::where([$field => $value])->getResult()) {
             return !empty($this->params) && in_array($role->id, (array) (array_get($this->params, 'id') ?: []));
         }
         return true;

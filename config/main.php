@@ -61,10 +61,11 @@ return [
         'username' => env('VILOVEUL_SMTP_USERNAME', 'your@server.com'),
         'password' => env('VILOVEUL_SMTP_PASSWORD', 'yourP@sSw0rd.'),
     ],
-    'transport' => env('VILOVEUL_TRANSPORT_DSN', 'amqp://localhost:5672/%2f'),
+    'transport' => env('VILOVEUL_BROKER_DSN', 'amqp://localhost:5672/%2f'),
     'commands' => [
         App\Command\InstallCommand::class,
         App\Command\DummyCommand::class,
         App\Command\AdminCommand::class,
+        App\Command\HelloCommand::class,
     ],
 ];

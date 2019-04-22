@@ -4,7 +4,6 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Message\Mailer;
-use App\Component\Helper;
 use App\Component\Setting;
 use Viloveul\Auth\UserData;
 use App\Component\Privilege;
@@ -40,16 +39,6 @@ class AuthController
     /**
      * @var mixed
      */
-    protected $helper;
-
-    /**
-     * @var mixed
-     */
-    protected $mailer;
-
-    /**
-     * @var mixed
-     */
     protected $privilege;
 
     /**
@@ -73,10 +62,8 @@ class AuthController
      * @param Privilege      $privilege
      * @param Setting        $setting
      * @param AuditTrail     $audit
-     * @param PHPMailer      $mailer
      * @param Bus            $bus
      * @param Authentication $auth
-     * @param Helper         $helper
      */
     public function __construct(
         ServerRequest $request,
@@ -84,40 +71,38 @@ class AuthController
         Privilege $privilege,
         Setting $setting,
         AuditTrail $audit,
-        PHPMailer $mailer,
         Bus $bus,
-        Authentication $auth,
-        Helper $helper
+        Authentication $auth
     ) {
         $this->request = $request;
         $this->response = $response;
         $this->privilege = $privilege;
         $this->setting = $setting;
         $this->audit = $audit;
-        $this->mailer = $mailer;
         $this->bus = $bus;
         $this->auth = $auth;
-        $this->helper = $helper;
     }
 
     /**
      * @return mixed
      */
-    public function forgot()
+    public function forgot(PHPMailer $phpmail)
     {
         $attr = $this->request->loadPostTo(new AttrAssignment());
         $validator = new Validation($attr->getAttributes());
         if ($validator->validate('forgot')) {
-            if ($user = User::where('email', $attr->get('email'))->where('status', 1)->first()) {
+            if ($user = User::where(['email' => $attr->get('email'), 'status' => 1])->getResult()) {
                 $string = substr(preg_replace('/[^0-9A-Z]+/', '', base64_encode(mt_rand() . time())), 0, 8);
                 $expired = strtotime('+1 HOUR');
-                UserPassword::create([
-                    'id' => $this->helper->uuid(),
+                $pass = new UserPassword();
+                $pass->setAttributes([
+                    'id' => str_uuid(),
                     'user_id' => $user->id,
                     'password' => password_hash($string, PASSWORD_DEFAULT),
                     'expired' => $expired,
                     'status' => 0,
                 ]);
+                $pass->save();
                 $this->audit->record($user->id, 'user', 'request_password');
 
                 $mail = new Mailer([
@@ -127,11 +112,11 @@ class AuthController
                 ]);
                 $this->bus->process($mail);
 
-                $e = $this->bus->error(function (ErrorCollection $error) use ($user, $string) {
+                $e = $this->bus->error(function (ErrorCollection $error) use ($user, $string, $phpmail) {
                     if ($error->count() > 0) {
                         $error->clear();
                         try {
-                            $mailer = clone $this->mailer;
+                            $mailer = clone $phpmail;
                             $mailer->addAddress($user->email);
                             $mailer->Subject = 'Request Password';
                             $mailer->Body = "This is your password: <code>{$string}</code>. Expired in 1 hour.";
@@ -169,12 +154,12 @@ class AuthController
         $validator = new Validation($attr->getAttributes());
         if ($validator->validate('login')) {
             $data = array_only($attr->getAttributes(), ['username', 'password']);
-            if ($user = User::where('username', $data['username'])->where('status', 1)->first()) {
+            if ($user = User::where(['username' => $data['username'], 'status' => 1])->getResult()) {
                 $matched = false;
                 if (password_verify($data['password'], $user->password)) {
                     $matched = true;
                 } else {
-                    $passwords = UserPassword::where('user_id', $user->id)->where('status', 0)->get();
+                    $passwords = UserPassword::where(['user_id' => $user->id, 'status' => 0])->getResults();
                     foreach ($passwords as $passwd) {
                         if ($passwd->expired >= time() && password_verify($data['password'], $passwd->password)) {
                             $matched = true;
@@ -232,15 +217,12 @@ class AuthController
             $user->created_at = date('Y-m-d H:i:s');
             $user->password = password_hash($attr->get('password'), PASSWORD_DEFAULT);
             $user->status = !$this->setting->get('moderations.user');
-            $user->id = $this->helper->uuid();
-            if ($user->save()) {
-                $this->audit->record($user->id, 'user', 'request_account');
-                return $this->response->withPayload([
-                    'data' => $user,
-                ]);
-            } else {
-                return $this->response->withErrors(500, ['Something wrong !!!']);
-            }
+            $user->id = str_uuid();
+            $user->save();
+            $this->audit->record($user->id, 'user', 'request_account');
+            return $this->response->withPayload([
+                'data' => $user,
+            ]);
         } else {
             return $this->response->withErrors(400, $validator->errors());
         }
