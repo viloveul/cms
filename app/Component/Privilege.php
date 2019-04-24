@@ -54,7 +54,7 @@ class Privilege
      */
     public function check(string $name, string $type = 'access', string $author_id = '0'): bool
     {
-        if ((strlen($author_id) > 0 && $author_id == $this->user->get('sub')) || strlen($name) === 0) {
+        if (strlen($name) === 0 || (strlen($author_id) > 0 && $author_id === $this->user->get('sub'))) {
             return true;
         }
         $me = $this->mine();

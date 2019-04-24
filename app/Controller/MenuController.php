@@ -2,8 +2,8 @@
 
 namespace App\Controller;
 
-use App\Entity\Link;
 use App\Entity\Menu;
+use App\Entity\MenuItem;
 use App\Component\Helper;
 use App\Component\Setting;
 use App\Component\Privilege;
@@ -113,7 +113,6 @@ class MenuController
         $data = array_only($attr->getAttributes(), [
             'label',
             'description',
-            'content',
         ]);
         $menu = new Menu();
         foreach ($data as $key => $value) {
@@ -160,26 +159,25 @@ class MenuController
     public function detail(string $id)
     {
         if ($tmp = Menu::where(['id' => $id])->getResult()) {
+            $admin = $this->user->get('sub') == $tmp->author_id;
             if ($this->privilege->check($this->route->getName(), 'access', $tmp->author_id) !== true) {
                 return $this->response->withErrors(403, [
                     "No direct access for route: {$this->route->getName()}",
                 ]);
             }
             $menu = $tmp->toArray();
-            $items = [];
-            $links = Link::with('role')
-                ->select(['id', 'label', 'icon', 'url'])
-                ->where(['status' => 1])
-                ->getResults();
-            foreach ($links->toArray() ?: [] as $link) {
-                $items[$link['id']] = $link;
+            $conditions = ['menu_id' => $id];
+            if ($admin === false) {
+                $conditions['status'] = 1;
             }
-            $decoded = json_decode($menu['content'], true) ?: [];
-            $menu['items'] = $this->helper->parseRecursiveMenu(
-                is_array($decoded) ? $decoded : [],
-                $items,
-                $this->user->get('sub') == $tmp->author_id
-            ) ?: [];
+            $results = MenuItem::select(['id', 'parent_id', 'label', 'icon', 'url'])
+                ->where($conditions)
+                ->orderBy('order', Query::SORT_ASC)
+                ->getResults();
+            foreach ($results->toArray() ?: [] as $item) {
+                $items[$item['parent_id']][] = $item;
+            }
+            $menu['items'] = $this->helper->parseRecursiveMenuItem($items ?: [], 0, $admin) ?: [];
             return $this->response->withPayload([
                 'data' => $menu,
             ]);
@@ -230,16 +228,23 @@ class MenuController
             $data = array_only($attr->getAttributes(), [
                 'label',
                 'description',
-                'content',
             ]);
             $previous = $menu->getAttributes();
             foreach ($data as $key => $value) {
                 $menu->{$key} = $value;
             }
-            $menu->content = json_encode($menu->content ?: []);
             $menu->status = 1;
             $menu->updated_at = date('Y-m-d H:i:s');
             $menu->save();
+            if ($items = $this->helper->normalizeMenuItem($attr->get('items') ?: [])) {
+                foreach ($items as $item) {
+                    if ($object = MenuItem::where(['id' => $item['id'], 'menu_id' => $id])->getResult()) {
+                        $object->parent_id = $item['parent_id'];
+                        $object->order = $item['order'];
+                        $object->save();
+                    }
+                }
+            }
             $this->audit->update($id, 'menu', $menu->getAttributes(), $previous);
             return $this->response->withPayload([
                 'data' => $menu,

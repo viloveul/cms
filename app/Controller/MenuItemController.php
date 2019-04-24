@@ -2,21 +2,17 @@
 
 namespace App\Controller;
 
-use App\Entity\Link;
+use App\Entity\MenuItem;
 use App\Component\Privilege;
 use App\Component\AuditTrail;
 use App\Component\AttrAssignment;
-use Viloveul\Pagination\Parameter;
-use Viloveul\Pagination\ResultSet;
 use Viloveul\Http\Contracts\Response;
-use Viloveul\Database\Contracts\Query;
 use Viloveul\Router\Contracts\Dispatcher;
 use Viloveul\Http\Contracts\ServerRequest;
 use Viloveul\Auth\Contracts\Authentication;
 use Viloveul\Config\Contracts\Configuration;
-use Viloveul\Pagination\Builder as Pagination;
 
-class LinkController
+class MenuItemController
 {
     /**
      * @var mixed
@@ -97,19 +93,21 @@ class LinkController
             'url',
             'icon',
             'role_id',
+            'parent_id',
+            'menu_id',
         ]);
-        $link = new Link();
+        $item = new MenuItem();
         foreach ($data as $key => $value) {
-            $link->{$key} = $value;
+            $item->{$key} = $value;
         }
-        $link->status = 1;
-        $link->author_id = $this->user->get('sub');
-        $link->created_at = date('Y-m-d H:i:s');
-        $link->id = str_uuid();
-        $link->save();
-        $this->audit->create($link->id, 'link');
+        $item->status = 1;
+        $item->author_id = $this->user->get('sub');
+        $item->created_at = date('Y-m-d H:i:s');
+        $item->id = str_uuid();
+        $item->save();
+        $this->audit->create($item->id, 'item');
         return $this->response->withPayload([
-            'data' => $link,
+            'data' => $item,
         ]);
     }
 
@@ -119,19 +117,19 @@ class LinkController
      */
     public function delete(string $id)
     {
-        if ($link = Link::where(['id' => $id])->getResult()) {
-            if ($this->privilege->check($this->route->getName(), 'access', $link->author_id) !== true) {
+        if ($item = MenuItem::where(['id' => $id])->getResult()) {
+            if ($this->privilege->check($this->route->getName(), 'access', $item->author_id) !== true) {
                 return $this->response->withErrors(403, [
                     "No direct access for route: {$this->route->getName()}",
                 ]);
             }
-            $link->status = 3;
-            $link->deleted_at = date('Y-m-d H:i:s');
-            $link->save();
-            $this->audit->delete($link->id, 'link');
+            $item->status = 3;
+            $item->deleted_at = date('Y-m-d H:i:s');
+            $item->save();
+            $this->audit->delete($item->id, 'item');
             return $this->response->withStatus(201);
         } else {
-            return $this->response->withErrors(404, ['Link not found']);
+            return $this->response->withErrors(404, ['MenuItem not found']);
         }
     }
 
@@ -141,39 +139,18 @@ class LinkController
      */
     public function detail(string $id)
     {
-        if ($link = Link::where(['id' => $id])->getResult()) {
+        if ($item = MenuItem::where(['id' => $id])->getResult()) {
+            if ($this->privilege->check($this->route->getName(), 'access', $item->author_id) !== true) {
+                return $this->response->withErrors(403, [
+                    "No direct access for route: {$this->route->getName()}",
+                ]);
+            }
             return $this->response->withPayload([
-                'data' => $link,
+                'data' => $item,
             ]);
         } else {
-            return $this->response->withErrors(404, ['Link not found']);
+            return $this->response->withErrors(404, ['MenuItem not found']);
         }
-    }
-
-    /**
-     * @return mixed
-     */
-    public function index()
-    {
-        $parameter = new Parameter('search', $_GET);
-        $parameter->setBaseUrl("{$this->config->basepath}/link/index");
-        $pagination = new Pagination($parameter);
-        $pagination->with(function ($conditions, $size, $page, $order, $sort) {
-            $model = Link::newInstance();
-            foreach ($conditions as $key => $value) {
-                $model->where([$key => "%{$value}%"], Query::OPERATOR_LIKE);
-            }
-            $total = $model->count();
-            $result = $model->orderBy($order, $sort === 'ASC' ? Query::SORT_ASC : Query::SORT_DESC)
-                ->limit($size, ($page * $size) - $size)
-                ->getResults();
-            return new ResultSet($total, $result->toArray());
-        });
-        return $this->response->withPayload([
-            'meta' => $pagination->getMeta(),
-            'data' => $pagination->getData(),
-            'links' => $pagination->getLinks(),
-        ]);
     }
 
     /**
@@ -182,8 +159,8 @@ class LinkController
      */
     public function update(string $id)
     {
-        if ($link = Link::where(['id' => $id])->getResult()) {
-            if ($this->privilege->check($this->route->getName(), 'access', $link->author_id) !== true) {
+        if ($item = MenuItem::where(['id' => $id])->getResult()) {
+            if ($this->privilege->check($this->route->getName(), 'access', $item->author_id) !== true) {
                 return $this->response->withErrors(403, [
                     "No direct access for route: {$this->route->getName()}",
                 ]);
@@ -195,20 +172,22 @@ class LinkController
                 'url',
                 'icon',
                 'role_id',
+                'parent_id',
+                'menu_id',
             ]);
-            $previous = $link->getAttributes();
+            $previous = $item->getAttributes();
             foreach ($data as $key => $value) {
-                $link->{$key} = $value;
+                $item->{$key} = $value;
             }
-            $link->status = 1;
-            $link->updated_at = date('Y-m-d H:i:s');
-            $link->save();
-            $this->audit->update($id, 'link', $link->getAttributes(), $previous);
+            $item->status = 1;
+            $item->updated_at = date('Y-m-d H:i:s');
+            $item->save();
+            $this->audit->update($id, 'item', $item->getAttributes(), $previous);
             return $this->response->withPayload([
-                'data' => $link,
+                'data' => $item,
             ]);
         } else {
-            return $this->response->withErrors(404, ['Link not found']);
+            return $this->response->withErrors(404, ['MenuItem not found']);
         }
     }
 }

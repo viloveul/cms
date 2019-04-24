@@ -49,26 +49,39 @@ class Helper
         $this->setting = $setting;
     }
 
-    /**
-     * @param  array   $items
-     * @param  array   $ids
-     * @return mixed
-     */
-    public function parseRecursiveMenu(array $items, array $ids = [], $isAdmin = false): array
+    public function parseRecursiveMenuItem(array $items, $parentId, $isAdmin = false): array
     {
         $results = [];
-        foreach ($items as $item) {
-            $object = (array) $item;
-            if (array_key_exists($object['id'], $ids)) {
-                if ($isAdmin || !array_key_exists('role', $ids[$object['id']]) || $this->privilege->check($ids[$object['id']]['role'] === null || $ids[$object['id']]['role']['name'], $ids[$object['id']]['role'] === null || $ids[$object['id']]['role']['type'])) {
-                    $chids = isset($object['children']) ? $object['children'] : [];
-                    $object = array_merge($ids[$object['id']], [
-                        'children' => $chids,
-                    ]);
-                    $object['children'] = $this->parseRecursiveMenu($object['children'] ?: [], $ids, $isAdmin);
+        if (array_key_exists($parentId, $items)) {
+            foreach ($items[$parentId] as $item) {
+                if ($isAdmin || !array_key_exists('role', $item) || empty($item['role']) || $this->privilege->check($item['role']['name'], $item['role']['type'])) {
+                    $object = $item;
+                    if ($child = $this->parseRecursiveMenuItem($items, $item['id'], $isAdmin)) {
+                        $object['children'] = $child;
+                    }
                     $results[] = $object;
                 }
             }
+        }
+        return $results;
+    }
+
+    public function normalizeMenuItem(array $items, $parentId = 0, $order = 1)
+    {
+        $results = [];
+        foreach ($items as $item) {
+            $new = [
+                'id' => $item['id'],
+                'parent_id' => $parentId,
+                'order' => $order
+            ];
+            $results[] = $new;
+            if (array_key_exists('children', $item)) {
+                if ($child = $this->normalizeMenuItem($item['children'], $item['id'], 1)) {
+                    $results = array_merge($results, $child);
+                }
+            }
+            $order++;
         }
         return $results;
     }

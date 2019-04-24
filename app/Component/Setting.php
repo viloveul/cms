@@ -52,7 +52,8 @@ class Setting
     public function get(string $name, $default = null)
     {
         $value = array_get($this->options, $name, $default);
-        return $this->event->dispatch("setting.{$name}", $value);
+        $map = $this->event->dispatch("setting.get", compact('name', 'value'));
+        return $map['value'];
     }
 
     public function load(): void
