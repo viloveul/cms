@@ -83,8 +83,8 @@ class InstallCommand extends Command implements ContainerAware
         $installer->install('menu');
         $this->writeNormal('--------------------------------------------------------------');
 
-        $this->writeInfo('check and create table link if not exists.');
-        $installer->install('link');
+        $this->writeInfo('check and create table menu_item if not exists.');
+        $installer->install('menu_item');
         $this->writeNormal('--------------------------------------------------------------');
 
         $this->writeInfo('check and create table tag if not exists.');
