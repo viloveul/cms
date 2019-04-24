@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Role;
 use App\Entity\User;
 use Viloveul\Database\Model;
 
@@ -15,6 +16,13 @@ class Link extends Model
                 'class' => User::class,
                 'keys' => [
                     'author_id' => 'id',
+                ],
+            ],
+            'role' => [
+                'type' => static::HAS_ONE,
+                'class' => Role::class,
+                'keys' => [
+                    'role_id' => 'id',
                 ],
             ],
         ];

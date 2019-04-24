@@ -32,6 +32,6 @@ class Menu extends Widget implements ContainerAware
             $items[$link['id']] = $link;
         }
         $decoded = json_decode($content, true) ?: [];
-        return $this->getContainer()->get(Helper::class)->parseRecursive(is_array($decoded) ? $decoded : [], $items) ?: [];
+        return $this->getContainer()->get(Helper::class)->parseRecursiveMenu(is_array($decoded) ? $decoded : [], $items) ?: [];
     }
 }

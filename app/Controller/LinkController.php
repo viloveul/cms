@@ -96,6 +96,7 @@ class LinkController
             'description',
             'url',
             'icon',
+            'role_id',
         ]);
         $link = new Link();
         foreach ($data as $key => $value) {
@@ -193,6 +194,7 @@ class LinkController
                 'description',
                 'url',
                 'icon',
+                'role_id',
             ]);
             $previous = $link->getAttributes();
             foreach ($data as $key => $value) {
