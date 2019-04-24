@@ -63,7 +63,7 @@ $event->listen('setting.get', function ($payload) {
         foreach ($results->toArray() ?: [] as $item) {
             $items[$item['parent_id']][] = $item;
         }
-        $mapped = $container->get(App\Component\Helper::class)->parseRecursiveMenuItem($items ?: [], 0, $admin) ?: [];
+        $mapped = $container->get(App\Component\Helper::class)->parseRecursiveMenuItem($items ?: [], 0) ?: [];
         $payload['value']['items'] = $mapped;
     }
     return $payload;
