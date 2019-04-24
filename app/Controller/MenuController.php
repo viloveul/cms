@@ -167,12 +167,19 @@ class MenuController
             }
             $menu = $tmp->toArray();
             $items = [];
-            $links = Link::select(['id', 'label', 'icon', 'url'])->where('status', 1)->getResults();
+            $links = Link::with('role')
+                ->select(['id', 'label', 'icon', 'url'])
+                ->where(['status' => 1])
+                ->getResults();
             foreach ($links->toArray() ?: [] as $link) {
                 $items[$link['id']] = $link;
             }
             $decoded = json_decode($menu['content'], true) ?: [];
-            $menu['items'] = $this->helper->parseRecursive(is_array($decoded) ? $decoded : [], $items) ?: [];
+            $menu['items'] = $this->helper->parseRecursiveMenu(
+                is_array($decoded) ? $decoded : [],
+                $items,
+                $this->user->get('sub') == $tmp->author_id
+            ) ?: [];
             return $this->response->withPayload([
                 'data' => $menu,
             ]);

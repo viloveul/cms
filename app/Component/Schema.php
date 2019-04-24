@@ -157,6 +157,7 @@ class Schema
                 $schema = $this->connection->newSchema($table);
                 $schema->set('id', ISchema::TYPE_CHAR, 50)->primary();
                 $schema->set('author_id', ISchema::TYPE_CHAR, 50)->withDefault(0)->index();
+                $schema->set('role_id', ISchema::TYPE_CHAR, 50)->withDefault(0)->index();
                 $schema->set('label', ISchema::TYPE_VARCHAR)->index();
                 $schema->set('icon', ISchema::TYPE_VARCHAR)->nullable();
                 $schema->set('description', ISchema::TYPE_TEXT)->nullable();
@@ -167,6 +168,16 @@ class Schema
                 $schema->set('deleted_at', ISchema::TYPE_TIMESTAMP)->nullable()->index();
                 $schema->run();
                 break;
+
+            // case 'menu_item':
+            //     $schema = $this->connection->newSchema($table);
+            //     $schema->set('id', ISchema::TYPE_CHAR, 50)->primary();
+            //     $schema->set('parent_id', ISchema::TYPE_CHAR, 50)->withDefault(0)->index();
+            //     $schema->set('menu_id', ISchema::TYPE_CHAR, 50)->withDefault(0)->index();
+            //     $schema->set('link_id', ISchema::TYPE_CHAR, 50)->withDefault(0)->index();
+            //     $schema->set('order', ISchema::TYPE_INT)->withDefault(0)->index();
+            //     $schema->run();
+            //     break;
 
             case 'post_tag':
                 $schema = $this->connection->newSchema($table);
