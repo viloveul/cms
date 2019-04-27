@@ -101,6 +101,29 @@ class CommentController
     }
 
     /**
+     * @param  string  $id
+     * @return mixed
+     */
+    public function approve(string $id)
+    {
+        if ($this->privilege->check($this->route->getName(), 'access') !== true) {
+            return $this->response->withErrors(403, [
+                "No direct access for route: {$this->route->getName()}",
+            ]);
+        }
+        if ($comment = Comment::where(['id' => $id])->getResult()) {
+            $previous = $comment->getAttributes();
+            $comment->status = 1;
+            $comment->updated_at = date('Y-m-d H:i:s');
+            $comment->save();
+            $this->audit->update($id, 'comment', $comment->getAttributes(), $previous);
+            return $this->response->withStatus(201);
+        } else {
+            return $this->response->withErrors(404, ['Comment not found']);
+        }
+    }
+
+    /**
      * @return mixed
      */
     public function create()
@@ -131,7 +154,7 @@ class CommentController
                 foreach ($data as $key => $value) {
                     $comment->{$key} = $value;
                 }
-                $comment->status = (!$this->setting->get('moderations.comment') || $this->privilege->check('moderator:comment', 'group'));
+                $comment->status = (!$this->setting->get('moderations.comment') || $this->privilege->check('comment.approve'));
                 $comment->created_at = date('Y-m-d H:i:s');
                 $comment->id = str_uuid();
                 $comment->save();
@@ -207,11 +230,17 @@ class CommentController
                 "No direct access for route: {$this->route->getName()}",
             ]);
         }
+        $model = Comment::with('post');
+        if ($this->privilege->check('comment.approve', 'access') !== true) {
+            $model->where(function ($where) {
+                $where->add(['author_id' => $this->user->get('sub')]);
+                $where->add(['status' => 1], Query::OPERATOR_LIKE, Query::SEPARATOR_OR);
+            });
+        }
         $parameter = new Parameter('search', $_GET);
         $parameter->setBaseUrl("{$this->config->basepath}/comment/index");
         $pagination = new Pagination($parameter);
-        $pagination->with(function ($conditions, $size, $page, $order, $sort) {
-            $model = Comment::with('post');
+        $pagination->with(function ($conditions, $size, $page, $order, $sort) use ($model) {
             foreach ($conditions as $key => $value) {
                 $model->where([$key => "%{$value}%"], Query::OPERATOR_LIKE);
             }

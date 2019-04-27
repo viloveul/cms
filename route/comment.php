@@ -39,6 +39,15 @@ $router->add(
 );
 
 /**
+ * approve comment
+ */
+$router->add(
+    new Route('POST /comment/approve/{:id}', [
+        App\Controller\CommentController::class, 'approve',
+    ])
+)->setName('comment.approve');
+
+/**
  * Delete comment
  */
 $router->add(

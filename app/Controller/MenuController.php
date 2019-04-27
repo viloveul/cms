@@ -119,7 +119,6 @@ class MenuController
             $menu->{$key} = $value;
         }
         $menu->status = 1;
-        $menu->content = is_scalar($menu->content) ? $menu->content : json_encode($menu->content);
         $menu->author_id = $this->user->get('sub');
         $menu->created_at = date('Y-m-d H:i:s');
         $menu->id = str_uuid();

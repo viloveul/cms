@@ -92,6 +92,29 @@ class UserController
     }
 
     /**
+     * @param  string  $id
+     * @return mixed
+     */
+    public function approve(string $id)
+    {
+        if ($this->privilege->check($this->route->getName(), 'access') !== true) {
+            return $this->response->withErrors(403, [
+                "No direct access for route: {$this->route->getName()}",
+            ]);
+        }
+        if ($user = User::where(['id' => $id])->getResult()) {
+            $previous = $user->getAttributes();
+            $user->status = 1;
+            $user->updated_at = date('Y-m-d H:i:s');
+            $user->save();
+            $this->audit->update($user->id, 'user', $user->getAttributes(), $previous);
+            return $this->response->withStatus(201);
+        } else {
+            return $this->response->withErrors(404, ['User not found']);
+        }
+    }
+
+    /**
      * @return mixed
      */
     public function create()
