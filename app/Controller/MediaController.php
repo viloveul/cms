@@ -154,7 +154,7 @@ class MediaController
         $parameter->setBaseUrl("{$this->config->basepath}/media/index");
         $pagination = new Pagination($parameter);
         $request = $this->request;
-        $pagination->with(function ($conditions, $size, $page, $order, $sort) use ($request) {
+        $pagination->with(function ($conditions, $size, $page, $order, $sort) use ($request, $model) {
             foreach ($conditions as $key => $value) {
                 $model->where([$key => "%{$value}%"], Query::OPERATOR_LIKE);
             }
