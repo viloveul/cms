@@ -254,7 +254,7 @@ class BlogController
                 'status' => 1,
             ]);
 
-            $total = 10;
+            $total = $model->count();
             $result = $model->orderBy($order, $sort === 'ASC' ? Query::SORT_ASC : Query::SORT_DESC)
                 ->limit($size, ($page * $size) - $size)
                 ->getResults();
