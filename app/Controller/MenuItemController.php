@@ -127,6 +127,13 @@ class MenuItemController
             $item->deleted_at = date('Y-m-d H:i:s');
             $item->save();
             $this->audit->delete($item->id, 'item');
+
+            $childs = $item->childs;
+            foreach ($childs as $child) {
+                $child->parent_id = $item->parent_id;
+                $child->save();
+            }
+
             return $this->response->withStatus(201);
         } else {
             return $this->response->withErrors(404, ['MenuItem not found']);
