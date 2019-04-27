@@ -141,20 +141,8 @@ class InstallCommand extends Command implements ContainerAware
         $admin->sync('childRelations', $accessors);
         $this->writeNormal('--------------------------------------------------------------');
 
-        $this->writeInfo('Create role group moderator:post');
-        Role::getResultOrCreate(['name' => 'moderator:post', 'type' => 'group'], [
-            'id' => str_uuid(),
-        ]);
-        $this->writeNormal('--------------------------------------------------------------');
-
-        $this->writeInfo('Create role group moderator:comment');
-        Role::getResultOrCreate(['name' => 'moderator:comment', 'type' => 'group'], [
-            'id' => str_uuid(),
-        ]);
-        $this->writeNormal('--------------------------------------------------------------');
-
-        $this->writeInfo('Create role group moderator:user');
-        Role::getResultOrCreate(['name' => 'moderator:user', 'type' => 'group'], [
+        $this->writeInfo('Create role group user:standar');
+        Role::getResultOrCreate(['name' => 'user:standar', 'type' => 'group'], [
             'id' => str_uuid(),
         ]);
         $this->writeNormal('--------------------------------------------------------------');

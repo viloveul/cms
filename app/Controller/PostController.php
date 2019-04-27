@@ -101,6 +101,29 @@ class PostController
     }
 
     /**
+     * @param  string  $id
+     * @return mixed
+     */
+    public function approve(string $id)
+    {
+        if ($this->privilege->check($this->route->getName(), 'access') !== true) {
+            return $this->response->withErrors(403, [
+                "No direct access for route: {$this->route->getName()}",
+            ]);
+        }
+        if ($post = Post::where(['id' => $id])->getResult()) {
+            $previous = $post->getAttributes();
+            $post->status = 1;
+            $post->updated_at = date('Y-m-d H:i:s');
+            $post->save();
+            $this->audit->update($id, 'post', $post->getAttributes(), $previous);
+            return $this->response->withStatus(201);
+        } else {
+            return $this->response->withErrors(404, ['Post not found']);
+        }
+    }
+
+    /**
      * @return mixed
      */
     public function create()
@@ -132,21 +155,19 @@ class PostController
             }
             $post->created_at = date('Y-m-d H:i:s');
             $post->author_id = $this->user->get('sub') ?: 0;
-            $post->description = $post->content;
-            if ($post->status == 1) {
-                $post->status = (!$this->setting->get('moderations.post') || $this->privilege->check('moderator:post', 'group'));
-            }
+            $post->description = substr(strip_tags($post->content), 0, 200);
+            $post->status = (!$this->setting->get('moderations.post') || $this->privilege->check('post.approve')) ? 1 : 0;
             $post->id = str_uuid();
             $post->save();
             $tags = $attr->get('relations') ?: [];
             $post->sync('tagRelations', $tags);
             $post->load('tags');
             $this->audit->create($post->id, 'post');
-            if ($users = $this->privilege->getRoleUsers('post.publish')) {
+            if ($users = $this->privilege->getRoleUsers('post.approve')) {
                 $this->helper->sendNotification(
                     $users,
                     'New Post Created',
-                    $post->name . ' send new post. {post#' . $post->id . '}'
+                    'new post. {post#' . $post->id . '}'
                 );
             }
 
@@ -210,11 +231,17 @@ class PostController
                 "No direct access for route: {$this->route->getName()}",
             ]);
         }
+        $model = Post::with('author');
+        if ($this->privilege->check('post.approve', 'access') !== true) {
+            $model->where(function ($where) {
+                $where->add(['author_id' => $this->user->get('sub')]);
+                $where->add(['status' => 1], Query::OPERATOR_LIKE, Query::SEPARATOR_OR);
+            });
+        }
         $parameter = new Parameter('search', $_GET);
         $parameter->setBaseUrl("{$this->config->basepath}/post/index");
         $pagination = new Pagination($parameter);
-        $pagination->with(function ($conditions, $size, $page, $order, $sort) {
-            $model = Post::with('author');
+        $pagination->with(function ($conditions, $size, $page, $order, $sort) use ($model) {
             foreach ($conditions as $key => $value) {
                 $model->where([$key => "%{$value}%"], Query::OPERATOR_LIKE);
             }
@@ -262,15 +289,20 @@ class PostController
                     $post->{$key} = $value;
                 }
                 $post->updated_at = date('Y-m-d H:i:s');
-                $post->description = $post->content;
-                if ($post->status == 1) {
-                    $post->status = (!$this->setting->get('moderations.post') || $this->privilege->check('moderator:post', 'group'));
-                }
+                $post->description = substr(strip_tags($post->content), 0, 200);
+                $post->status = (!$this->setting->get('moderations.post') || $this->privilege->check('post.approve')) ? 1 : 0;
                 $post->save();
                 $this->audit->update($id, 'post', $post->getAttributes(), $previous);
                 $tags = $attr->get('relations') ?: [];
                 $post->sync('tagRelations', $tags);
                 $post->load('tags');
+                if ($users = $this->privilege->getRoleUsers('post.approve')) {
+                    $this->helper->sendNotification(
+                        $users,
+                        'New Post Updated',
+                        'new updated post. {post#' . $post->id . '}'
+                    );
+                }
                 return $this->response->withPayload([
                     'data' => $post,
                 ]);
