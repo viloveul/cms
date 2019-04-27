@@ -101,6 +101,7 @@ class CommentController
     }
 
     /**
+     * Hanya user yang punya access yang bisa approve
      * @param  string  $id
      * @return mixed
      */
@@ -124,6 +125,7 @@ class CommentController
     }
 
     /**
+     * setiap user sampai guest dapat membuat comment
      * @return mixed
      */
     public function create()
@@ -179,6 +181,7 @@ class CommentController
     }
 
     /**
+     * hanya user yang punya access atau user yang membuat comment yang bisa delete
      * @param  string  $id
      * @return mixed
      */
@@ -201,6 +204,7 @@ class CommentController
     }
 
     /**
+     * hanya user yang punya access atau user yang membuat comment yang bisa melihat detail
      * @param  string  $id
      * @return mixed
      */
@@ -225,13 +229,8 @@ class CommentController
      */
     public function index()
     {
-        if ($this->privilege->check($this->route->getName(), 'access') !== true) {
-            return $this->response->withErrors(403, [
-                "No direct access for route: {$this->route->getName()}",
-            ]);
-        }
         $model = Comment::with('post');
-        if ($this->privilege->check('comment.approve', 'access') !== true) {
+        if ($this->privilege->check($this->route->getName(), 'access') !== true) {
             $model->where(function ($where) {
                 $where->add(['author_id' => $this->user->get('sub')]);
                 $where->add(['status' => 1], Query::OPERATOR_LIKE, Query::SEPARATOR_OR);
@@ -264,7 +263,7 @@ class CommentController
     public function update(string $id)
     {
         if ($comment = Comment::where(['id' => $id])->getResult()) {
-            if ($this->privilege->check($this->route->getName(), 'access', $comment->author_id) !== true) {
+            if ($comment->author_id !== $this->user->get('sub')) {
                 return $this->response->withErrors(403, [
                     "No direct access for route: {$this->route->getName()}",
                 ]);

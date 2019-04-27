@@ -18,4 +18,4 @@ $router->add(
     new Route('GET /widget/availables', [
         App\Controller\WidgetController::class, 'availables',
     ])
-)->setName('widget.availables');
+);

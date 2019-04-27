@@ -226,13 +226,8 @@ class PostController
      */
     public function index()
     {
-        if ($this->privilege->check($this->route->getName(), 'access') !== true) {
-            return $this->response->withErrors(403, [
-                "No direct access for route: {$this->route->getName()}",
-            ]);
-        }
         $model = Post::with('author');
-        if ($this->privilege->check('post.approve', 'access') !== true) {
+        if ($this->privilege->check($this->route->getName(), 'access') !== true) {
             $model->where(function ($where) {
                 $where->add(['author_id' => $this->user->get('sub')]);
                 $where->add(['status' => 1], Query::OPERATOR_LIKE, Query::SEPARATOR_OR);
