@@ -30,14 +30,7 @@ $event->listen('setting.get', function ($payload) {
                 'label' => 'Category',
             ],
         ];
-        $c['menus'] = [
-            [
-                'name' => 'navmenu',
-                'format' => 'standar',
-                'label' => 'Nav Menu',
-            ],
-        ];
-        foreach (['posts', 'tags', 'menus'] as $type) {
+        foreach (['posts', 'tags'] as $type) {
             if (array_key_exists($type, $contents ?: [])) {
                 foreach ($contents[$type] ?: [] as $data) {
                     if (isset($data->format, $data->name, $data->label)) {

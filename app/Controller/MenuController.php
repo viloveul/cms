@@ -166,12 +166,8 @@ class MenuController
                 ]);
             }
             $menu = $tmp->toArray();
-            $conditions = ['menu_id' => $id];
-            if ($admin === false) {
-                $conditions['status'] = 1;
-            }
             $results = MenuItem::select(['id', 'parent_id', 'label', 'icon', 'url'])
-                ->where($conditions)
+                ->where(['menu_id' => $id, 'status' => 1])
                 ->orderBy('order', Query::SORT_ASC)
                 ->getResults();
             foreach ($results->toArray() ?: [] as $item) {

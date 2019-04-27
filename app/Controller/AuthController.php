@@ -17,10 +17,14 @@ use Viloveul\Transport\Contracts\Bus;
 use App\Validation\User as Validation;
 use Viloveul\Http\Contracts\ServerRequest;
 use Viloveul\Auth\Contracts\Authentication;
+use Viloveul\Container\ContainerAwareTrait;
+use Viloveul\Container\Contracts\ContainerAware;
 use Viloveul\Transport\Contracts\ErrorCollection;
 
-class AuthController
+class AuthController implements ContainerAware
 {
+    use ContainerAwareTrait;
+
     /**
      * @var mixed
      */
@@ -86,7 +90,7 @@ class AuthController
     /**
      * @return mixed
      */
-    public function forgot(PHPMailer $phpmail)
+    public function forgot()
     {
         $attr = $this->request->loadPostTo(new AttrAssignment());
         $validator = new Validation($attr->getAttributes());
@@ -112,10 +116,11 @@ class AuthController
                 ]);
                 $this->bus->process($mail);
 
-                $e = $this->bus->error(function (ErrorCollection $error) use ($user, $string, $phpmail) {
+                $e = $this->bus->error(function (ErrorCollection $error) use ($user, $string) {
                     if ($error->count() > 0) {
                         $error->clear();
                         try {
+                            $phpmail = $this->getContainer()->get(PHPMailer::class);
                             $mailer = clone $phpmail;
                             $mailer->addAddress($user->email);
                             $mailer->Subject = 'Request Password';
