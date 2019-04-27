@@ -113,7 +113,7 @@ class TagController
     }
 
     /**
-     * @param  string     $id
+     * @param  string  $id
      * @return mixed
      */
     public function delete(string $id)
@@ -134,7 +134,7 @@ class TagController
     }
 
     /**
-     * @param  string     $id
+     * @param  string  $id
      * @return mixed
      */
     public function detail(string $id)
@@ -185,7 +185,7 @@ class TagController
     }
 
     /**
-     * @param  string     $id
+     * @param  string  $id
      * @return mixed
      */
     public function update(string $id)

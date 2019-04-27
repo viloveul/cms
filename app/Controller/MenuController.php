@@ -135,12 +135,12 @@ class MenuController
      */
     public function delete(string $id)
     {
+        if ($this->privilege->check($this->route->getName(), 'access') !== true) {
+            return $this->response->withErrors(403, [
+                "No direct access for route: {$this->route->getName()}",
+            ]);
+        }
         if ($menu = Menu::where(['id' => $id])->getResult()) {
-            if ($this->privilege->check($this->route->getName(), 'access', $menu->author_id) !== true) {
-                return $this->response->withErrors(403, [
-                    "No direct access for route: {$this->route->getName()}",
-                ]);
-            }
             $menu->status = 3;
             $menu->deleted_at = date('Y-m-d H:i:s');
             $menu->save();
@@ -157,13 +157,12 @@ class MenuController
      */
     public function detail(string $id)
     {
+        if ($this->privilege->check($this->route->getName(), 'access') !== true) {
+            return $this->response->withErrors(403, [
+                "No direct access for route: {$this->route->getName()}",
+            ]);
+        }
         if ($tmp = Menu::where(['id' => $id])->getResult()) {
-            $admin = $this->user->get('sub') == $tmp->author_id;
-            if ($this->privilege->check($this->route->getName(), 'access', $tmp->author_id) !== true) {
-                return $this->response->withErrors(403, [
-                    "No direct access for route: {$this->route->getName()}",
-                ]);
-            }
             $menu = $tmp->toArray();
             $results = MenuItem::select(['id', 'parent_id', 'label', 'icon', 'url'])
                 ->where(['menu_id' => $id, 'status' => 1])
@@ -172,7 +171,7 @@ class MenuController
             foreach ($results->toArray() ?: [] as $item) {
                 $items[$item['parent_id']][] = $item;
             }
-            $menu['items'] = $this->helper->parseRecursiveMenuItem($items ?: [], 0, $admin) ?: [];
+            $menu['items'] = $this->helper->parseRecursiveMenuItem($items ?: [], 0, true) ?: [];
             return $this->response->withPayload([
                 'data' => $menu,
             ]);
@@ -186,6 +185,11 @@ class MenuController
      */
     public function index()
     {
+        if ($this->privilege->check($this->route->getName(), 'access') !== true) {
+            return $this->response->withErrors(403, [
+                "No direct access for route: {$this->route->getName()}",
+            ]);
+        }
         $parameter = new Parameter('search', $_GET);
         $parameter->setBaseUrl("{$this->config->basepath}/menu/index");
         $pagination = new Pagination($parameter);
@@ -213,12 +217,12 @@ class MenuController
      */
     public function update(string $id)
     {
+        if ($this->privilege->check($this->route->getName(), 'access') !== true) {
+            return $this->response->withErrors(403, [
+                "No direct access for route: {$this->route->getName()}",
+            ]);
+        }
         if ($menu = Menu::where(['id' => $id])->getResult()) {
-            if ($this->privilege->check($this->route->getName(), 'access', $menu->author_id) !== true) {
-                return $this->response->withErrors(403, [
-                    "No direct access for route: {$this->route->getName()}",
-                ]);
-            }
             $attr = $this->request->loadPostTo(new AttrAssignment());
             $data = array_only($attr->getAttributes(), [
                 'label',

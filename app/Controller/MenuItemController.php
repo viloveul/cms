@@ -117,12 +117,12 @@ class MenuItemController
      */
     public function delete(string $id)
     {
+        if ($this->privilege->check($this->route->getName(), 'access') !== true) {
+            return $this->response->withErrors(403, [
+                "No direct access for route: {$this->route->getName()}",
+            ]);
+        }
         if ($item = MenuItem::where(['id' => $id])->getResult()) {
-            if ($this->privilege->check($this->route->getName(), 'access', $item->author_id) !== true) {
-                return $this->response->withErrors(403, [
-                    "No direct access for route: {$this->route->getName()}",
-                ]);
-            }
             $item->status = 3;
             $item->deleted_at = date('Y-m-d H:i:s');
             $item->save();
@@ -146,12 +146,12 @@ class MenuItemController
      */
     public function detail(string $id)
     {
+        if ($this->privilege->check($this->route->getName(), 'access') !== true) {
+            return $this->response->withErrors(403, [
+                "No direct access for route: {$this->route->getName()}",
+            ]);
+        }
         if ($item = MenuItem::where(['id' => $id])->getResult()) {
-            if ($this->privilege->check($this->route->getName(), 'access', $item->author_id) !== true) {
-                return $this->response->withErrors(403, [
-                    "No direct access for route: {$this->route->getName()}",
-                ]);
-            }
             return $this->response->withPayload([
                 'data' => $item,
             ]);
@@ -166,12 +166,12 @@ class MenuItemController
      */
     public function update(string $id)
     {
+        if ($this->privilege->check($this->route->getName(), 'access') !== true) {
+            return $this->response->withErrors(403, [
+                "No direct access for route: {$this->route->getName()}",
+            ]);
+        }
         if ($item = MenuItem::where(['id' => $id])->getResult()) {
-            if ($this->privilege->check($this->route->getName(), 'access', $item->author_id) !== true) {
-                return $this->response->withErrors(403, [
-                    "No direct access for route: {$this->route->getName()}",
-                ]);
-            }
             $attr = $this->request->loadPostTo(new AttrAssignment());
             $data = array_only($attr->getAttributes(), [
                 'label',

@@ -143,17 +143,18 @@ class MediaController
      */
     public function index()
     {
+        $model = Media::with('author');
         if ($this->privilege->check($this->route->getName(), 'access') !== true) {
-            return $this->response->withErrors(403, [
-                "No direct access for route: {$this->route->getName()}",
-            ]);
+            $model->where(function ($where) {
+                $where->add(['author_id' => $this->user->get('sub')]);
+                $where->add(['status' => 1], Query::OPERATOR_LIKE, Query::SEPARATOR_OR);
+            });
         }
         $parameter = new Parameter('search', $_GET);
         $parameter->setBaseUrl("{$this->config->basepath}/media/index");
         $pagination = new Pagination($parameter);
         $request = $this->request;
         $pagination->with(function ($conditions, $size, $page, $order, $sort) use ($request) {
-            $model = Media::with('author');
             foreach ($conditions as $key => $value) {
                 $model->where([$key => "%{$value}%"], Query::OPERATOR_LIKE);
             }
