@@ -37,6 +37,18 @@ class Setting
         }
     }
 
+    /**
+     * @return mixed
+     */
+    public function all(): array
+    {
+        $options = [];
+        foreach ($this->options as $key => $value) {
+            $options[$key] = $this->get($key);
+        }
+        return $options;
+    }
+
     public function clear(): void
     {
         if ($this->cache->has('setting.options')) {

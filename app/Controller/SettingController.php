@@ -58,6 +58,16 @@ class SettingController
     }
 
     /**
+     * @return mixed
+     */
+    public function all()
+    {
+        return $this->response->withPayload([
+            'data' => $this->setting->all(),
+        ]);
+    }
+
+    /**
      * @param  $name
      * @return mixed
      */
