@@ -108,7 +108,7 @@ class UserController
             $user->updated_at = date('Y-m-d H:i:s');
             $user->save();
             $this->audit->update($user->id, 'user', $user->getAttributes(), $previous);
-            return $this->response->withStatus(201);
+            return $this->response->withStatus(204);
         } else {
             return $this->response->withErrors(404, ['User not found']);
         }
@@ -145,7 +145,7 @@ class UserController
             $relations = $attr->get('relations') ?: [];
             $user->sync('roleRelations', $relations);
             $this->audit->create($user->id, 'user');
-            return $this->response->withPayload([
+            return $this->response->withStatus(201)->withPayload([
                 'data' => $user,
             ]);
         } else {
@@ -169,7 +169,7 @@ class UserController
             $user->deleted_at = date('Y-m-d H:i:s');
             $user->save();
             $this->audit->delete($user->id, 'user');
-            return $this->response->withStatus(201);
+            return $this->response->withStatus(204);
         } else {
             return $this->response->withErrors(404, ['User not found']);
         }
@@ -303,10 +303,11 @@ class UserController
         if ($user = User::where(['id' => $id])->getResult()) {
             $attr = $this->request->loadPostTo(new AttrAssignment());
             $attr->get('password') or $attr->delete('password');
-            $validator = new Validation($attr->getAttributes(), ['id' => $id]);
+            $previous = $user->getAttributes();
+            $params = array_merge(array_only($previous, ['name', 'picture', 'email', 'username', 'status']), $attr->getAttributes());
+            $validator = new Validation($params, ['id' => $id]);
             if ($validator->validate('update')) {
-                $previous = $user->getAttributes();
-                $data = array_only($attr->getAttributes(), [
+                $data = array_only($params, [
                     'name',
                     'picture',
                     'email',

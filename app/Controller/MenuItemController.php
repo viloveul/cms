@@ -2,12 +2,14 @@
 
 namespace App\Controller;
 
+use App\Entity\Menu;
 use App\Entity\MenuItem;
 use App\Component\Privilege;
 use App\Component\AuditTrail;
 use App\Component\AttrAssignment;
 use Viloveul\Http\Contracts\Response;
 use Viloveul\Router\Contracts\Dispatcher;
+use App\Validation\MenuItem as Validation;
 use Viloveul\Http\Contracts\ServerRequest;
 use Viloveul\Auth\Contracts\Authentication;
 use Viloveul\Config\Contracts\Configuration;
@@ -87,28 +89,37 @@ class MenuItemController
             ]);
         }
         $attr = $this->request->loadPostTo(new AttrAssignment());
-        $data = array_only($attr->getAttributes(), [
-            'label',
-            'description',
-            'url',
-            'icon',
-            'role_id',
-            'parent_id',
-            'menu_id',
-        ]);
-        $item = new MenuItem();
-        foreach ($data as $key => $value) {
-            $item->{$key} = $value;
+        $validator = new Validation($attr->getAttributes());
+        if ($validator->validate('insert')) {
+            if (Menu::where(['id' => $attr->get('menu_id')])->count() > 0) {
+                $data = array_only($attr->getAttributes(), [
+                    'label',
+                    'description',
+                    'url',
+                    'icon',
+                    'role_id',
+                    'parent_id',
+                    'menu_id',
+                ]);
+                $item = new MenuItem();
+                foreach ($data as $key => $value) {
+                    $item->{$key} = $value;
+                }
+                $item->status = 1;
+                $item->author_id = $this->user->get('sub');
+                $item->created_at = date('Y-m-d H:i:s');
+                $item->id = str_uuid();
+                $item->save();
+                $this->audit->create($item->id, 'menu_item');
+                return $this->response->withStatus(201)->withPayload([
+                    'data' => $item,
+                ]);
+            } else {
+                return $this->response->withErrors(404, ['Menu not found']);
+            }
+        } else {
+            return $this->response->withErrors(400, $validator->errors());
         }
-        $item->status = 1;
-        $item->author_id = $this->user->get('sub');
-        $item->created_at = date('Y-m-d H:i:s');
-        $item->id = str_uuid();
-        $item->save();
-        $this->audit->create($item->id, 'item');
-        return $this->response->withPayload([
-            'data' => $item,
-        ]);
     }
 
     /**
@@ -126,7 +137,7 @@ class MenuItemController
             $item->status = 3;
             $item->deleted_at = date('Y-m-d H:i:s');
             $item->save();
-            $this->audit->delete($item->id, 'item');
+            $this->audit->delete($item->id, 'menu_item');
 
             $childs = $item->childs;
             foreach ($childs as $child) {
@@ -134,7 +145,7 @@ class MenuItemController
                 $child->save();
             }
 
-            return $this->response->withStatus(201);
+            return $this->response->withStatus(204);
         } else {
             return $this->response->withErrors(404, ['MenuItem not found']);
         }
@@ -172,27 +183,33 @@ class MenuItemController
             ]);
         }
         if ($item = MenuItem::where(['id' => $id])->getResult()) {
-            $attr = $this->request->loadPostTo(new AttrAssignment());
-            $data = array_only($attr->getAttributes(), [
-                'label',
-                'description',
-                'url',
-                'icon',
-                'role_id',
-                'parent_id',
-                'menu_id',
-            ]);
             $previous = $item->getAttributes();
-            foreach ($data as $key => $value) {
-                $item->{$key} = $value;
+            $attr = $this->request->loadPostTo(new AttrAssignment());
+            $params = array_merge($previous, $attr->getAttributes());
+            $validator = new Validation($params, compact('id'));
+            if ($validator->validate('update')) {
+                $data = array_only($params, [
+                    'label',
+                    'description',
+                    'url',
+                    'icon',
+                    'role_id',
+                    'parent_id',
+                    'menu_id',
+                ]);
+                foreach ($data as $key => $value) {
+                    $item->{$key} = $value;
+                }
+                $item->status = 1;
+                $item->updated_at = date('Y-m-d H:i:s');
+                $item->save();
+                $this->audit->update($id, 'menu_item', $item->getAttributes(), $previous);
+                return $this->response->withPayload([
+                    'data' => $item,
+                ]);
+            } else {
+                return $this->response->withErrors(400, $validator->errors());
             }
-            $item->status = 1;
-            $item->updated_at = date('Y-m-d H:i:s');
-            $item->save();
-            $this->audit->update($id, 'item', $item->getAttributes(), $previous);
-            return $this->response->withPayload([
-                'data' => $item,
-            ]);
         } else {
             return $this->response->withErrors(404, ['MenuItem not found']);
         }

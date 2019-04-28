@@ -225,7 +225,7 @@ class AuthController implements ContainerAware
             $user->id = str_uuid();
             $user->save();
             $this->audit->record($user->id, 'user', 'request_account');
-            return $this->response->withPayload([
+            return $this->response->withStatus(201)->withPayload([
                 'data' => $user,
             ]);
         } else {

@@ -118,7 +118,7 @@ class CommentController
             $comment->updated_at = date('Y-m-d H:i:s');
             $comment->save();
             $this->audit->update($id, 'comment', $comment->getAttributes(), $previous);
-            return $this->response->withStatus(201);
+            return $this->response->withStatus(204);
         } else {
             return $this->response->withErrors(404, ['Comment not found']);
         }
@@ -131,18 +131,18 @@ class CommentController
     public function create()
     {
         $attributes = $this->request->loadPostTo(new AttrAssignment());
-        $post = Post::select('comment_enabled')
-            ->where(['id' => $attributes->get('post_id'), 'status' => 1])
-            ->getResult();
+        if ($id = $this->user->get('sub')) {
+            $attributes['author_id'] = $id;
+            $attributes['name'] = $this->user->get('name');
+            $attributes['email'] = $this->user->get('email');
+        }
+        $validator = new Validation($attributes->getAttributes());
+        if ($validator->validate('insert')) {
+            $post = Post::select('comment_enabled')
+                ->where(['id' => $attributes->get('post_id'), 'status' => 1])
+                ->getResult();
 
-        if ($post && $post->comment_enabled != 0) {
-            if ($id = $this->user->get('sub')) {
-                $attributes['author_id'] = $id;
-                $attributes['name'] = $this->user->get('name');
-                $attributes['email'] = $this->user->get('email');
-            }
-            $validator = new Validation($attributes->getAttributes());
-            if ($validator->validate('insert')) {
+            if ($post && $post->comment_enabled != 0) {
                 $comment = new Comment();
                 $data = array_only($attributes->getAttributes(), [
                     'parent_id',
@@ -169,14 +169,14 @@ class CommentController
                 }
                 $this->audit->create($comment->id, 'comment');
                 $comment->load('author');
-                return $this->response->withPayload([
+                return $this->response->withStatus(201)->withPayload([
                     'data' => $comment,
                 ]);
             } else {
-                return $this->response->withErrors(400, $validator->errors());
+                return $this->response->withErrors(404, ['Page not found.']);
             }
         } else {
-            return $this->response->withErrors(404, ['Page not found.']);
+            return $this->response->withErrors(400, $validator->errors());
         }
     }
 
@@ -197,7 +197,7 @@ class CommentController
             $comment->deleted_at = date('Y-m-d H:i:s');
             $comment->save();
             $this->audit->delete($comment->id, 'comment');
-            return $this->response->withStatus(201);
+            return $this->response->withStatus(204);
         } else {
             return $this->response->withErrors(404, ['Comment not found']);
         }
@@ -231,10 +231,7 @@ class CommentController
     {
         $model = Comment::with('post');
         if ($this->privilege->check($this->route->getName(), 'access') !== true) {
-            $model->where(function ($where) {
-                $where->add(['author_id' => $this->user->get('sub')]);
-                $where->add(['status' => 1], Query::OPERATOR_LIKE, Query::SEPARATOR_OR);
-            });
+            $model->where(['author_id' => $this->user->get('sub')]);
         }
         $parameter = new Parameter('search', $_GET);
         $parameter->setBaseUrl("{$this->config->basepath}/comment/index");
@@ -263,18 +260,17 @@ class CommentController
     public function update(string $id)
     {
         if ($comment = Comment::where(['id' => $id])->getResult()) {
-            if ($comment->author_id !== $this->user->get('sub')) {
+            if ($this->privilege->check($this->route->getName(), 'access', $comment->author_id) !== true) {
                 return $this->response->withErrors(403, [
                     "No direct access for route: {$this->route->getName()}",
                 ]);
             }
-            $attr = $this->request->loadPostTo(new AttrAssignment());
+            $attr = new AttrAssignment($comment->getAttributes());
+            $this->request->loadPostTo($attr);
             $validator = new Validation($attr->getAttributes());
             if ($validator->validate('update')) {
                 $previous = $comment->getAttributes();
                 $data = array_only($attr->getAttributes(), [
-                    'parent_id',
-                    'post_id',
                     'name',
                     'email',
                     'website',

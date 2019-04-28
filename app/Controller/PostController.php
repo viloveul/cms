@@ -117,7 +117,7 @@ class PostController
             $post->updated_at = date('Y-m-d H:i:s');
             $post->save();
             $this->audit->update($id, 'post', $post->getAttributes(), $previous);
-            return $this->response->withStatus(201);
+            return $this->response->withStatus(204);
         } else {
             return $this->response->withErrors(404, ['Post not found']);
         }
@@ -171,7 +171,7 @@ class PostController
                 );
             }
 
-            return $this->response->withPayload([
+            return $this->response->withStatus(201)->withPayload([
                 'data' => $post,
             ]);
         } else {
@@ -195,7 +195,7 @@ class PostController
             $post->deleted_at = date('Y-m-d H:i:s');
             $post->save();
             $this->audit->delete($id, 'post');
-            return $this->response->withStatus(201);
+            return $this->response->withStatus(204);
         } else {
             return $this->response->withErrors(404, ['Post not found']);
         }
@@ -227,11 +227,9 @@ class PostController
     public function index()
     {
         $model = Post::with('author');
+        $model->select(['id', 'slug', 'author_id', 'title', 'description', 'created_at', 'status']);
         if ($this->privilege->check($this->route->getName(), 'access') !== true) {
-            $model->where(function ($where) {
-                $where->add(['author_id' => $this->user->get('sub')]);
-                $where->add(['status' => 1], Query::OPERATOR_LIKE, Query::SEPARATOR_OR);
-            });
+            $model->where(['author_id' => $this->user->get('sub')]);
         }
         $parameter = new Parameter('search', $_GET);
         $parameter->setBaseUrl("{$this->config->basepath}/post/index");
@@ -266,11 +264,12 @@ class PostController
                     "No direct access for route: {$this->route->getName()}",
                 ]);
             }
+            $previous = $post->getAttributes();
             $attr = $this->request->loadPostTo(new AttrAssignment());
-            $validator = new PostValidation($attr->getAttributes(), compact('id'));
+            $params = array_merge($previous, $attr->getAttributes());
+            $validator = new PostValidation($params, compact('id'));
             if ($validator->validate('update')) {
-                $previous = $post->getAttributes();
-                $data = array_only($attr->getAttributes(), [
+                $data = array_only($params, [
                     'title',
                     'cover',
                     'slug',

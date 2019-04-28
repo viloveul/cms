@@ -96,7 +96,7 @@ class MediaController
             $media->deleted_at = date('Y-m-d H:i:s');
             $media->save();
             $this->audit->delete($id, 'media');
-            return $this->response->withStatus(201);
+            return $this->response->withStatus(204);
         } else {
             return $this->response->withErrors(404, ['Media not found']);
         }
@@ -145,10 +145,7 @@ class MediaController
     {
         $model = Media::with('author');
         if ($this->privilege->check($this->route->getName(), 'access') !== true) {
-            $model->where(function ($where) {
-                $where->add(['author_id' => $this->user->get('sub')]);
-                $where->add(['status' => 1], Query::OPERATOR_LIKE, Query::SEPARATOR_OR);
-            });
+            $model->where(['author_id' => $this->user->get('sub')]);
         }
         $parameter = new Parameter('search', $_GET);
         $parameter->setBaseUrl("{$this->config->basepath}/media/index");
@@ -195,6 +192,11 @@ class MediaController
      */
     public function upload(Uploader $uploader)
     {
+        if ($this->privilege->check($this->route->getName(), 'access') !== true) {
+            return $this->response->withErrors(403, [
+                "No direct access for route: {$this->route->getName()}",
+            ]);
+        }
         $request = $this->request;
         $response = $this->response;
         $user = $this->user;
@@ -237,7 +239,7 @@ class MediaController
                     'image_url' => $image,
                 ]);
             }
-            return $this->response->withPayload([
+            return $this->response->withStatus(201)->withPayload([
                 'data' => $results,
             ]);
         });

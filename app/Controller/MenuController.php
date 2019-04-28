@@ -124,7 +124,7 @@ class MenuController
         $menu->id = str_uuid();
         $menu->save();
         $this->audit->create($menu->id, 'menu');
-        return $this->response->withPayload([
+        return $this->response->withStatus(201)->withPayload([
             'data' => $menu,
         ]);
     }
@@ -145,7 +145,7 @@ class MenuController
             $menu->deleted_at = date('Y-m-d H:i:s');
             $menu->save();
             $this->audit->delete($menu->id, 'menu');
-            return $this->response->withStatus(201);
+            return $this->response->withStatus(204);
         } else {
             return $this->response->withErrors(404, ['Menu not found']);
         }

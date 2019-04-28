@@ -79,7 +79,7 @@ class RoleController
             $role->sync('childRelations', $ids, Query::SYNC_ATTACH);
             $role->load('childs');
             $this->privilege->clear();
-            return $this->response->withStatus(201)->withPayload([
+            return $this->response->withPayload([
                 'data' => $role->getAttributes(),
             ]);
         }
@@ -109,7 +109,7 @@ class RoleController
             $role->created_at = date('Y-m-d H:i:s');
             $role->id = str_uuid();
             $role->save();
-            return $this->response->withPayload([
+            return $this->response->withStatus(201)->withPayload([
                 'data' => $role->getAttributes(),
             ]);
         } else {
@@ -184,7 +184,7 @@ class RoleController
             $role->sync('childRelations', $ids, Query::SYNC_DETACH);
             $role->load('childs');
             $this->privilege->clear();
-            return $this->response->withStatus(201)->withPayload([
+            return $this->response->withPayload([
                 'data' => $role->getAttributes(),
             ]);
         }
