@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Tag;
 use App\Component\Slug;
 use App\Component\Privilege;
+use App\Component\AuditTrail;
 use App\Component\AttrAssignment;
 use Viloveul\Pagination\Parameter;
 use Viloveul\Pagination\ResultSet;
@@ -19,6 +20,11 @@ use Viloveul\Pagination\Builder as Pagination;
 
 class TagController
 {
+    /**
+     * @var mixed
+     */
+    protected $audit;
+
     /**
      * @var mixed
      */
@@ -54,6 +60,7 @@ class TagController
      * @param Response       $response
      * @param Privilege      $privilege
      * @param Configuration  $config
+     * @param AuditTrail     $audit
      * @param Authentication $auth
      * @param Dispatcher     $router
      */
@@ -62,6 +69,7 @@ class TagController
         Response $response,
         Privilege $privilege,
         Configuration $config,
+        AuditTrail $audit,
         Authentication $auth,
         Dispatcher $router
     ) {
@@ -69,6 +77,7 @@ class TagController
         $this->response = $response;
         $this->privilege = $privilege;
         $this->config = $config;
+        $this->audit = $audit;
         $this->user = $auth->getUser();
         $this->route = $router->routed();
     }
@@ -104,7 +113,8 @@ class TagController
             $tag->created_at = date('Y-m-d H:i:s');
             $tag->id = str_uuid();
             $tag->save();
-            return $this->response->withPayload([
+            $this->audit->create($tag->id, 'post');
+            return $this->response->withStatus(201)->withPayload([
                 'data' => $tag->getAttributes(),
             ]);
         } else {
@@ -127,7 +137,8 @@ class TagController
             $tag->status = 3;
             $tag->deleted_at = date('Y-m-d H:i:s');
             $tag->save();
-            return $this->response->withStatus(201);
+            $this->audit->delete($id, 'tag');
+            return $this->response->withStatus(204);
         } else {
             return $this->response->withErrors(404, ['Tag not found']);
         }
@@ -158,16 +169,14 @@ class TagController
      */
     public function index()
     {
+        $model = new Tag();
         if ($this->privilege->check($this->route->getName(), 'access') !== true) {
-            return $this->response->withErrors(403, [
-                "No direct access for route: {$this->route->getName()}",
-            ]);
+            $model->where(['author_id' => $this->user->get('sub')]);
         }
         $parameter = new Parameter('search', $_GET);
         $parameter->setBaseUrl("{$this->config->basepath}/tag/index");
         $pagination = new Pagination($parameter);
-        $pagination->with(function ($conditions, $size, $page, $order, $sort) {
-            $model = new Tag();
+        $pagination->with(function ($conditions, $size, $page, $order, $sort) use ($model) {
             foreach ($conditions as $key => $value) {
                 $model->where([$key => "%{$value}%"], Query::OPERATOR_LIKE);
             }
@@ -197,9 +206,11 @@ class TagController
                 ]);
             }
             $attr = $this->request->loadPostTo(new AttrAssignment());
-            $validator = new Validation($attr->getAttributes(), compact('id'));
+            $previous = $tag->getAttributes();
+            $params = array_merge($previous, $attr->getAttributes());
+            $validator = new Validation($params, compact('id'));
             if ($validator->validate('update')) {
-                $data = array_only($attr->getAttributes(), [
+                $data = array_only($params, [
                     'title',
                     'slug',
                     'type',
@@ -211,6 +222,7 @@ class TagController
                 $tag->status = 1;
                 $tag->updated_at = date('Y-m-d H:i:s');
                 $tag->save();
+                $this->audit->update($id, 'tag', $post->getAttributes(), $previous);
                 return $this->response->withPayload([
                     'data' => $tag->getAttributes(),
                 ]);

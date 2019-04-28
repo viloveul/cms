@@ -3,15 +3,6 @@
 use Viloveul\Router\Route;
 
 /**
- * get all setting
- */
-$router->add(
-    new Route('GET /setting', [
-        App\Controller\SettingController::class, 'all',
-    ])
-);
-
-/**
  * get setting
  */
 $router->add(

@@ -145,10 +145,7 @@ class MediaController
     {
         $model = Media::with('author');
         if ($this->privilege->check($this->route->getName(), 'access') !== true) {
-            $model->where(function ($where) {
-                $where->add(['author_id' => $this->user->get('sub')]);
-                $where->add(['status' => 1], Query::OPERATOR_LIKE, Query::SEPARATOR_OR);
-            });
+            $model->where(['author_id' => $this->user->get('sub')]);
         }
         $parameter = new Parameter('search', $_GET);
         $parameter->setBaseUrl("{$this->config->basepath}/media/index");

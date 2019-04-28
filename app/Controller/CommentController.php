@@ -231,10 +231,7 @@ class CommentController
     {
         $model = Comment::with('post');
         if ($this->privilege->check($this->route->getName(), 'access') !== true) {
-            $model->where(function ($where) {
-                $where->add(['author_id' => $this->user->get('sub')]);
-                $where->add(['status' => 1], Query::OPERATOR_LIKE, Query::SEPARATOR_OR);
-            });
+            $model->where(['author_id' => $this->user->get('sub')]);
         }
         $parameter = new Parameter('search', $_GET);
         $parameter->setBaseUrl("{$this->config->basepath}/comment/index");
@@ -263,7 +260,7 @@ class CommentController
     public function update(string $id)
     {
         if ($comment = Comment::where(['id' => $id])->getResult()) {
-            if ($comment->author_id !== $this->user->get('sub')) {
+            if ($this->privilege->check($this->route->getName(), 'access', $comment->author_id) !== true) {
                 return $this->response->withErrors(403, [
                     "No direct access for route: {$this->route->getName()}",
                 ]);
