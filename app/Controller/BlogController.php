@@ -99,6 +99,7 @@ class BlogController
                         'status' => 1,
                     ]);
                 });
+                $model->where(['created_at' => date('Y-m-d H:i:s')], Query::OPERATOR_LTE);
 
                 $total = $model->count();
                 $result = $model->orderBy($order, $sort === 'ASC' ? Query::SORT_ASC : Query::SORT_DESC)
@@ -153,6 +154,7 @@ class BlogController
                     'status', 1,
                     'author_id' => $author->id,
                 ]);
+                $model->where(['created_at' => date('Y-m-d H:i:s')], Query::OPERATOR_LTE);
                 $total = $model->count();
                 $result = $model->orderBy($order, $sort === 'ASC' ? Query::SORT_ASC : Query::SORT_DESC)
                     ->limit($size, ($page * $size) - $size)
@@ -184,6 +186,7 @@ class BlogController
                 'status' => 1,
                 'post_id' => $post_id,
             ]);
+            $model->where(['created_at' => date('Y-m-d H:i:s')], Query::OPERATOR_LTE);
             $parameter = new Parameter('search', $_GET);
             $parameter->setBaseUrl("{$this->config->basepath}/blog/comments/{$post_id}");
             $pagination = new Pagination($parameter);
@@ -210,7 +213,8 @@ class BlogController
      */
     public function detail(string $slug)
     {
-        if ($post = Post::where(['slug' => $slug, 'status' => 1])->with(['author', 'tags'])->getResult()) {
+        $model = Post::where(['created_at' => date('Y-m-d H:i:s')], Query::OPERATOR_LTE);
+        if ($post = $model->where(['slug' => $slug, 'status' => 1])->with(['author', 'tags'])->getResult()) {
             return $this->response->withPayload([
                 'data' => $post,
             ]);
@@ -253,6 +257,7 @@ class BlogController
                 'type' => 'post',
                 'status' => 1,
             ]);
+            $model->where(['created_at' => date('Y-m-d H:i:s')], Query::OPERATOR_LTE);
 
             $total = $model->count();
             $result = $model->orderBy($order, $sort === 'ASC' ? Query::SORT_ASC : Query::SORT_DESC)

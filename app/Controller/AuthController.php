@@ -111,7 +111,7 @@ class AuthController implements ContainerAware
                 $this->audit->record($user->id, 'user', 'request_password');
 
                 $mail = new Mailer([
-                    'email' => $user->email,
+                    'to' => $user->email,
                     'subject' => 'Request Password',
                     'body' => "This is your password: <code>{$string}</code>. Expired in 1 hour.",
                 ]);
@@ -178,7 +178,7 @@ class AuthController implements ContainerAware
                 if ($matched === true) {
                     if (!$user->photo) {
                         $user->photo = sprintf(
-                            '%s/images/no-image.jpg',
+                            '%s/images/no-image-available.jpg',
                             $this->request->getBaseUrl()
                         );
                     }

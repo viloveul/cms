@@ -123,7 +123,7 @@ class MediaController
             ]);
             $image = $url;
             if (false === stripos($media->type, 'image')) {
-                $image = vsprintf('%s/images/media-image.png', [
+                $image = vsprintf('%s/images/no-image-available.jpg', [
                     $this->request->getBaseUrl(),
                 ]);
             }
@@ -169,7 +169,7 @@ class MediaController
                 ]);
                 $o['image_url'] = $o['url'];
                 if (false === stripos($o['type'], 'image')) {
-                    $o['image_url'] = vsprintf('%s/images/media-image.png', [
+                    $o['image_url'] = vsprintf('%s/images/no-image-available.jpg', [
                         $request->getBaseUrl(),
                     ]);
                 }
@@ -230,7 +230,7 @@ class MediaController
                 ]);
                 $image = $url;
                 if (false === stripos($media->type, 'image')) {
-                    $image = vsprintf('%s/images/media-image.png', [
+                    $image = vsprintf('%s/images/no-image-available.jpg', [
                         $request->getBaseUrl(),
                     ]);
                 }

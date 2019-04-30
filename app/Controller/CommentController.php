@@ -138,11 +138,12 @@ class CommentController
         }
         $validator = new Validation($attributes->getAttributes());
         if ($validator->validate('insert')) {
-            $post = Post::select('comment_enabled')
+            $enabled = Post::select('comment_enabled')
                 ->where(['id' => $attributes->get('post_id'), 'status' => 1])
-                ->getResult();
+                ->where(['created_at' => date('Y-m-d H:i:s')], Query::OPERATOR_LTE)
+                ->getValue('comment_enabled');
 
-            if ($post && $post->comment_enabled != 0) {
+            if ($enabled == 1) {
                 $comment = new Comment();
                 $data = array_only($attributes->getAttributes(), [
                     'parent_id',
@@ -173,7 +174,7 @@ class CommentController
                     'data' => $comment,
                 ]);
             } else {
-                return $this->response->withErrors(404, ['Page not found.']);
+                return $this->response->withErrors(400, ['Page not found or comment was disabled.']);
             }
         } else {
             return $this->response->withErrors(400, $validator->errors());
