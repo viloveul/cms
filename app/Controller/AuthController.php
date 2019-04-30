@@ -105,6 +105,7 @@ class AuthController implements ContainerAware
                     'password' => password_hash($string, PASSWORD_DEFAULT),
                     'expired' => $expired,
                     'status' => 0,
+                    'created_at' => date('Y-m-d H:i:s'),
                 ]);
                 $pass->save();
                 $this->audit->record($user->id, 'user', 'request_password');
@@ -169,6 +170,7 @@ class AuthController implements ContainerAware
                         if ($passwd->expired >= time() && password_verify($data['password'], $passwd->password)) {
                             $matched = true;
                             $passwd->status = 1;
+                            $passwd->updated_at = date('Y-m-d H:i:s');
                             $passwd->save();
                         }
                     }

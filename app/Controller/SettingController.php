@@ -94,8 +94,10 @@ class SettingController
         $value = $this->request->getBody()->getContents();
         $model = SettingModel::getResultOrInstance(compact('name'), [
             'id' => str_uuid(),
+            'created_at' => date('Y-m-d H:i:s'),
         ]);
         $previous = $model->getAttributes();
+        $model->updated_at = date('Y-m-d H:i:s');
         $model->option = is_scalar($value) ? $value : json_encode($value);
         $model->save();
         $this->audit->update($model->id, 'setting', $model->getAttributes(), $previous);

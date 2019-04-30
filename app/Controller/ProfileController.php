@@ -81,9 +81,10 @@ class ProfileController
             foreach ($attr->getAttributes() as $name => $value) {
                 $o = UserProfile::getResultOrInstance(compact('name'), [
                     'id' => str_uuid(),
+                    'created_at' => date('Y-m-d H:i:s'),
                 ]);
                 $o->value = $value;
-                $o->last_modified = date('Y-m-d H:i:s');
+                $o->updated_at = date('Y-m-d H:i:s');
                 $o->save();
             }
             return $this->response->withPayload([

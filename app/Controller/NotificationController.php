@@ -15,7 +15,6 @@ use Viloveul\Http\Contracts\ServerRequest;
 use Viloveul\Auth\Contracts\Authentication;
 use Viloveul\Config\Contracts\Configuration;
 use Viloveul\Pagination\Builder as Pagination;
-use App\Message\Notification as NotificationPassenger;
 
 class NotificationController implements Countable
 {
@@ -106,6 +105,7 @@ class NotificationController implements Countable
         if ($notification = Notification::where(['id' => $id, 'receiver_id' => $userId])->with('author')->getResult()) {
             if ($notification->status == 0) {
                 $notification->status = 1;
+                $notification->updated_at = date('Y-m-d H:i:s');
                 $notification->save();
             }
             return $this->response->withPayload([

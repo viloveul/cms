@@ -5,7 +5,6 @@ namespace App\Command;
 use App\Entity\Role;
 use App\Entity\User;
 use RuntimeException;
-use App\Entity\UserRole;
 use Viloveul\Console\Command;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Question\Question;
@@ -72,16 +71,18 @@ class AdminCommand extends Command
         $user = User::getResultOrInstance(['username' => 'admin'], [
             'id' => str_uuid(),
             'name' => 'Administrator',
+            'created_at' => date('Y-m-d H:i:s'),
         ]);
         $user->email = $email;
         $user->password = password_hash($password, PASSWORD_DEFAULT);
         $user->status = 1;
+        $user->updated_at = date('Y-m-d H:i:s');
         $user->save();
 
         $this->writeNormal('--------------------------------------------------------------');
         $this->writeInfo('assign user admin to all roles');
         $roles = Role::getResults()->toArray();
-        $roleIds = array_map(function($role) {
+        $roleIds = array_map(function ($role) {
             return $role['id'];
         }, $roles);
         $user->sync('roleRelations', $roleIds);
