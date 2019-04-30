@@ -50,6 +50,7 @@ class Schema
                 $schema->set('expired', ISchema::TYPE_VARCHAR)->index();
                 $schema->set('status', ISchema::TYPE_INT)->withDefault(0)->index();
                 $schema->set('created_at', ISchema::TYPE_TIMESTAMP)->withDefault('CURRENT_TIMESTAMP')->index();
+                $schema->set('updated_at', ISchema::TYPE_TIMESTAMP)->nullable()->index();
                 $schema->run();
                 break;
 
@@ -59,7 +60,8 @@ class Schema
                 $schema->set('user_id', ISchema::TYPE_CHAR, 50)->index();
                 $schema->set('name', ISchema::TYPE_VARCHAR)->index();
                 $schema->set('value', ISchema::TYPE_TEXT)->nullable();
-                $schema->set('last_modified', ISchema::TYPE_TIMESTAMP)->nullable()->index();
+                $schema->set('created_at', ISchema::TYPE_TIMESTAMP)->withDefault('CURRENT_TIMESTAMP')->nullable()->index();
+                $schema->set('updated_at', ISchema::TYPE_TIMESTAMP)->nullable()->index();
                 $schema->unique('user_id', 'name');
                 $schema->run();
                 break;

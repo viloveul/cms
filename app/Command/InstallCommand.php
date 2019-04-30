@@ -51,73 +51,31 @@ class InstallCommand extends Command implements ContainerAware
         $container = $this->getContainer();
         $installer = $container->make(Schema::class);
 
-        $this->writeInfo('check and create table user if not exists.');
-        $installer->install('user');
-        $this->writeNormal('--------------------------------------------------------------');
+        $tables = [
+            'user',
+            'user_password',
+            'user_profile',
+            'user_role',
+            'role',
+            'role_child',
+            'setting',
+            'tag',
+            'post',
+            'menu',
+            'menu_item',
+            'post_tag',
+            'comment',
+            'notification',
+            'media',
+            'audit',
+            'audit_detail',
+        ];
 
-        $this->writeInfo('check and create table user_password if not exists.');
-        $installer->install('user_password');
-        $this->writeNormal('--------------------------------------------------------------');
-
-        $this->writeInfo('check and create table user_profile if not exists.');
-        $installer->install('user_profile');
-        $this->writeNormal('--------------------------------------------------------------');
-
-        $this->writeInfo('check and create table user_role if not exists.');
-        $installer->install('user_role');
-        $this->writeNormal('--------------------------------------------------------------');
-
-        $this->writeInfo('check and create table role if not exists.');
-        $installer->install('role');
-        $this->writeNormal('--------------------------------------------------------------');
-
-        $this->writeInfo('check and create table role_child if not exists.');
-        $installer->install('role_child');
-        $this->writeNormal('--------------------------------------------------------------');
-
-        $this->writeInfo('check and create table setting if not exists.');
-        $installer->install('setting');
-        $this->writeNormal('--------------------------------------------------------------');
-
-        $this->writeInfo('check and create table menu if not exists.');
-        $installer->install('menu');
-        $this->writeNormal('--------------------------------------------------------------');
-
-        $this->writeInfo('check and create table menu_item if not exists.');
-        $installer->install('menu_item');
-        $this->writeNormal('--------------------------------------------------------------');
-
-        $this->writeInfo('check and create table tag if not exists.');
-        $installer->install('tag');
-        $this->writeNormal('--------------------------------------------------------------');
-
-        $this->writeInfo('check and create table post if not exists.');
-        $installer->install('post');
-        $this->writeNormal('--------------------------------------------------------------');
-
-        $this->writeInfo('check and create table post_tag if not exists.');
-        $installer->install('post_tag');
-        $this->writeNormal('--------------------------------------------------------------');
-
-        $this->writeInfo('check and create table comment if not exists.');
-        $installer->install('comment');
-        $this->writeNormal('--------------------------------------------------------------');
-
-        $this->writeInfo('check and create table notification if not exists.');
-        $installer->install('notification');
-        $this->writeNormal('--------------------------------------------------------------');
-
-        $this->writeInfo('check and create table media if not exists.');
-        $installer->install('media');
-        $this->writeNormal('--------------------------------------------------------------');
-
-        $this->writeInfo('check and create table audit if not exists.');
-        $installer->install('audit');
-        $this->writeNormal('--------------------------------------------------------------');
-
-        $this->writeInfo('check and create table audit_detail if not exists.');
-        $installer->install('audit_detail');
-        $this->writeNormal('--------------------------------------------------------------');
+        foreach ($tables as $table) {
+            $this->writeInfo("check and create table {$table} if not exists.");
+            $installer->install($table);
+            $this->writeNormal("--------------------------------------------------------------");
+        }
 
         $this->writeInfo('Start create role accessors.');
         $accessors = [];
@@ -127,6 +85,7 @@ class InstallCommand extends Command implements ContainerAware
                 $this->writeInfo('Create access : ' . $key);
                 $access = Role::getResultOrCreate(['name' => $key, 'type' => 'access'], [
                     'id' => str_uuid(),
+                    'created_at' => date('Y-m-d H:i:s'),
                 ]);
                 $accessors[] = $access->id;
             }
@@ -135,6 +94,7 @@ class InstallCommand extends Command implements ContainerAware
         $this->writeInfo('Create role group admin');
         $admin = Role::getResultOrCreate(['name' => 'admin:super', 'type' => 'group'], [
             'id' => str_uuid(),
+            'created_at' => date('Y-m-d H:i:s'),
         ]);
         $this->writeNormal('--------------------------------------------------------------');
         $this->writeInfo('Assign all access to group admin:super');
@@ -144,6 +104,7 @@ class InstallCommand extends Command implements ContainerAware
         $this->writeInfo('Create role group user:standar');
         Role::getResultOrCreate(['name' => 'user:standar', 'type' => 'group'], [
             'id' => str_uuid(),
+            'created_at' => date('Y-m-d H:i:s'),
         ]);
         $this->writeNormal('--------------------------------------------------------------');
         $this->writeInfo('Installation complete.');
