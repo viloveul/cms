@@ -24,7 +24,6 @@ return [
         # phrase
         'phrase' => env('VILOVEUL_AUTH_PASSPHRASE', 'viloveul'),
     ],
-    # db config (@see eloquent orm)
     'db' => [
         // database driver
         'driver' => env('VILOVEUL_DB_DRIVER', 'mysql'),

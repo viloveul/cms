@@ -189,7 +189,7 @@ class UserController
         if ($user = User::where(['id' => $id])->with('roles')->getResult()) {
             if (!$user->picture) {
                 $user->picture = sprintf(
-                    '%s/images/no-image.jpg',
+                    '%s/images/no-image-available.jpg',
                     $this->request->getBaseUrl()
                 );
             }
@@ -242,7 +242,7 @@ class UserController
             if ($user = User::where(['id' => $id, 'status' => 1])->getResult()) {
                 if (!$user->picture) {
                     $user->picture = sprintf(
-                        '%s/images/no-image.jpg',
+                        '%s/images/no-image-available.jpg',
                         $this->request->getBaseUrl()
                     );
                 }

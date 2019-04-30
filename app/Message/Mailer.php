@@ -10,7 +10,7 @@ class Mailer extends Passenger
      * @var array
      */
     protected $configs = [
-        'email' => null,
+        'to' => null,
         'subject' => null,
         'body' => null,
     ];

@@ -21,8 +21,9 @@ class RecentPost extends Widget
      */
     public function results(): array
     {
-        return Post::select(['id', 'author_id', 'created_at', 'title', 'description', 'slug', 'type'])
+        return Post::select(['id', 'author_id', 'created_at', 'title', 'slug', 'type'])
             ->where(['status' => 1, 'type' => $this->options['type']])
+            ->where(['created_at' => date('Y-m-d H:i:s')], Query::OPERATOR_LTE)
             ->with('author')
             ->orderBy('created_at', Query::SORT_DESC)
             ->limit($this->options['size'])
