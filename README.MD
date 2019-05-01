@@ -1,6 +1,8 @@
 
 #  Viloveul Content Management System (Rest API)
 
+![Diagram](diagram.png)
+
 PHP7, OpenSSL, php-apcu/php-redis
 ```shell
 composer create-project viloveul-cms/api your-project-name
