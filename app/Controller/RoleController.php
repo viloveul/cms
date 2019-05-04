@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Role;
 use App\Component\Privilege;
+use App\Component\AuditTrail;
 use App\Component\AttrAssignment;
 use Viloveul\Pagination\Parameter;
 use Viloveul\Pagination\ResultSet;
@@ -17,6 +18,11 @@ use Viloveul\Pagination\Builder as Pagination;
 
 class RoleController
 {
+    /**
+     * @var mixed
+     */
+    protected $audit;
+
     /**
      * @var mixed
      */
@@ -47,6 +53,7 @@ class RoleController
      * @param Response      $response
      * @param Privilege     $privilege
      * @param Configuration $config
+     * @param AuditTrail    $audit
      * @param Dispatcher    $router
      */
     public function __construct(
@@ -54,12 +61,14 @@ class RoleController
         Response $response,
         Privilege $privilege,
         Configuration $config,
+        AuditTrail $audit,
         Dispatcher $router
     ) {
         $this->request = $request;
         $this->response = $response;
         $this->privilege = $privilege;
         $this->config = $config;
+        $this->audit = $audit;
         $this->route = $router->routed();
     }
 
@@ -109,11 +118,34 @@ class RoleController
             $role->created_at = date('Y-m-d H:i:s');
             $role->id = str_uuid();
             $role->save();
+            $this->audit->create($post->id, 'post');
             return $this->response->withStatus(201)->withPayload([
                 'data' => $role->getAttributes(),
             ]);
         } else {
             return $this->response->withErrors(400, $validator->errors());
+        }
+    }
+
+    /**
+     * @param  string  $id
+     * @return mixed
+     */
+    public function delete(string $id)
+    {
+        if ($this->privilege->check($this->route->getName(), 'access') !== true) {
+            return $this->response->withErrors(403, [
+                "No direct access for route: {$this->route->getName()}",
+            ]);
+        }
+        if ($role = Role::where(['id' => $id])->getResult()) {
+            $role->deleted_at = date('Y-m-d H:i:s');
+            $role->status = 3;
+            $role->save();
+            $this->audit->delete($role->id, 'role');
+            return $this->response->withStatus(204);
+        } else {
+            return $this->response->withErrors(404, ['Role not found']);
         }
     }
 
@@ -203,6 +235,7 @@ class RoleController
             ]);
         }
         if ($role = Role::where(['id' => $id])->getResult()) {
+            $previous = $role->getAttributes();
             $attr = $this->request->loadPostTo(new AttrAssignment());
             $with = $attr->get('type') === 'group' ? ':' : '.';
             $attr->set('name', preg_replace('/[^a-z0-9\-\_]+/', $with, strtolower($attr->get('name') ?: $role->name)), true);
@@ -213,7 +246,9 @@ class RoleController
                     $role->{$key} = $value;
                 }
                 $role->updated_at = date('Y-m-d H:i:s');
+                $role->status = 1;
                 $role->save();
+                $this->audit->update($id, 'role', $role->getAttributes(), $previous);
                 return $this->response->withPayload([
                     'data' => $role->getAttributes(),
                 ]);

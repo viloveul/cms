@@ -16,7 +16,6 @@ Edit file .env anda sesuai kebutuhan :
 | VILOVEUL_AUTH_PRIVATE_KEY | string | path ke file private key |
 | VILOVEUL_AUTH_PUBLIC_KEY | string | path ke file public key |
 | VILOVEUL_AUTH_PASSPHRASE | string | phrase untuk encrypt (require) |
-| VILOVEUL_DB_DRIVER | string | |
 | VILOVEUL_DB_HOST | string | |
 | VILOVEUL_DB_PORT | string | |
 | VILOVEUL_DB_NAME | string | |
@@ -74,8 +73,8 @@ your local ready : http://localhost:19911
 | | <code>POST /user/update/{:id}</code> | update user account |
 | | <code>POST /user/relations/{:id}</code> | set user role relations |
 | | <code>DELETE /user/delete/{:id}</code> | delete registered user (only flag) |
-| PROFILE | <code>GET /profile/detail/{:id}</code> | get profile user |
-| | <code>POST /profile/detail/{:id}</code> | set profile user |
+| | <code>GET /user/profile/{:id}</code> | get profile user |
+| | <code>POST /user/profile/{:id}</code> | set profile user |
 | ROLE | <code>POST /role/create</code> | create new role user |
 | | <code>GET /role/index</code> | get all created roles |
 | | <code>GET /role/detail/{:id}</code> | get detail role |

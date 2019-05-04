@@ -222,7 +222,7 @@ class TagController
                 $tag->status = 1;
                 $tag->updated_at = date('Y-m-d H:i:s');
                 $tag->save();
-                $this->audit->update($id, 'tag', $post->getAttributes(), $previous);
+                $this->audit->update($id, 'tag', $tag->getAttributes(), $previous);
                 return $this->response->withPayload([
                     'data' => $tag->getAttributes(),
                 ]);
