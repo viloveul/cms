@@ -112,6 +112,17 @@ return [
     },
 
     /*
+    | REGISTER LOGGER
+     */
+    Viloveul\Log\Contracts\Logger::class => function () {
+        $logger = Viloveul\Log\LoggerFactory::instance();
+        $logger->getCollection()->add(
+            new Viloveul\Log\Provider\FileProvider(dirname(__DIR__) . '/var')
+        );
+        return $logger;
+    },
+
+    /*
     | REGISTER PHPMAILER
     | @see config/main.php
      */

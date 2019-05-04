@@ -3,6 +3,7 @@
 namespace App\Middleware;
 
 use Exception;
+use Viloveul\Log\Contracts\Logger;
 use Viloveul\Http\Contracts\Response;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -28,6 +29,11 @@ class Auth implements MiddlewareInterface
     /**
      * @var mixed
      */
+    protected $log;
+
+    /**
+     * @var mixed
+     */
     protected $response;
 
     /**
@@ -39,13 +45,20 @@ class Auth implements MiddlewareInterface
      * @param Configuration  $config
      * @param Authentication $auth
      * @param Response       $response
+     * @param Logger         $log
      * @param Dispatcher     $router
      */
-    public function __construct(Configuration $config, Authentication $auth, Response $response, Dispatcher $router)
-    {
+    public function __construct(
+        Configuration $config,
+        Authentication $auth,
+        Response $response,
+        Logger $log,
+        Dispatcher $router
+    ) {
         $this->config = $config;
         $this->auth = $auth;
         $this->response = $response;
+        $this->log = $log;
         $this->route = $router->routed();
     }
 
@@ -65,6 +78,7 @@ class Auth implements MiddlewareInterface
         } catch (Exception $e) {
             $named = $this->route->getName();
             if (strlen($named) !== 0) {
+                $this->log->handleException($e);
                 if ($e instanceof InvalidTokenException) {
                     return $this->response->withErrors(401, [
                         'Token Invalid',
