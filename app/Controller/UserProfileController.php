@@ -10,7 +10,7 @@ use Viloveul\Http\Contracts\Response;
 use Viloveul\Router\Contracts\Dispatcher;
 use Viloveul\Http\Contracts\ServerRequest;
 
-class ProfileController
+class UserProfileController
 {
     /**
      * @var mixed
@@ -81,6 +81,7 @@ class ProfileController
             foreach ($attr->getAttributes() as $name => $value) {
                 $o = UserProfile::getResultOrInstance(compact('name'), [
                     'id' => str_uuid(),
+                    'user_id' => $id,
                     'created_at' => date('Y-m-d H:i:s'),
                 ]);
                 $o->value = $value;

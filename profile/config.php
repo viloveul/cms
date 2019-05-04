@@ -25,13 +25,9 @@ return [
         'phrase' => env('VILOVEUL_AUTH_PASSPHRASE', 'viloveul'),
     ],
     'db' => [
-        // database driver
-        'driver' => env('VILOVEUL_DB_DRIVER', 'mysql'),
-        // database host
         'host' => env('VILOVEUL_DB_HOST', 'localhost'),
-        // database port
         'port' => env('VILOVEUL_DB_PORT', 3306),
-        'database' => env('VILOVEUL_DB_NAME', 'viloveul_cms'),
+        'database' => env('VILOVEUL_DB_NAME', 'vi loveul_cms'),
         'username' => env('VILOVEUL_DB_USERNAME', 'viloveul'),
         'password' => env('VILOVEUL_DB_PASSWD', 'viloveul'),
         'prefix' => env('VILOVEUL_DB_PREFIX', 'tbl_'),

@@ -73,10 +73,21 @@ class BlogController
             ]);
             $model->withCount('comments');
             $model->with('author', function ($query) {
-                $query->select(['id', 'email', 'username', 'name', 'status']);
+                $query->select([
+                    'id',
+                    'email',
+                    'username',
+                    'name',
+                    'status',
+                ]);
             });
             $model->with('tags', function ($query) {
-                $query->select(['id', 'title', 'type', 'slug']);
+                $query->select([
+                    'id',
+                    'title',
+                    'type',
+                    'slug',
+                ]);
             });
             $parameter = new Parameter('search', $_GET);
             $parameter->setBaseUrl("{$this->config->basepath}/blog/archive/{$slug}");
@@ -134,10 +145,21 @@ class BlogController
             ]);
             $model->withCount('comments');
             $model->with('author', function ($query) {
-                $query->select(['id', 'email', 'username', 'name', 'status']);
+                $query->select([
+                    'id',
+                    'email',
+                    'username',
+                    'name',
+                    'status',
+                ]);
             });
             $model->with('tags', function ($query) {
-                $query->select(['id', 'title', 'type', 'slug']);
+                $query->select([
+                    'id',
+                    'title',
+                    'type',
+                    'slug',
+                ]);
             });
             $parameter = new Parameter('search', $_GET);
             $parameter->setBaseUrl("{$this->config->basepath}/blog/author/{$name}");
@@ -180,7 +202,13 @@ class BlogController
     {
         if ($post = Post::where(['id' => $post_id, 'status' => 1, 'comment_enabled' => 1])->getResult()) {
             $model = Comment::with('author', function ($query) {
-                $query->select(['id', 'email', 'username', 'name', 'status']);
+                $query->select([
+                    'id',
+                    'email',
+                    'username',
+                    'name',
+                    'status',
+                ]);
             });
             $model->where([
                 'status' => 1,
@@ -236,10 +264,21 @@ class BlogController
         ]);
         $model->withCount('comments');
         $model->with('author', function ($query) {
-            $query->select(['id', 'email', 'username', 'name', 'status']);
+            $query->select([
+                'id',
+                'email',
+                'username',
+                'name',
+                'status',
+            ]);
         });
         $model->with('tags', function ($query) {
-            $query->select(['id', 'title', 'type', 'slug']);
+            $query->select([
+                'id',
+                'title',
+                'type',
+                'slug',
+            ]);
         });
 
         $parameter = new Parameter('search', $_GET);

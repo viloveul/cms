@@ -12,7 +12,7 @@ $router->add(
 )->setName('post.create');
 
 /**
- * get post
+ * get posts
  */
 $router->add(
     new Route('GET /post/index', [
