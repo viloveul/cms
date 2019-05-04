@@ -3,6 +3,15 @@
 use Viloveul\Router\Route;
 
 /**
+ * get me
+ */
+$router->add(
+    new Route('GET /user/me', [
+        App\Controller\UserController::class, 'me',
+    ])
+)->setName('user.me');
+
+/**
  * Create new user
  */
 $router->add(
@@ -12,7 +21,7 @@ $router->add(
 )->setName('user.create');
 
 /**
- * get user
+ * get users
  */
 $router->add(
     new Route('GET /user/index', [
@@ -21,22 +30,13 @@ $router->add(
 )->setName('user.index');
 
 /**
- * get user
+ * get user detail
  */
 $router->add(
     new Route('GET /user/detail/{:id}', [
         App\Controller\UserController::class, 'detail',
     ])
 )->setName('user.detail');
-
-/**
- * get me
- */
-$router->add(
-    new Route('GET /user/me', [
-        App\Controller\UserController::class, 'me',
-    ])
-)->setName('user.me');
 
 /**
  * approve user
@@ -73,3 +73,23 @@ $router->add(
         App\Controller\UserController::class, 'delete',
     ])
 )->setName('user.delete');
+
+/**
+ * get user profile
+ */
+$router->add(
+    new Route('GET /user/profile/{:id}', [
+        App\Controller\UserProfileController::class, 'detail',
+    ])
+)->setName('user.profile.get');
+
+
+/**
+ * set user profile
+ */
+$router->add(
+    new Route('POST /user/profile/{:id}', [
+        App\Controller\UserProfileController::class, 'update',
+    ])
+)->setName('user.profile.set');
+

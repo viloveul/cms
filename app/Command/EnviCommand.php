@@ -23,7 +23,6 @@ class EnviCommand extends Command
             'VILOVEUL_AUTH_PASSPHRASE' => 'Phrase untuk generate private key',
             'VILOVEUL_AUTH_PRIVATE_KEY' => 'Destination file private key',
             'VILOVEUL_AUTH_PUBLIC_KEY' => 'Destination file public key',
-            'VILOVEUL_DB_DRIVER' => 'Driver Database',
             'VILOVEUL_DB_HOST' => 'Hostname database',
             'VILOVEUL_DB_PORT' => 'Port database',
             'VILOVEUL_DB_NAME' => 'Nama database. Harus sudah dibuat',
