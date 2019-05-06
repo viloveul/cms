@@ -17,15 +17,15 @@ class Mail {
 
   async exec (params, args) {
     let initial = {
-      email: undefined,
+      to: undefined,
       subject: undefined,
       body: undefined
     }
     let data = Object.assign({}, initial, params)
-    if (data.email !== undefined && data.subject !== undefined && data.body !== undefined) {
+    if (data.to !== undefined && data.subject !== undefined && data.body !== undefined) {
       let info = await this.mailer.sendMail({
         from: process.env.VILOVEUL_SMTP_NAME + ' <' + process.env.VILOVEUL_SMTP_USERNAME + '>',
-        to: data.email,
+        to: data.to,
         subject: data.subject,
         text: data.body,
         html: data.html === undefined ? data.body : data.html
