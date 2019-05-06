@@ -16,6 +16,8 @@ if (!is_readable(VILOVEUL_WORKDIR)) {
     throw new ErrorException("Workdir is not readable.");
 }
 
-$status = $app->console()->run();
+$console = $app->console();
+
+$status = $console->run();
 
 $app->terminate($status);

@@ -12,9 +12,9 @@ use App\Component\AttrAssignment;
 use Viloveul\Pagination\Parameter;
 use Viloveul\Pagination\ResultSet;
 use Viloveul\Http\Contracts\Response;
+use App\Validation\Post as Validation;
 use Viloveul\Database\Contracts\Query;
 use Viloveul\Router\Contracts\Dispatcher;
-use App\Validation\Post as PostValidation;
 use Viloveul\Http\Contracts\ServerRequest;
 use Viloveul\Auth\Contracts\Authentication;
 use Viloveul\Config\Contracts\Configuration;
@@ -137,7 +137,7 @@ class PostController
         if (!$attr->has('slug')) {
             $attr->slug = Slug::create()->generate(Post::class, 'slug', $attr->get('title'), null);
         }
-        $validator = new PostValidation($attr->getAttributes());
+        $validator = new Validation($attr->getAttributes());
         if ($validator->validate('insert')) {
             $post = new Post();
             $data = array_only($attr->getAttributes(), [
@@ -267,7 +267,7 @@ class PostController
             $previous = $post->getAttributes();
             $attr = $this->request->loadPostTo(new AttrAssignment());
             $params = array_merge($previous, $attr->getAttributes());
-            $validator = new PostValidation($params, compact('id'));
+            $validator = new Validation($params, compact('id'));
             if ($validator->validate('update')) {
                 $data = array_only($params, [
                     'title',

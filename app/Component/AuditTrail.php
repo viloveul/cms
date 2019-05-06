@@ -72,7 +72,7 @@ class AuditTrail
         $audit = $this->audit($id, $entity, 'update');
         foreach ($current as $field => $value) {
             $old = array_key_exists($field, $previous) ? $previous[$field] : null;
-            if ($value != $old) {
+            if ($value != $old && !in_array($field, ['created_at', 'updated_at', 'deleted_at'])) {
                 $detail = new AuditDetail();
                 $detail->setAttributes([
                     'id' => str_uuid(),
