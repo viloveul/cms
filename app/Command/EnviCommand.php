@@ -8,9 +8,12 @@ use Symfony\Component\Console\Question\Question;
 class EnviCommand extends Command
 {
     /**
-     * @var string
+     * @param string $name
      */
-    protected static $defaultName = 'cms:envi';
+    public function __construct(string $name = 'cms:envi')
+    {
+        parent::__construct($name);
+    }
 
     /**
      * @return mixed
@@ -19,6 +22,7 @@ class EnviCommand extends Command
     {
         $helper = $this->getHelper('question');
         $defaults = [
+            'VILOVEUL_BASEURL' => 'Digunakan untuk uploader',
             'VILOVEUL_AUTH_NAME' => 'Untuk auth request header',
             'VILOVEUL_AUTH_PASSPHRASE' => 'Phrase untuk generate private key',
             'VILOVEUL_AUTH_PRIVATE_KEY' => 'Destination file private key',

@@ -13,9 +13,12 @@ class DevelCommand extends Command implements ContainerAware
     use ContainerAwareTrait;
 
     /**
-     * @var string
+     * @param string $name
      */
-    protected static $defaultName = 'devel:test';
+    public function __construct(string $name = 'devel:test')
+    {
+        parent::__construct($name);
+    }
 
     public function handle()
     {

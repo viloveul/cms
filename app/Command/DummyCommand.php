@@ -9,9 +9,12 @@ use Viloveul\Console\Command;
 class DummyCommand extends Command
 {
     /**
-     * @var string
+     * @param string $name
      */
-    protected static $defaultName = 'cms:dummy';
+    public function __construct(string $name = 'cms:dummy')
+    {
+        parent::__construct($name);
+    }
 
     /**
      * @return mixed

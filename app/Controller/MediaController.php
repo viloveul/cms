@@ -114,23 +114,15 @@ class MediaController
                     "No direct access for route: {$this->route->getName()}",
                 ]);
             }
-            $url = vsprintf('%s/uploads/%s/%s/%s/%s', [
-                $this->request->getBaseUrl(),
-                $media->year,
-                $media->month,
-                $media->day,
-                $media->filename,
-            ]);
-            $image = $url;
+            $image_url = $media->url;
             if (false === stripos($media->type, 'image')) {
-                $image = vsprintf('%s/images/no-image-available.jpg', [
+                $image_url = vsprintf('%s/images/no-image-available.jpg', [
                     $this->request->getBaseUrl(),
                 ]);
             }
             return $this->response->withPayload([
                 'data' => array_merge($media->toArray(), [
-                    'url' => $url,
-                    'image_url' => $image,
+                    'image_url' => $image_url,
                 ]),
             ]);
         } else {
@@ -160,13 +152,6 @@ class MediaController
                 ->limit($size, ($page * $size) - $size)
                 ->getResults();
             $data = array_map(function ($o) use ($request) {
-                $o['url'] = vsprintf('%s/uploads/%s/%s/%s/%s', [
-                    $request->getBaseUrl(),
-                    $o['year'],
-                    $o['month'],
-                    $o['day'],
-                    $o['filename'],
-                ]);
                 $o['image_url'] = $o['url'];
                 if (false === stripos($o['type'], 'image')) {
                     $o['image_url'] = vsprintf('%s/images/no-image-available.jpg', [
@@ -210,33 +195,22 @@ class MediaController
                     'author_id' => $user->get('sub') ?: 0,
                     'name' => $uploadedFile['name'],
                     'filename' => $uploadedFile['filename'],
-                    'ref' => $uploadedFile['category'],
                     'type' => $uploadedFile['type'],
+                    'url' => $uploadedFile['url'],
                     'size' => $uploadedFile['size'] ?: 0,
-                    'year' => $uploadedFile['year'],
-                    'month' => $uploadedFile['month'],
-                    'day' => $uploadedFile['day'],
                     'status' => 1,
                     'created_at' => date('Y-m-d H:i:s'),
                 ]);
                 $media->save();
                 $audit->create($media->id, 'media');
-                $url = vsprintf('%s/uploads/%s/%s/%s/%s', [
-                    $request->getBaseUrl(),
-                    $media->year,
-                    $media->month,
-                    $media->day,
-                    $media->filename,
-                ]);
-                $image = $url;
+                $image_url = $media->url;
                 if (false === stripos($media->type, 'image')) {
-                    $image = vsprintf('%s/images/no-image-available.jpg', [
+                    $image_url = vsprintf('%s/images/no-image-available.jpg', [
                         $request->getBaseUrl(),
                     ]);
                 }
                 $results[] = array_merge($media->getAttributes(), [
-                    'url' => $url,
-                    'image_url' => $image,
+                    'image_url' => $image_url,
                 ]);
             }
             return $this->response->withStatus(201)->withPayload([
