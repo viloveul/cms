@@ -10,3 +10,4 @@
 /var/logs
 /node_modules
 /.vscode
+/*.bak
