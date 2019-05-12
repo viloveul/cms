@@ -219,11 +219,8 @@ class Schema
                 $schema->set('name', ISchema::TYPE_VARCHAR)->index();
                 $schema->set('filename', ISchema::TYPE_VARCHAR)->unique();
                 $schema->set('type', ISchema::TYPE_VARCHAR)->index();
-                $schema->set('ref', ISchema::TYPE_VARCHAR)->index();
                 $schema->set('size', ISchema::TYPE_VARCHAR)->index();
-                $schema->set('year', ISchema::TYPE_VARCHAR)->index();
-                $schema->set('month', ISchema::TYPE_VARCHAR)->index();
-                $schema->set('day', ISchema::TYPE_VARCHAR)->index();
+                $schema->set('url', ISchema::TYPE_TEXT);
                 $schema->set('status', ISchema::TYPE_INT)->withDefault(0)->index();
                 $schema->set('created_at', ISchema::TYPE_TIMESTAMP)->withDefault('CURRENT_TIMESTAMP')->index();
                 $schema->set('updated_at', ISchema::TYPE_TIMESTAMP)->nullable()->index();
