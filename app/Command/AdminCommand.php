@@ -12,9 +12,12 @@ use Symfony\Component\Console\Question\Question;
 class AdminCommand extends Command
 {
     /**
-     * @var string
+     * @param string $name
      */
-    protected static $defaultName = 'cms:admin';
+    public function __construct(string $name = 'cms:admin')
+    {
+        parent::__construct($name);
+    }
 
     /**
      * @return mixed

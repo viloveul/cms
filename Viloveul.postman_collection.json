@@ -2,13 +2,13 @@
 	"variables": [],
 	"info": {
 		"name": "Viloveul",
-		"_postman_id": "5b371d0c-a28d-d86a-b5ff-84961eef5029",
+		"_postman_id": "2b5be20c-ee32-d5f4-8a69-e1bf3cabcbf9",
 		"description": "",
 		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
 	},
 	"item": [
 		{
-			"name": "AuthController",
+			"name": "Auth",
 			"description": "",
 			"item": [
 				{
@@ -86,7 +86,7 @@
 			]
 		},
 		{
-			"name": "BlogController",
+			"name": "Blog",
 			"description": "",
 			"item": [
 				{
@@ -95,7 +95,10 @@
 						"url": "{{protocol}}://{{host}}/blog/index",
 						"method": "GET",
 						"header": [],
-						"body": {},
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"description": ""
 					},
 					"response": []
@@ -106,7 +109,10 @@
 						"url": "{{protocol}}://{{host}}/blog/author/{{param_author_name}}",
 						"method": "GET",
 						"header": [],
-						"body": {},
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"description": ""
 					},
 					"response": []
@@ -117,7 +123,10 @@
 						"url": "{{protocol}}://{{host}}/blog/archive/{{param_archive_slug}}",
 						"method": "GET",
 						"header": [],
-						"body": {},
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"description": ""
 					},
 					"response": []
@@ -128,7 +137,10 @@
 						"url": "{{protocol}}://{{host}}/blog/detail/{{param_post_slug}}",
 						"method": "GET",
 						"header": [],
-						"body": {},
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"description": ""
 					},
 					"response": []
@@ -139,7 +151,10 @@
 						"url": "{{protocol}}://{{host}}/blog/comments/{{param_post_id}}",
 						"method": "GET",
 						"header": [],
-						"body": {},
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"description": ""
 					},
 					"response": []
@@ -147,7 +162,7 @@
 			]
 		},
 		{
-			"name": "CommentController",
+			"name": "Comment",
 			"description": "",
 			"item": [
 				{
@@ -162,7 +177,10 @@
 								"description": ""
 							}
 						],
-						"body": {},
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"description": ""
 					},
 					"response": []
@@ -179,7 +197,10 @@
 								"description": ""
 							}
 						],
-						"body": {},
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"description": ""
 					},
 					"response": []
@@ -268,7 +289,10 @@
 								"description": ""
 							}
 						],
-						"body": {},
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"description": ""
 					},
 					"response": []
@@ -285,7 +309,10 @@
 								"description": ""
 							}
 						],
-						"body": {},
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"description": ""
 					},
 					"response": []
@@ -293,7 +320,7 @@
 			]
 		},
 		{
-			"name": "MediaController",
+			"name": "Media",
 			"description": "",
 			"item": [
 				{
@@ -308,7 +335,10 @@
 								"description": ""
 							}
 						],
-						"body": {},
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"description": ""
 					},
 					"response": []
@@ -352,7 +382,10 @@
 								"description": ""
 							}
 						],
-						"body": {},
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"description": ""
 					},
 					"response": []
@@ -369,7 +402,10 @@
 								"description": ""
 							}
 						],
-						"body": {},
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"description": ""
 					},
 					"response": []
@@ -377,7 +413,7 @@
 			]
 		},
 		{
-			"name": "MenuController",
+			"name": "Menu",
 			"description": "",
 			"item": [
 				{
@@ -425,7 +461,10 @@
 								"description": ""
 							}
 						],
-						"body": {},
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"description": ""
 					},
 					"response": []
@@ -442,7 +481,10 @@
 								"description": ""
 							}
 						],
-						"body": {},
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"description": ""
 					},
 					"response": []
@@ -459,7 +501,10 @@
 								"description": ""
 							}
 						],
-						"body": {},
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"description": ""
 					},
 					"response": []
@@ -542,7 +587,10 @@
 								"description": ""
 							}
 						],
-						"body": {},
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"description": ""
 					},
 					"response": []
@@ -559,7 +607,10 @@
 								"description": ""
 							}
 						],
-						"body": {},
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"description": ""
 					},
 					"response": []
@@ -567,7 +618,7 @@
 			]
 		},
 		{
-			"name": "NotificationController",
+			"name": "Notification",
 			"description": "",
 			"item": [
 				{
@@ -582,7 +633,10 @@
 								"description": ""
 							}
 						],
-						"body": {},
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"description": ""
 					},
 					"response": []
@@ -599,7 +653,10 @@
 								"description": ""
 							}
 						],
-						"body": {},
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"description": ""
 					},
 					"response": []
@@ -616,7 +673,10 @@
 								"description": ""
 							}
 						],
-						"body": {},
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"description": ""
 					},
 					"response": []
@@ -624,7 +684,7 @@
 			]
 		},
 		{
-			"name": "PostController",
+			"name": "Post",
 			"description": "",
 			"item": [
 				{
@@ -639,7 +699,10 @@
 								"description": ""
 							}
 						],
-						"body": {},
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"description": ""
 					},
 					"response": []
@@ -656,7 +719,10 @@
 								"description": ""
 							}
 						],
-						"body": {},
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"description": ""
 					},
 					"response": []
@@ -706,7 +772,10 @@
 								"description": ""
 							}
 						],
-						"body": {},
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"description": ""
 					},
 					"response": []
@@ -714,7 +783,7 @@
 			]
 		},
 		{
-			"name": "RoleController",
+			"name": "Role",
 			"description": "",
 			"item": [
 				{
@@ -729,7 +798,10 @@
 								"description": ""
 							}
 						],
-						"body": {},
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"description": ""
 					},
 					"response": []
@@ -806,7 +878,10 @@
 								"description": ""
 							}
 						],
-						"body": {},
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"description": ""
 					},
 					"response": []
@@ -823,7 +898,10 @@
 								"description": ""
 							}
 						],
-						"body": {},
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"description": ""
 					},
 					"response": []
@@ -885,7 +963,7 @@
 			]
 		},
 		{
-			"name": "SettingController",
+			"name": "Setting",
 			"description": "",
 			"item": [
 				{
@@ -919,7 +997,10 @@
 						"url": "{{protocol}}://{{host}}/setting/{{param_setting_name}}",
 						"method": "GET",
 						"header": [],
-						"body": {},
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"description": ""
 					},
 					"response": []
@@ -927,7 +1008,7 @@
 			]
 		},
 		{
-			"name": "TagController",
+			"name": "Tag",
 			"description": "",
 			"item": [
 				{
@@ -942,7 +1023,10 @@
 								"description": ""
 							}
 						],
-						"body": {},
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"description": ""
 					},
 					"response": []
@@ -959,7 +1043,10 @@
 								"description": ""
 							}
 						],
-						"body": {},
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"description": ""
 					},
 					"response": []
@@ -1036,7 +1123,10 @@
 								"description": ""
 							}
 						],
-						"body": {},
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"description": ""
 					},
 					"response": []
@@ -1044,7 +1134,7 @@
 			]
 		},
 		{
-			"name": "UserController",
+			"name": "User",
 			"description": "",
 			"item": [
 				{
@@ -1059,7 +1149,10 @@
 								"description": ""
 							}
 						],
-						"body": {},
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"description": ""
 					},
 					"response": []
@@ -1076,7 +1169,10 @@
 								"description": ""
 							}
 						],
-						"body": {},
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"description": ""
 					},
 					"response": []
@@ -1093,7 +1189,10 @@
 								"description": ""
 							}
 						],
-						"body": {},
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"description": ""
 					},
 					"response": []
@@ -1137,7 +1236,10 @@
 								"description": ""
 							}
 						],
-						"body": {},
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"description": ""
 					},
 					"response": []
@@ -1151,6 +1253,49 @@
 							{
 								"key": "Authorization",
 								"value": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJsb2NhbGhvc3Q6MTk5MTEiLCJleHAiOjE1NTY5NDkzMTgsIm5iZiI6MTU1Njk0NTcxOCwiaWF0IjoxNTU2OTQ1NzE4LCJzdWIiOiJhMzg2YTJlNy1kZmI2LTQ0OWMtOTIxMS0wZjY3YTc4OWUyMzkiLCJlbWFpbCI6Im1lQHZpbG92ZXVsLmNvbSIsIm5hbWUiOiJBZG1pbmlzdHJhdG9yIn0.rJtugyXULAvOW0UWqvQKz9l88B-Mh70MV2ShYc_poB5OHojgHqYfmNBbPPk5cw4iUjgmYJt-F1aCqclJ93l5zH9PVqOVASiPT5vI_FiLZPaa773Vf46PAtFaYX-Oz_NZ15v2km2JqDlXXyyda2VnHYmUQEXaMgIN1s_SNPzWwo8u7xxl9Ui_KJ2I0mr_sdDWA--io-XQ6YrGSs2X_eBLaSWeXs8i2e2UCqObDa34c7Bm870I5X3EUj5p9to5QTow2IK3Vnl0VB6NdpGFrQj-zpHYw551gxZRBjg2D_5aaKDWcnyMyH7qwvngLgkLjf6zHkGeKFmGSBXIljQlaAzMug",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"description": ""
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Audit",
+			"description": "",
+			"item": [
+				{
+					"name": "Index",
+					"request": {
+						"url": "{{protocol}}://{{host}}/audit/index",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJsb2NhbGhvc3Q6MTk5MTEiLCJleHAiOjE1NTc2ODAyODEsIm5iZiI6MTU1NzY3NjY4MSwiaWF0IjoxNTU3Njc2NjgxLCJzdWIiOiJkZTk1ZjU5Zi0zMmQzLTRlMjUtOTkzNi1iYmQyZjdlMDBlZjQiLCJlbWFpbCI6Im1lQHZpbG92ZXVsLmNvbSIsIm5hbWUiOiJBZG1pbmlzdHJhdG9yIn0.QtEonK6H3I_b1HIvdosFyX8L36kGK1_Ac-3hs0riJbjmqd-YIdvL8Nt4F07AulMXjKyrKb0Xbvjmy3CLZUW0xadBbN545FRP93pQYUFVYcES7_OtrseupM08q2SzS18pmM2VPAy8ItG359oc4VhyOSbTA1C3A64Xt_GN1zaWp_LXCYwTk-rSnNo0ysw3NIXgp2KqzOCCcJjIH2dNEK3HYr_ZKWamqyFRY4Zmg2B7XDAcyyQdZPla5OVfLk7vInSB-py1w1sTBNg_yUHa3iCFK4dXF3bAT_6dizDpkuEamf6teCQKLo7s_FJzZfG4Xzs2JrvJAaK-v7DHk3S2lrOFXA",
+								"description": ""
+							}
+						],
+						"body": {},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "Detail",
+					"request": {
+						"url": "{{protocol}}://{{host}}/audit/detail/{{param_audit_id}}",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJsb2NhbGhvc3Q6MTk5MTEiLCJleHAiOjE1NTc2ODAyODEsIm5iZiI6MTU1NzY3NjY4MSwiaWF0IjoxNTU3Njc2NjgxLCJzdWIiOiJkZTk1ZjU5Zi0zMmQzLTRlMjUtOTkzNi1iYmQyZjdlMDBlZjQiLCJlbWFpbCI6Im1lQHZpbG92ZXVsLmNvbSIsIm5hbWUiOiJBZG1pbmlzdHJhdG9yIn0.QtEonK6H3I_b1HIvdosFyX8L36kGK1_Ac-3hs0riJbjmqd-YIdvL8Nt4F07AulMXjKyrKb0Xbvjmy3CLZUW0xadBbN545FRP93pQYUFVYcES7_OtrseupM08q2SzS18pmM2VPAy8ItG359oc4VhyOSbTA1C3A64Xt_GN1zaWp_LXCYwTk-rSnNo0ysw3NIXgp2KqzOCCcJjIH2dNEK3HYr_ZKWamqyFRY4Zmg2B7XDAcyyQdZPla5OVfLk7vInSB-py1w1sTBNg_yUHa3iCFK4dXF3bAT_6dizDpkuEamf6teCQKLo7s_FJzZfG4Xzs2JrvJAaK-v7DHk3S2lrOFXA",
 								"description": ""
 							}
 						],

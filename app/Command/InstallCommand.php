@@ -14,9 +14,12 @@ class InstallCommand extends Command implements ContainerAware
     use ContainerAwareTrait;
 
     /**
-     * @var string
+     * @param string $name
      */
-    protected static $defaultName = 'cms:install';
+    public function __construct(string $name = 'cms:install')
+    {
+        parent::__construct($name);
+    }
 
     /**
      * @return mixed
