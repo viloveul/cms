@@ -6,7 +6,7 @@
 /var/private.pem
 /var/public.pem
 /vendor
-/var/logs/*
 /node_modules
 /.vscode
 /*.bak
+!/var/logs/.gitkeep
