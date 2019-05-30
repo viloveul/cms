@@ -3,11 +3,13 @@
     "description": "Viloveul CMS API.",
     "type": "project",
     "license": "MIT",
+    "keywords": ["project", "cms", "api", "zafex", "viloveul", "fajrulaz"],
+    "homepage": "http://www.viloveul.com",
+    "readme": "README.MD",
     "authors": [{
         "name": "Fajrul Akbar Zuhdi",
         "email": "fajrulaz@gmail.com"
     }],
-    "keywords": ["project", "cms", "api", "zafex", "viloveul", "fajrulaz"],
     "minimum-stability": "dev",
     "prefer-stable": true,
     "config": {
@@ -33,6 +35,10 @@
         "viloveul/log": "1.0.*|v1.x-dev",
         "viloveul/validation": "1.0.*|v1.x-dev"
     },
+    "require-dev": {
+        "codeception/codeception": "2.5.*",
+        "symfony/var-dumper": "~3.4|~4.0"
+    },
     "suggest": {
         "phpmailer/phpmailer": "require for email"
     },
@@ -41,22 +47,24 @@
             "App\\": "app/"
         }
     },
-    "require-dev": {
-        "codeception/codeception": "2.5.*"
-    },
     "scripts": {
         "fresh": [
-            "rm -f var/private.pem var/public.pem"
+            "@php -r \"is_file('var/private.pem') && unlink('var/private.pem');\"",
+            "@php -r \"is_file('var/public.pem') && unlink('var/public.pem');\""
         ],
         "bootstrap": [
-            "mkdir -p public/uploads",
-            "cp -n profile/envi.env .env"
+            "@php -r \"is_dir('public/uploads') || mkdir('public/uploads', 0777, true);\"",
+            "@php -r \"file_exists('.env') || copy('config/envi.env', '.env');\""
         ],
         "genrsakey": [
             "openssl genrsa -out var/private.pem -aes256 4096",
             "openssl rsa -pubout -in var/private.pem -out var/public.pem"
         ],
         "post-create-project-cmd": [
+            "@fresh",
+            "@bootstrap"
+        ],
+        "post-install-cmd": [
             "@fresh",
             "@bootstrap"
         ]
