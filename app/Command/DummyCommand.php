@@ -15,7 +15,7 @@ class DummyCommand extends Command
     {
         $this->writeNormal('--------------------------------------------------------------');
         $this->writeInfo('Create content dummy');
-        $dummy = new Dummy(User::where(['status' => 1])->getResult());
+        $dummy = new Dummy(User::where(['status' => 1])->find());
         $dummy->run();
         $this->writeNormal('--------------------------------------------------------------');
         $this->writeInfo('Dump complete.');

@@ -83,7 +83,7 @@ class RoleController
                 "No direct access for route: {$this->route->getName()}",
             ]);
         }
-        if ($role = Role::where(['id' => $id, 'status' => 1])->getResult()) {
+        if ($role = Role::where(['id' => $id, 'status' => 1])->find()) {
             $ids = (array) $this->request->getPost('childs') ?: [];
             $role->sync('childRelations', $ids, Query::SYNC_ATTACH);
             $role->load('childs');
@@ -138,7 +138,7 @@ class RoleController
                 "No direct access for route: {$this->route->getName()}",
             ]);
         }
-        if ($role = Role::where(['id' => $id])->getResult()) {
+        if ($role = Role::where(['id' => $id])->find()) {
             $role->deleted_at = date('Y-m-d H:i:s');
             $role->status = 3;
             $role->save();
@@ -160,7 +160,7 @@ class RoleController
                 "No direct access for route: {$this->route->getName()}",
             ]);
         }
-        if ($role = Role::where(['id' => $id])->with('childs')->getResult()) {
+        if ($role = Role::where(['id' => $id])->with('childs')->find()) {
             return $this->response->withPayload([
                 'data' => $role,
             ]);
@@ -190,7 +190,7 @@ class RoleController
             $total = $model->count();
             $result = $model->orderBy($order, $sort === 'ASC' ? Query::SORT_ASC : Query::SORT_DESC)
                 ->limit($size, ($page * $size) - $size)
-                ->getResults();
+                ->findAll();
             return new ResultSet($total, $result->toArray());
         });
         return $this->response->withPayload([
@@ -211,7 +211,7 @@ class RoleController
                 "No direct access for route: {$this->route->getName()}",
             ]);
         }
-        if ($role = Role::where(['id' => $id, 'status' => 1])->getResult()) {
+        if ($role = Role::where(['id' => $id, 'status' => 1])->find()) {
             $ids = (array) $this->request->getPost('childs') ?: [];
             $role->sync('childRelations', $ids, Query::SYNC_DETACH);
             $role->load('childs');
@@ -234,7 +234,7 @@ class RoleController
                 "No direct access for route: {$this->route->getName()}",
             ]);
         }
-        if ($role = Role::where(['id' => $id])->getResult()) {
+        if ($role = Role::where(['id' => $id])->find()) {
             $previous = $role->getAttributes();
             $attr = $this->request->loadPostTo(new AttrAssignment());
             $with = $attr->get('type') === 'group' ? ':' : '.';

@@ -86,7 +86,7 @@ class MediaController
      */
     public function delete(string $id)
     {
-        if ($media = Media::where(['id' => $id])->getResult()) {
+        if ($media = Media::where(['id' => $id])->find()) {
             if ($this->privilege->check($this->route->getName(), 'access', $media->author_id) !== true) {
                 return $this->response->withErrors(403, [
                     "No direct access for route: {$this->route->getName()}",
@@ -108,7 +108,7 @@ class MediaController
      */
     public function detail(string $id)
     {
-        if ($media = Media::where(['id' => $id])->with('author')->getResult()) {
+        if ($media = Media::where(['id' => $id])->with('author')->find()) {
             if ($this->privilege->check($this->route->getName(), 'access', $media->author_id) !== true) {
                 return $this->response->withErrors(403, [
                     "No direct access for route: {$this->route->getName()}",
@@ -150,7 +150,7 @@ class MediaController
             $total = $model->count();
             $result = $model->orderBy($order, $sort === 'ASC' ? Query::SORT_ASC : Query::SORT_DESC)
                 ->limit($size, ($page * $size) - $size)
-                ->getResults();
+                ->findAll();
             $data = array_map(function ($o) use ($request) {
                 $o['image_url'] = $o['url'];
                 if (false === stripos($o['type'], 'image')) {

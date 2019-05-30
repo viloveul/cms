@@ -67,7 +67,7 @@ class Post extends Validator
     public function unique($field, $value, array $params, array $fields)
     {
         if (!empty($value)) {
-            if ($post = PostModel::where([$field => $value])->getResult()) {
+            if ($post = PostModel::where([$field => $value])->find()) {
                 return !empty($this->params) && in_array($post->id, (array) (array_get($this->params, 'id') ?: []));
             }
         }

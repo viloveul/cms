@@ -102,7 +102,7 @@ class UserController
                 "No direct access for route: {$this->route->getName()}",
             ]);
         }
-        if ($user = User::where(['id' => $id])->getResult()) {
+        if ($user = User::where(['id' => $id])->find()) {
             $previous = $user->getAttributes();
             $user->status = 1;
             $user->updated_at = date('Y-m-d H:i:s');
@@ -164,7 +164,7 @@ class UserController
                 "No direct access for route: {$this->route->getName()}",
             ]);
         }
-        if ($user = User::where(['id' => $id])->getResult()) {
+        if ($user = User::where(['id' => $id])->find()) {
             $user->status = 3;
             $user->deleted_at = date('Y-m-d H:i:s');
             $user->save();
@@ -186,7 +186,7 @@ class UserController
                 "No direct access for route: {$this->route->getName()}",
             ]);
         }
-        if ($user = User::where(['id' => $id])->with('roles')->getResult()) {
+        if ($user = User::where(['id' => $id])->with('roles')->find()) {
             if (!$user->picture) {
                 $user->picture = sprintf(
                     '%s/images/no-image-available.jpg',
@@ -222,7 +222,7 @@ class UserController
             $total = $model->count();
             $result = $model->orderBy($order, $sort === 'ASC' ? Query::SORT_ASC : Query::SORT_DESC)
                 ->limit($size, ($page * $size) - $size)
-                ->getResults();
+                ->findAll();
             return new ResultSet($total, $result->toArray());
         });
 
@@ -239,7 +239,7 @@ class UserController
     public function me()
     {
         if ($id = $this->user->get('sub')) {
-            if ($user = User::where(['id' => $id, 'status' => 1])->getResult()) {
+            if ($user = User::where(['id' => $id, 'status' => 1])->find()) {
                 if (!$user->picture) {
                     $user->picture = sprintf(
                         '%s/images/no-image-available.jpg',
@@ -276,7 +276,7 @@ class UserController
                 "No direct access for route: {$this->route->getName()}",
             ]);
         }
-        if ($user = User::where(['id' => $id])->getResult()) {
+        if ($user = User::where(['id' => $id])->find()) {
             $body = $this->request->getBody()->getContents() ?: '[]';
             $relations = json_decode($body, true) ?: [];
             is_array($relations) and $user->sync('roleRelations', $relations);
@@ -300,7 +300,7 @@ class UserController
                 "No direct access for route: {$this->route->getName()}",
             ]);
         }
-        if ($user = User::where(['id' => $id])->getResult()) {
+        if ($user = User::where(['id' => $id])->find()) {
             $attr = $this->request->loadPostTo(new AttrAssignment());
             $attr->get('password') or $attr->delete('password');
             $previous = $user->getAttributes();

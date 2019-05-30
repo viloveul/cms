@@ -85,18 +85,22 @@ class InstallCommand extends Command implements ContainerAware
             $bar->setMessage('Create access : ' . $route->getName());
             $bar->advance();
 
-            $access = Role::getResultOrCreate(['name' => $route->getName(), 'type' => 'access'], [
+            $access = Role::where(['name' => $route->getName(), 'type' => 'access'])->findOrCreate([
                 'id' => str_uuid(),
                 'created_at' => date('Y-m-d H:i:s'),
+                'name' => $route->getName(),
+                'type' => 'access',
             ]);
             $accessors[] = $access->id;
         }
 
         $bar->setMessage('Create role group admin');
         $bar->advance();
-        $admin = Role::getResultOrCreate(['name' => 'admin:super', 'type' => 'group'], [
+        $admin = Role::where(['name' => 'admin:super', 'type' => 'group'])->findOrCreate([
             'id' => str_uuid(),
             'created_at' => date('Y-m-d H:i:s'),
+            'name' => 'admin:super',
+            'type' => 'group',
         ]);
 
         $bar->setMessage('Assign all access to group admin:super');
@@ -105,9 +109,11 @@ class InstallCommand extends Command implements ContainerAware
 
         $bar->setMessage('Create role group user:standar');
         $bar->advance();
-        Role::getResultOrCreate(['name' => 'user:standar', 'type' => 'group'], [
+        Role::where(['name' => 'user:standar', 'type' => 'group'])->findOrCreate([
             'id' => str_uuid(),
             'created_at' => date('Y-m-d H:i:s'),
+            'name' => 'user:standar',
+            'type' => 'group',
         ]);
 
         $bar->finish();

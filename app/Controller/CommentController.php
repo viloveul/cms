@@ -112,7 +112,7 @@ class CommentController
                 "No direct access for route: {$this->route->getName()}",
             ]);
         }
-        if ($comment = Comment::where(['id' => $id])->getResult()) {
+        if ($comment = Comment::where(['id' => $id])->find()) {
             $previous = $comment->getAttributes();
             $comment->status = 1;
             $comment->updated_at = date('Y-m-d H:i:s');
@@ -188,7 +188,7 @@ class CommentController
      */
     public function delete(string $id)
     {
-        if ($comment = Comment::where(['id' => $id])->getResult()) {
+        if ($comment = Comment::where(['id' => $id])->find()) {
             if ($this->privilege->check($this->route->getName(), 'access', $comment->author_id) !== true) {
                 return $this->response->withErrors(403, [
                     "No direct access for route: {$this->route->getName()}",
@@ -211,7 +211,7 @@ class CommentController
      */
     public function detail(string $id)
     {
-        if ($comment = Comment::where(['id' => $id])->with(['author', 'post'])->getResult()) {
+        if ($comment = Comment::where(['id' => $id])->with(['author', 'post'])->find()) {
             if ($this->privilege->check($this->route->getName(), 'access', $comment->author_id) !== true) {
                 return $this->response->withErrors(403, [
                     "No direct access for route: {$this->route->getName()}",
@@ -244,7 +244,7 @@ class CommentController
             $total = $model->count();
             $result = $model->orderBy($order, $sort === 'ASC' ? Query::SORT_ASC : Query::SORT_DESC)
                 ->limit($size, ($page * $size) - $size)
-                ->getResults();
+                ->findAll();
             return new ResultSet($total, $result->toArray());
         });
         return $this->response->withPayload([
@@ -260,7 +260,7 @@ class CommentController
      */
     public function update(string $id)
     {
-        if ($comment = Comment::where(['id' => $id])->getResult()) {
+        if ($comment = Comment::where(['id' => $id])->find()) {
             if ($this->privilege->check($this->route->getName(), 'access', $comment->author_id) !== true) {
                 return $this->response->withErrors(403, [
                     "No direct access for route: {$this->route->getName()}",

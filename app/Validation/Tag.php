@@ -61,7 +61,7 @@ class Tag extends Validator
     public function unique($field, $value, array $params, array $fields)
     {
         if (!empty($value)) {
-            if ($tag = TagModel::where([$field => $value])->getResult()) {
+            if ($tag = TagModel::where([$field => $value])->find()) {
                 return !empty($this->params) && in_array($tag->id, (array) (array_get($this->params, 'id') ?: []));
             }
         }

@@ -128,7 +128,7 @@ class TagController
      */
     public function delete(string $id)
     {
-        if ($tag = Tag::where(['id' => $id])->getResult()) {
+        if ($tag = Tag::where(['id' => $id])->find()) {
             if ($this->privilege->check($this->route->getName(), 'access', $tag->author_id) !== true) {
                 return $this->response->withErrors(403, [
                     "No direct access for route: {$this->route->getName()}",
@@ -150,7 +150,7 @@ class TagController
      */
     public function detail(string $id)
     {
-        if ($tag = Tag::where(['id' => $id])->with('childs')->getResult()) {
+        if ($tag = Tag::where(['id' => $id])->with('childs')->find()) {
             if ($this->privilege->check($this->route->getName(), 'access', $tag->author_id) !== true) {
                 return $this->response->withErrors(403, [
                     "No direct access for route: {$this->route->getName()}",
@@ -183,7 +183,7 @@ class TagController
             $total = $model->count();
             $result = $model->orderBy($order, $sort === 'ASC' ? Query::SORT_ASC : Query::SORT_DESC)
                 ->limit($size, ($page * $size) - $size)
-                ->getResults();
+                ->findAll();
             return new ResultSet($total, $result->toArray());
         });
         return $this->response->withPayload([
@@ -199,7 +199,7 @@ class TagController
      */
     public function update(string $id)
     {
-        if ($tag = Tag::where(['id' => $id])->getResult()) {
+        if ($tag = Tag::where(['id' => $id])->find()) {
             if ($this->privilege->check($this->route->getName(), 'access', $tag->author_id) !== true) {
                 return $this->response->withErrors(403, [
                     "No direct access for route: {$this->route->getName()}",

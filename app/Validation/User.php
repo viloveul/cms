@@ -101,7 +101,7 @@ class User extends Validator
     public function unique($field, $value, array $params, array $fields)
     {
         if (!empty($value)) {
-            if ($user = UserModel::where([$field => $value])->getResult()) {
+            if ($user = UserModel::where([$field => $value])->find()) {
                 return !empty($this->params) && in_array($user->id, (array) (array_get($this->params, 'id') ?: []));
             }
         }

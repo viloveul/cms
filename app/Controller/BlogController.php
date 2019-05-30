@@ -60,7 +60,7 @@ class BlogController
      */
     public function archive(string $slug)
     {
-        if ($archive = Tag::where(['slug' => $slug])->getResult()) {
+        if ($archive = Tag::where(['slug' => $slug])->find()) {
             $model = Post::select([
                 'id',
                 'author_id',
@@ -115,7 +115,7 @@ class BlogController
                 $total = $model->count();
                 $result = $model->orderBy($order, $sort === 'ASC' ? Query::SORT_ASC : Query::SORT_DESC)
                     ->limit($size, ($page * $size) - $size)
-                    ->getResults();
+                    ->findAll();
                 return new ResultSet($total, $result->toArray());
             });
             return $this->response->withPayload([
@@ -132,7 +132,7 @@ class BlogController
      */
     public function author(string $name)
     {
-        if ($author = User::where(['username' => $name])->getResult()) {
+        if ($author = User::where(['username' => $name])->find()) {
             $model = Post::select([
                 'id',
                 'author_id',
@@ -180,7 +180,7 @@ class BlogController
                 $total = $model->count();
                 $result = $model->orderBy($order, $sort === 'ASC' ? Query::SORT_ASC : Query::SORT_DESC)
                     ->limit($size, ($page * $size) - $size)
-                    ->getResults();
+                    ->findAll();
                 return new ResultSet($total, $result->toArray());
             });
             return $this->response->withPayload([
@@ -200,7 +200,7 @@ class BlogController
      */
     public function comments(string $post_id)
     {
-        if ($post = Post::where(['id' => $post_id, 'status' => 1, 'comment_enabled' => 1])->getResult()) {
+        if ($post = Post::where(['id' => $post_id, 'status' => 1, 'comment_enabled' => 1])->find()) {
             $model = Comment::with('author', function ($query) {
                 $query->select([
                     'id',
@@ -222,7 +222,7 @@ class BlogController
                 $total = $model->count();
                 $result = $model->orderBy($order, $sort === 'ASC' ? Query::SORT_ASC : Query::SORT_DESC)
                     ->limit($size, ($page * $size) - $size)
-                    ->getResults();
+                    ->findAll();
                 return new ResultSet($total, $result->toArray());
             });
             return $this->response->withPayload([
@@ -242,7 +242,7 @@ class BlogController
     public function detail(string $slug)
     {
         $model = Post::where(['created_at' => date('Y-m-d H:i:s')], Query::OPERATOR_LTE);
-        if ($post = $model->where(['slug' => $slug, 'status' => 1])->with(['author', 'tags'])->getResult()) {
+        if ($post = $model->where(['slug' => $slug, 'status' => 1])->with(['author', 'tags'])->find()) {
             return $this->response->withPayload([
                 'data' => $post,
             ]);
@@ -301,7 +301,7 @@ class BlogController
             $total = $model->count();
             $result = $model->orderBy($order, $sort === 'ASC' ? Query::SORT_ASC : Query::SORT_DESC)
                 ->limit($size, ($page * $size) - $size)
-                ->getResults();
+                ->findAll();
             return new ResultSet($total, $result->toArray());
         });
 

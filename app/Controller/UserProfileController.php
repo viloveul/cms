@@ -56,7 +56,7 @@ class UserProfileController
      */
     public function detail(string $id)
     {
-        if ($user = User::where(['id' => $id, 'status' => 1])->getResult()) {
+        if ($user = User::where(['id' => $id, 'status' => 1])->find()) {
             return $this->response->withPayload([
                 'data' => $user->profile->convertList('name', 'value'),
             ]);
@@ -76,12 +76,13 @@ class UserProfileController
                 "No direct access for route: {$this->route->getName()}",
             ]);
         }
-        if ($user = User::where(['id' => $id, 'status' => 1])->getResult()) {
+        if ($user = User::where(['id' => $id, 'status' => 1])->find()) {
             $attr = $this->request->loadPostTo(new AttrAssignment());
             foreach ($attr->getAttributes() as $name => $value) {
-                $o = UserProfile::getResultOrInstance(compact('name'), [
+                $o = UserProfile::where(['name' => $name])->findOrNew([
                     'id' => str_uuid(),
                     'user_id' => $id,
+                    'name' => $name,
                     'created_at' => date('Y-m-d H:i:s'),
                 ]);
                 $o->value = $value;

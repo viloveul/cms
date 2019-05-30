@@ -72,7 +72,7 @@ class AuditController
                 "No direct access for route: {$this->route->getName()}",
             ]);
         }
-        if ($audit = Audit::where(['id' => $id])->getResult()) {
+        if ($audit = Audit::where(['id' => $id])->find()) {
             $audit->load('author');
             $audit->load('details');
             return $this->response->withPayload([
@@ -105,7 +105,7 @@ class AuditController
             $total = $model->count();
             $result = $model->orderBy($order, $sort === 'ASC' ? Query::SORT_ASC : Query::SORT_DESC)
                 ->limit($size, ($page * $size) - $size)
-                ->getResults();
+                ->findAll();
 
             return new ResultSet($total, $result->toArray());
         });

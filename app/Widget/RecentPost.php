@@ -27,7 +27,7 @@ class RecentPost extends Widget
             ->with('author')
             ->orderBy('created_at', Query::SORT_DESC)
             ->limit($this->options['size'])
-            ->getResults()
+            ->findAll()
             ->toArray();
     }
 }

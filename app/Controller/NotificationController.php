@@ -102,7 +102,7 @@ class NotificationController implements Countable
     public function detail(string $id)
     {
         $userId = $this->user->get('sub');
-        if ($notification = Notification::where(['id' => $id, 'receiver_id' => $userId])->with('author')->getResult()) {
+        if ($notification = Notification::where(['id' => $id, 'receiver_id' => $userId])->with('author')->find()) {
             if ($notification->status == 0) {
                 $notification->status = 1;
                 $notification->updated_at = date('Y-m-d H:i:s');
@@ -132,7 +132,7 @@ class NotificationController implements Countable
             $total = $model->count();
             $result = $model->orderBy($order, $sort === 'ASC' ? Query::SORT_ASC : Query::SORT_DESC)
                 ->limit($size, ($page * $size) - $size)
-                ->getResults();
+                ->findAll();
             return new ResultSet($total, $result->toArray());
         });
 
