@@ -8,14 +8,6 @@ use Symfony\Component\Console\Question\Question;
 class EnviCommand extends Command
 {
     /**
-     * @param string $name
-     */
-    public function __construct(string $name = 'cms:envi')
-    {
-        parent::__construct($name);
-    }
-
-    /**
      * @return mixed
      */
     public function handle()

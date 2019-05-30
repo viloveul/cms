@@ -12,14 +12,6 @@ use Symfony\Component\Console\Question\Question;
 class AdminCommand extends Command
 {
     /**
-     * @param string $name
-     */
-    public function __construct(string $name = 'cms:admin')
-    {
-        parent::__construct($name);
-    }
-
-    /**
      * @return mixed
      */
     public function handle()

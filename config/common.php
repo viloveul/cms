@@ -28,7 +28,7 @@ return [
     'db' => [
         'host' => env('VILOVEUL_DB_HOST', 'localhost'),
         'port' => env('VILOVEUL_DB_PORT', 3306),
-        'database' => env('VILOVEUL_DB_NAME', 'vi loveul_cms'),
+        'database' => env('VILOVEUL_DB_NAME', 'viloveul_cms'),
         'username' => env('VILOVEUL_DB_USERNAME', 'viloveul'),
         'password' => env('VILOVEUL_DB_PASSWD', 'viloveul'),
         'prefix' => env('VILOVEUL_DB_PREFIX', 'tbl_'),
@@ -58,11 +58,4 @@ return [
         'password' => env('VILOVEUL_SMTP_PASSWORD', 'yourP@sSw0rd.'),
     ],
     'transport' => env('VILOVEUL_BROKER_DSN', 'amqp://localhost:5672/%2f'),
-    'commands' => [
-        App\Command\InstallCommand::class,
-        App\Command\DummyCommand::class,
-        App\Command\AdminCommand::class,
-        App\Command\DevelCommand::class,
-        App\Command\EnviCommand::class,
-    ],
 ];

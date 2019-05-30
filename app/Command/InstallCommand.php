@@ -14,14 +14,6 @@ class InstallCommand extends Command implements ContainerAware
     use ContainerAwareTrait;
 
     /**
-     * @param string $name
-     */
-    public function __construct(string $name = 'cms:install')
-    {
-        parent::__construct($name);
-    }
-
-    /**
      * @return mixed
      */
     public function handle()
@@ -74,42 +66,53 @@ class InstallCommand extends Command implements ContainerAware
             'audit_detail',
         ];
 
+        $routes = array_filter($container->get(Collection::class)->all(), function ($route) {
+            return $route->getName() != "";
+        });
+
+        $bar = $this->newProgressBar(count($tables) + 4 + count($routes));
+        $bar->setFormat('%current%/%max% [%bar%] %percent:3s%% %message%');
+        $bar->start();
+
         foreach ($tables as $table) {
-            $this->writeInfo("check and create table {$table} if not exists.");
+            $bar->setMessage("check and create table {$table} if not exists.");
+            $bar->advance();
             $installer->install($table);
-            $this->writeNormal("--------------------------------------------------------------");
         }
 
-        $this->writeInfo('Start create role accessors.');
         $accessors = [];
-        foreach ($container->get(Collection::class)->all() as $route) {
-            if ($key = $route->getName()) {
-                $this->writeNormal('--------------------------------------------------------------');
-                $this->writeInfo('Create access : ' . $key);
-                $access = Role::getResultOrCreate(['name' => $key, 'type' => 'access'], [
-                    'id' => str_uuid(),
-                    'created_at' => date('Y-m-d H:i:s'),
-                ]);
-                $accessors[] = $access->id;
-            }
+        foreach ($routes as $route) {
+            $bar->setMessage('Create access : ' . $route->getName());
+            $bar->advance();
+
+            $access = Role::getResultOrCreate(['name' => $route->getName(), 'type' => 'access'], [
+                'id' => str_uuid(),
+                'created_at' => date('Y-m-d H:i:s'),
+            ]);
+            $accessors[] = $access->id;
         }
-        $this->writeNormal('--------------------------------------------------------------');
-        $this->writeInfo('Create role group admin');
+
+        $bar->setMessage('Create role group admin');
+        $bar->advance();
         $admin = Role::getResultOrCreate(['name' => 'admin:super', 'type' => 'group'], [
             'id' => str_uuid(),
             'created_at' => date('Y-m-d H:i:s'),
         ]);
-        $this->writeNormal('--------------------------------------------------------------');
-        $this->writeInfo('Assign all access to group admin:super');
-        $admin->sync('childRelations', $accessors);
-        $this->writeNormal('--------------------------------------------------------------');
 
-        $this->writeInfo('Create role group user:standar');
+        $bar->setMessage('Assign all access to group admin:super');
+        $bar->advance();
+        $admin->sync('childRelations', $accessors);
+
+        $bar->setMessage('Create role group user:standar');
+        $bar->advance();
         Role::getResultOrCreate(['name' => 'user:standar', 'type' => 'group'], [
             'id' => str_uuid(),
             'created_at' => date('Y-m-d H:i:s'),
         ]);
-        $this->writeNormal('--------------------------------------------------------------');
+
+        $bar->finish();
+        $bar->clear();
+
         $this->writeInfo('Installation complete.');
     }
 }
