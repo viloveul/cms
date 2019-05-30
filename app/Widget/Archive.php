@@ -20,7 +20,7 @@ class Archive extends Widget
      */
     public function results(): array
     {
-        $tags = Tag::where(['type' => $this->options['type'], 'status' => 1])->getResults();
+        $tags = Tag::where(['type' => $this->options['type'], 'status' => 1])->findAll();
         return $tags->toArray();
     }
 }

@@ -28,7 +28,7 @@ class Menu extends Widget implements ContainerAware
         $results = MenuItem::select(['id', 'parent_id', 'label', 'icon', 'url'])
             ->where(['status' => 1, 'menu_id' => $this->options['id']])
             ->orderBy('order', Query::SORT_ASC)
-            ->getResults();
+            ->findAll();
         $items = [];
         foreach ($results->toArray() ?: [] as $item) {
             $items[$item['parent_id']][] = $item;

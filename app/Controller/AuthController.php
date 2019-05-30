@@ -95,7 +95,7 @@ class AuthController implements ContainerAware
         $attr = $this->request->loadPostTo(new AttrAssignment());
         $validator = new Validation($attr->getAttributes());
         if ($validator->validate('forgot')) {
-            if ($user = User::where(['email' => $attr->get('email'), 'status' => 1])->getResult()) {
+            if ($user = User::where(['email' => $attr->get('email'), 'status' => 1])->find()) {
                 $string = substr(preg_replace('/[^0-9A-Z]+/', '', base64_encode(mt_rand() . time())), 0, 8);
                 $expired = strtotime('+1 HOUR');
                 $pass = new UserPassword();
@@ -160,12 +160,12 @@ class AuthController implements ContainerAware
         $validator = new Validation($attr->getAttributes());
         if ($validator->validate('login')) {
             $data = array_only($attr->getAttributes(), ['username', 'password']);
-            if ($user = User::where(['username' => $data['username'], 'status' => 1])->getResult()) {
+            if ($user = User::where(['username' => $data['username'], 'status' => 1])->find()) {
                 $matched = false;
                 if (password_verify($data['password'], $user->password)) {
                     $matched = true;
                 } else {
-                    $passwords = UserPassword::where(['user_id' => $user->id, 'status' => 0])->getResults();
+                    $passwords = UserPassword::where(['user_id' => $user->id, 'status' => 0])->findAll();
                     foreach ($passwords as $passwd) {
                         if ($passwd->expired >= time() && password_verify($data['password'], $passwd->password)) {
                             $matched = true;

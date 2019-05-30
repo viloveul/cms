@@ -140,7 +140,7 @@ class MenuController
                 "No direct access for route: {$this->route->getName()}",
             ]);
         }
-        if ($menu = Menu::where(['id' => $id])->getResult()) {
+        if ($menu = Menu::where(['id' => $id])->find()) {
             $menu->status = 3;
             $menu->deleted_at = date('Y-m-d H:i:s');
             $menu->save();
@@ -162,12 +162,12 @@ class MenuController
                 "No direct access for route: {$this->route->getName()}",
             ]);
         }
-        if ($tmp = Menu::where(['id' => $id])->getResult()) {
+        if ($tmp = Menu::where(['id' => $id])->find()) {
             $menu = $tmp->toArray();
             $results = MenuItem::select(['id', 'parent_id', 'label', 'icon', 'url'])
                 ->where(['menu_id' => $id, 'status' => 1])
                 ->orderBy('order', Query::SORT_ASC)
-                ->getResults();
+                ->findAll();
             foreach ($results->toArray() ?: [] as $item) {
                 $items[$item['parent_id']][] = $item;
             }
@@ -201,7 +201,7 @@ class MenuController
             $total = $model->count();
             $result = $model->orderBy($order, $sort === 'ASC' ? Query::SORT_ASC : Query::SORT_DESC)
                 ->limit($size, ($page * $size) - $size)
-                ->getResults();
+                ->findAll();
             return new ResultSet($total, $result->toArray());
         });
         return $this->response->withPayload([
@@ -222,7 +222,7 @@ class MenuController
                 "No direct access for route: {$this->route->getName()}",
             ]);
         }
-        if ($menu = Menu::where(['id' => $id])->getResult()) {
+        if ($menu = Menu::where(['id' => $id])->find()) {
             $attr = $this->request->loadPostTo(new AttrAssignment());
             $data = array_only($attr->getAttributes(), [
                 'label',
@@ -237,7 +237,7 @@ class MenuController
             $menu->save();
             if ($items = $this->helper->normalizeMenuItem($attr->get('items') ?: [])) {
                 foreach ($items as $item) {
-                    if ($object = MenuItem::where(['id' => $item['id'], 'menu_id' => $id])->getResult()) {
+                    if ($object = MenuItem::where(['id' => $item['id'], 'menu_id' => $id])->find()) {
                         $object->parent_id = $item['parent_id'];
                         $object->order = $item['order'];
                         $object->save();

@@ -111,7 +111,7 @@ class PostController
                 "No direct access for route: {$this->route->getName()}",
             ]);
         }
-        if ($post = Post::where(['id' => $id])->getResult()) {
+        if ($post = Post::where(['id' => $id])->find()) {
             $previous = $post->getAttributes();
             $post->status = 1;
             $post->updated_at = date('Y-m-d H:i:s');
@@ -185,7 +185,7 @@ class PostController
      */
     public function delete(string $id)
     {
-        if ($post = Post::where(['id' => $id])->getResult()) {
+        if ($post = Post::where(['id' => $id])->find()) {
             if ($this->privilege->check($this->route->getName(), 'access', $post->author_id) !== true) {
                 return $this->response->withErrors(403, [
                     "No direct access for route: {$this->route->getName()}",
@@ -207,7 +207,7 @@ class PostController
      */
     public function detail(string $id)
     {
-        if ($post = Post::where(['id' => $id])->with(['author', 'tags'])->getResult()) {
+        if ($post = Post::where(['id' => $id])->with(['author', 'tags'])->find()) {
             if ($this->privilege->check($this->route->getName(), 'access', $post->author_id) !== true) {
                 return $this->response->withErrors(403, [
                     "No direct access for route: {$this->route->getName()}",
@@ -241,7 +241,7 @@ class PostController
             $total = $model->count();
             $result = $model->orderBy($order, $sort === 'ASC' ? Query::SORT_ASC : Query::SORT_DESC)
                 ->limit($size, ($page * $size) - $size)
-                ->getResults();
+                ->findAll();
             return new ResultSet($total, $result->toArray());
         });
 
@@ -258,7 +258,7 @@ class PostController
      */
     public function update(string $id)
     {
-        if ($post = Post::where(['id' => $id])->getResult()) {
+        if ($post = Post::where(['id' => $id])->find()) {
             if ($this->privilege->check($this->route->getName(), 'access', $post->author_id) !== true) {
                 return $this->response->withErrors(403, [
                     "No direct access for route: {$this->route->getName()}",

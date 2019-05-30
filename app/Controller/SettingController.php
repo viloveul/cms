@@ -92,8 +92,9 @@ class SettingController
             ]);
         }
         $value = $this->request->getBody()->getContents();
-        $model = SettingModel::getResultOrInstance(compact('name'), [
+        $model = SettingModel::where(['name' => $name])->findOrNew([
             'id' => str_uuid(),
+            'name' => $name,
             'created_at' => date('Y-m-d H:i:s'),
         ]);
         $previous = $model->getAttributes();

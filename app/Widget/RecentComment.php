@@ -25,7 +25,7 @@ class RecentComment extends Widget
             ->with('author')
             ->orderBy('created_at', Query::SORT_DESC)
             ->limit($this->options['size'])
-            ->getResults();
+            ->findAll();
         return $comments->toArray();
     }
 }

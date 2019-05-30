@@ -63,8 +63,9 @@ class AdminCommand extends Command
         $this->writeNormal('--------------------------------------------------------------');
 
         $this->writeInfo('Create user admin');
-        $user = User::getResultOrInstance(['username' => 'admin'], [
+        $user = User::where(['username' => 'admin'])->findOrNew([
             'id' => str_uuid(),
+            'username' => 'admin',
             'name' => 'Administrator',
             'created_at' => date('Y-m-d H:i:s'),
         ]);
@@ -76,7 +77,7 @@ class AdminCommand extends Command
 
         $this->writeNormal('--------------------------------------------------------------');
         $this->writeInfo('assign user admin to all roles');
-        $roles = Role::getResults()->toArray();
+        $roles = Role::findAll()->toArray();
         $roleIds = array_map(function ($role) {
             return $role['id'];
         }, $roles);

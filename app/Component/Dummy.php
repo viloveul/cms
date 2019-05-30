@@ -54,8 +54,9 @@ class Dummy
 
     public function posts()
     {
-        $page = Post::getResultOrCreate(['slug' => 'lorem-ipsum'], [
+        $page = Post::where(['slug' => 'lorem-ipsum'])->findOrCreate([
             'id' => str_uuid(),
+            'slug' => 'lorem-ipsum',
             'author_id' => $this->user->id,
             'title' => 'Lorem Ipsum',
             'type' => 'page',
@@ -66,8 +67,9 @@ class Dummy
             'created_at' => date('Y-m-d H:i:s'),
         ]);
 
-        $post = Post::getResultOrCreate(['slug' => 'hello-world'], [
+        $post = Post::where(['slug' => 'hello-world'])->findOrCreate([
             'id' => str_uuid(),
+            'slug' => 'hello-world',
             'author_id' => $this->user->id,
             'title' => 'Hello World !!',
             'type' => 'post',
@@ -81,8 +83,9 @@ class Dummy
 
         // generate random
         for ($i = 0; $i < 10; $i++) {
-            $o = Post::getResultOrCreate(['slug' => 'random-' . $i], [
+            $o = Post::where(['slug' => 'random-' . $i])->findOrCreate([
                 'id' => str_uuid(),
+                'slug' => 'random-' . $i,
                 'author_id' => $this->user->id,
                 'title' => 'Random ' . $i,
                 'type' => 'post',
@@ -106,8 +109,9 @@ class Dummy
 
     public function tags()
     {
-        $tag = Tag::getResultOrCreate(['slug' => 'no-category'], [
+        $tag = Tag::where(['slug' => 'no-category'])->findOrCreate([
             'id' => str_uuid(),
+            'slug' => 'no-category',
             'type' => 'category',
             'title' => 'No Category',
             'status' => 1,

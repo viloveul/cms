@@ -133,7 +133,7 @@ class MenuItemController
                 "No direct access for route: {$this->route->getName()}",
             ]);
         }
-        if ($item = MenuItem::where(['id' => $id])->getResult()) {
+        if ($item = MenuItem::where(['id' => $id])->find()) {
             $item->status = 3;
             $item->deleted_at = date('Y-m-d H:i:s');
             $item->save();
@@ -162,7 +162,7 @@ class MenuItemController
                 "No direct access for route: {$this->route->getName()}",
             ]);
         }
-        if ($item = MenuItem::where(['id' => $id])->getResult()) {
+        if ($item = MenuItem::where(['id' => $id])->find()) {
             return $this->response->withPayload([
                 'data' => $item,
             ]);
@@ -182,7 +182,7 @@ class MenuItemController
                 "No direct access for route: {$this->route->getName()}",
             ]);
         }
-        if ($item = MenuItem::where(['id' => $id])->getResult()) {
+        if ($item = MenuItem::where(['id' => $id])->find()) {
             $previous = $item->getAttributes();
             $attr = $this->request->loadPostTo(new AttrAssignment());
             $params = array_merge($previous, $attr->getAttributes());
