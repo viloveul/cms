@@ -1,10 +1,10 @@
 #!/usr/bin/env sh
 set -e
 printenv | more | grep ^VILOVEUL_ > /viloveul/.env
-composer install --no-dev --working-dir=/viloveul
+composer install --no-dev --working-dir=/viloveul --no-progress
 composer run bootstrap --working-dir=/viloveul
 composer clear-cache
 php sbin/viloveulc cms:install
 php sbin/viloveulc cms:admin --email=$ADMIN_EMAIL --password=$ADMIN_PASSWORD
-npm install --prefix /viloveul
+npm install --prefix /viloveul >/dev/null 2>&1
 exec /usr/bin/supervisord -c /viloveul/config/supervisor.conf
