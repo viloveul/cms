@@ -36,8 +36,7 @@
         "viloveul/validation": "1.0.*|v1.x-dev"
     },
     "require-dev": {
-        "codeception/codeception": "2.5.*",
-        "symfony/var-dumper": "~3.4|~4.0"
+        "codeception/codeception": "2.5.*"
     },
     "suggest": {
         "phpmailer/phpmailer": "require for email"
