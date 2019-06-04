@@ -212,7 +212,6 @@ class UserController
             ]);
         }
         $parameter = new Parameter('search', $_GET);
-        $parameter->setBaseUrl("{$this->config->basepath}/user/index");
         $pagination = new Pagination($parameter);
         $pagination->with(function ($conditions, $size, $page, $order, $sort) {
             $model = new User();
@@ -229,7 +228,6 @@ class UserController
         return $this->response->withPayload([
             'meta' => $pagination->getMeta(),
             'data' => $pagination->getData(),
-            'links' => $pagination->getLinks(),
         ]);
     }
 

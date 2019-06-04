@@ -140,7 +140,6 @@ class MediaController
             $model->where(['author_id' => $this->user->get('sub')]);
         }
         $parameter = new Parameter('search', $_GET);
-        $parameter->setBaseUrl("{$this->config->basepath}/media/index");
         $pagination = new Pagination($parameter);
         $request = $this->request;
         $pagination->with(function ($conditions, $size, $page, $order, $sort) use ($request, $model) {
@@ -167,7 +166,6 @@ class MediaController
         return $this->response->withPayload([
             'meta' => $pagination->getMeta(),
             'data' => $pagination->getData(),
-            'links' => $pagination->getLinks(),
         ]);
     }
 

@@ -191,7 +191,6 @@ class MenuController
             ]);
         }
         $parameter = new Parameter('search', $_GET);
-        $parameter->setBaseUrl("{$this->config->basepath}/menu/index");
         $pagination = new Pagination($parameter);
         $pagination->with(function ($conditions, $size, $page, $order, $sort) {
             $model = Menu::select(['id', 'label', 'description', 'author_id', 'status', 'created_at']);
@@ -207,7 +206,6 @@ class MenuController
         return $this->response->withPayload([
             'meta' => $pagination->getMeta(),
             'data' => $pagination->getData(),
-            'links' => $pagination->getLinks(),
         ]);
     }
 
