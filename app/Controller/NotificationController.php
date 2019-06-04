@@ -120,7 +120,6 @@ class NotificationController implements Countable
     {
         $userId = $this->user->get('sub');
         $parameter = new Parameter('search', $_GET);
-        $parameter->setBaseUrl("{$this->config->basepath}/notification/index");
         $pagination = new Pagination($parameter);
         $request = $this->request;
         $pagination->with(function ($conditions, $size, $page, $order, $sort) use ($request, $userId) {
@@ -139,7 +138,6 @@ class NotificationController implements Countable
         return $this->response->withPayload([
             'meta' => $pagination->getMeta(),
             'data' => $pagination->getData(),
-            'links' => $pagination->getLinks(),
         ]);
     }
 }

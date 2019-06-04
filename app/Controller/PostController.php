@@ -232,7 +232,6 @@ class PostController
             $model->where(['author_id' => $this->user->get('sub')]);
         }
         $parameter = new Parameter('search', $_GET);
-        $parameter->setBaseUrl("{$this->config->basepath}/post/index");
         $pagination = new Pagination($parameter);
         $pagination->with(function ($conditions, $size, $page, $order, $sort) use ($model) {
             foreach ($conditions as $key => $value) {
@@ -248,7 +247,6 @@ class PostController
         return $this->response->withPayload([
             'meta' => $pagination->getMeta(),
             'data' => $pagination->getData(),
-            'links' => $pagination->getLinks(),
         ]);
     }
 

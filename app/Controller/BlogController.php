@@ -90,7 +90,6 @@ class BlogController
                 ]);
             });
             $parameter = new Parameter('search', $_GET);
-            $parameter->setBaseUrl("{$this->config->basepath}/blog/archive/{$slug}");
             $pagination = new Pagination($parameter);
             $pagination->with(function ($conditions, $size, $page, $order, $sort) use ($model, $slug) {
                 foreach ($conditions as $key => $value) {
@@ -121,7 +120,6 @@ class BlogController
             return $this->response->withPayload([
                 'meta' => array_merge($pagination->getMeta(), compact('archive')),
                 'data' => $pagination->getData(),
-                'links' => $pagination->getLinks(),
             ]);
         }
         return $this->response->withErrors(404, ["Archive {$slug} not found."]);
@@ -162,7 +160,6 @@ class BlogController
                 ]);
             });
             $parameter = new Parameter('search', $_GET);
-            $parameter->setBaseUrl("{$this->config->basepath}/blog/author/{$name}");
             $pagination = new Pagination($parameter);
             $pagination->with(function ($conditions, $size, $page, $order, $sort) use ($model, $author) {
                 foreach ($conditions as $key => $value) {
@@ -189,7 +186,6 @@ class BlogController
                     'profile' => $author->profile->convertList('name', 'value'),
                 ]),
                 'data' => $pagination->getData(),
-                'links' => $pagination->getLinks(),
             ]);
         }
         return $this->response->withErrors(404, ["Author {$name} not found."]);
@@ -216,7 +212,6 @@ class BlogController
             ]);
             $model->where(['created_at' => date('Y-m-d H:i:s')], Query::OPERATOR_LTE);
             $parameter = new Parameter('search', $_GET);
-            $parameter->setBaseUrl("{$this->config->basepath}/blog/comments/{$post_id}");
             $pagination = new Pagination($parameter);
             $pagination->with(function ($conditions, $size, $page, $order, $sort) use ($model) {
                 $total = $model->count();
@@ -228,7 +223,6 @@ class BlogController
             return $this->response->withPayload([
                 'meta' => $pagination->getMeta(),
                 'data' => $pagination->getData(),
-                'links' => $pagination->getLinks(),
             ]);
         } else {
             return $this->response->withErrors(404, ['Comments not found or not enabled.']);
@@ -282,7 +276,6 @@ class BlogController
         });
 
         $parameter = new Parameter('search', $_GET);
-        $parameter->setBaseUrl("{$this->config->basepath}/blog/index");
         $pagination = new Pagination($parameter);
         $pagination->with(function ($conditions, $size, $page, $order, $sort) use ($model) {
             foreach ($conditions as $key => $value) {
@@ -308,7 +301,6 @@ class BlogController
         return $this->response->withPayload([
             'meta' => $pagination->getMeta(),
             'data' => $pagination->getData(),
-            'links' => $pagination->getLinks(),
         ]);
     }
 }

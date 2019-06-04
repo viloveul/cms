@@ -174,7 +174,6 @@ class TagController
             $model->where(['author_id' => $this->user->get('sub')]);
         }
         $parameter = new Parameter('search', $_GET);
-        $parameter->setBaseUrl("{$this->config->basepath}/tag/index");
         $pagination = new Pagination($parameter);
         $pagination->with(function ($conditions, $size, $page, $order, $sort) use ($model) {
             foreach ($conditions as $key => $value) {
@@ -189,7 +188,6 @@ class TagController
         return $this->response->withPayload([
             'meta' => $pagination->getMeta(),
             'data' => $pagination->getData(),
-            'links' => $pagination->getLinks(),
         ]);
     }
 

@@ -95,7 +95,6 @@ class AuditController
         }
         $model = new Audit();
         $parameter = new Parameter('search', $_GET);
-        $parameter->setBaseUrl("{$this->config->basepath}/audit/index");
         $pagination = new Pagination($parameter);
         $request = $this->request;
         $pagination->with(function ($conditions, $size, $page, $order, $sort) use ($request, $model) {
@@ -113,7 +112,6 @@ class AuditController
         return $this->response->withPayload([
             'meta' => $pagination->getMeta(),
             'data' => $pagination->getData(),
-            'links' => $pagination->getLinks(),
         ]);
     }
 }

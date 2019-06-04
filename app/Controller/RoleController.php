@@ -180,7 +180,6 @@ class RoleController
             ]);
         }
         $parameter = new Parameter('search', $_GET);
-        $parameter->setBaseUrl("{$this->config->basepath}/role/index");
         $pagination = new Pagination($parameter);
         $pagination->with(function ($conditions, $size, $page, $order, $sort) {
             $model = new Role();
@@ -196,7 +195,6 @@ class RoleController
         return $this->response->withPayload([
             'meta' => $pagination->getMeta(),
             'data' => $pagination->getData(),
-            'links' => $pagination->getLinks(),
         ]);
     }
 
