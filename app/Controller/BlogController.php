@@ -68,6 +68,7 @@ class BlogController
                 'title',
                 'description',
                 'slug',
+                'cover',
                 'type',
                 'comment_enabled',
             ]);
@@ -138,6 +139,7 @@ class BlogController
                 'title',
                 'description',
                 'slug',
+                'cover',
                 'type',
                 'comment_enabled',
             ]);
@@ -254,6 +256,7 @@ class BlogController
             'description',
             'slug',
             'type',
+            'cover',
             'comment_enabled',
         ]);
         $model->withCount('comments');

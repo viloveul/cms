@@ -4,7 +4,7 @@ return [
     # application name
     'name' => 'VILOVEUL API CMS',
     # version
-    'version' => '1.0',
+    'version' => 'v1',
     # root application
     'root' => dirname(__DIR__),
     # base pathinfo on url

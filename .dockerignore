@@ -10,4 +10,4 @@
 /node_modules
 /.vscode
 /*.bak
-/var/logs/*.log
+/logs/*.log
