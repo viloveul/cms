@@ -158,6 +158,9 @@ class PostController
             $post->description = substr(strip_tags($post->content), 0, 200);
             $post->status = (!$this->setting->get('moderations.post') || $this->privilege->check('post.approve')) ? 1 : 0;
             $post->id = str_uuid();
+            if (!$attr->cover) {
+                $post->cover = sprintf('%s/images/no-image-available.jpg', $this->request->getBaseUrl());
+            }
             $post->save();
             $tags = $attr->get('relations') ?: [];
             $post->sync('tagRelations', $tags);
@@ -283,6 +286,9 @@ class PostController
                 $post->updated_at = date('Y-m-d H:i:s');
                 $post->description = substr(strip_tags($post->content), 0, 200);
                 $post->status = (!$this->setting->get('moderations.post') || $this->privilege->check('post.approve')) ? 1 : 0;
+                if (!$attr->cover) {
+                    $post->cover = sprintf('%s/images/no-image-available.jpg', $this->request->getBaseUrl());
+                }
                 $post->save();
                 $this->audit->update($id, 'post', $post->getAttributes(), $previous);
                 $tags = $attr->get('relations') ?: [];

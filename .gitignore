@@ -3,10 +3,11 @@
 /composer.lock
 /package-lock.json
 /public/uploads/*
-/var/private.pem
-/var/public.pem
+/var/*
+/logs/*
 /vendor
 /node_modules
 /.vscode
 /*.bak
-/var/logs/*.log
+!/var/.gitkeep
+!/logs/.gitkeep
