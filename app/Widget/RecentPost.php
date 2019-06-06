@@ -25,7 +25,7 @@ class RecentPost extends Widget
             ->where(['status' => 1, 'type' => $this->options['type']])
             ->where(['created_at' => date('Y-m-d H:i:s')], Query::OPERATOR_LTE)
             ->with('author')
-            ->orderBy('created_at', Query::SORT_DESC)
+            ->order('created_at', Query::SORT_DESC)
             ->limit($this->options['size'])
             ->findAll()
             ->toArray();

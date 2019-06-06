@@ -23,7 +23,7 @@ class RecentComment extends Widget
         $comments = Comment::where(['status' => 1])
             ->with('post')
             ->with('author')
-            ->orderBy('created_at', Query::SORT_DESC)
+            ->order('created_at', Query::SORT_DESC)
             ->limit($this->options['size'])
             ->findAll();
         return $comments->toArray();

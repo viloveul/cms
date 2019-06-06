@@ -113,7 +113,7 @@ class BlogController
                 $model->where(['created_at' => date('Y-m-d H:i:s')], Query::OPERATOR_LTE);
 
                 $total = $model->count();
-                $result = $model->orderBy($order, $sort === 'ASC' ? Query::SORT_ASC : Query::SORT_DESC)
+                $result = $model->order($order, $sort === 'ASC' ? Query::SORT_ASC : Query::SORT_DESC)
                     ->limit($size, ($page * $size) - $size)
                     ->findAll();
                 return new ResultSet($total, $result->toArray());
@@ -177,7 +177,7 @@ class BlogController
                 ]);
                 $model->where(['created_at' => date('Y-m-d H:i:s')], Query::OPERATOR_LTE);
                 $total = $model->count();
-                $result = $model->orderBy($order, $sort === 'ASC' ? Query::SORT_ASC : Query::SORT_DESC)
+                $result = $model->order($order, $sort === 'ASC' ? Query::SORT_ASC : Query::SORT_DESC)
                     ->limit($size, ($page * $size) - $size)
                     ->findAll();
                 return new ResultSet($total, $result->toArray());
@@ -217,7 +217,7 @@ class BlogController
             $pagination = new Pagination($parameter);
             $pagination->with(function ($conditions, $size, $page, $order, $sort) use ($model) {
                 $total = $model->count();
-                $result = $model->orderBy($order, $sort === 'ASC' ? Query::SORT_ASC : Query::SORT_DESC)
+                $result = $model->order($order, $sort === 'ASC' ? Query::SORT_ASC : Query::SORT_DESC)
                     ->limit($size, ($page * $size) - $size)
                     ->findAll();
                 return new ResultSet($total, $result->toArray());
@@ -295,7 +295,7 @@ class BlogController
             $model->where(['created_at' => date('Y-m-d H:i:s')], Query::OPERATOR_LTE);
 
             $total = $model->count();
-            $result = $model->orderBy($order, $sort === 'ASC' ? Query::SORT_ASC : Query::SORT_DESC)
+            $result = $model->order($order, $sort === 'ASC' ? Query::SORT_ASC : Query::SORT_DESC)
                 ->limit($size, ($page * $size) - $size)
                 ->findAll();
             return new ResultSet($total, $result->toArray());

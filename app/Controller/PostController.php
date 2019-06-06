@@ -241,7 +241,7 @@ class PostController
                 $model->where([$key => "%{$value}%"], Query::OPERATOR_LIKE);
             }
             $total = $model->count();
-            $result = $model->orderBy($order, $sort === 'ASC' ? Query::SORT_ASC : Query::SORT_DESC)
+            $result = $model->order($order, $sort === 'ASC' ? Query::SORT_ASC : Query::SORT_DESC)
                 ->limit($size, ($page * $size) - $size)
                 ->findAll();
             return new ResultSet($total, $result->toArray());
