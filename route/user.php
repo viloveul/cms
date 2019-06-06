@@ -39,15 +39,6 @@ $router->add(
 )->setName('user.detail');
 
 /**
- * approve user
- */
-$router->add(
-    new Route('POST /user/approve/{:id}', [
-        App\Controller\UserController::class, 'approve',
-    ])
-)->setName('user.approve');
-
-/**
  * Update user
  */
 $router->add(

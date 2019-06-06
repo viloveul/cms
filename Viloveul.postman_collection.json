@@ -2,7 +2,7 @@
 	"variables": [],
 	"info": {
 		"name": "Viloveul",
-		"_postman_id": "2b5be20c-ee32-d5f4-8a69-e1bf3cabcbf9",
+		"_postman_id": "1cfa9bb0-1b1f-54c2-f793-99ced043f672",
 		"description": "",
 		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
 	},
@@ -282,26 +282,6 @@
 					"request": {
 						"url": "{{protocol}}://{{host}}/comment/delete/{{param_comment_id}}",
 						"method": "DELETE",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJsb2NhbGhvc3Q6MTk5MTEiLCJleHAiOjE1NTY0NDg3MzEsIm5iZiI6MTU1NjQ0NTEzMSwiaWF0IjoxNTU2NDQ1MTMxLCJzdWIiOiI1OTdjMzBmNi02ZWNjLTRmMWYtODkyZC04ZGIwNzZiMDZhNzciLCJlbWFpbCI6Im1lQHZpbG92ZXVsLmNvbSIsIm5hbWUiOiJBZG1pbmlzdHJhdG9yIn0.Gsas_TbsaoMyTM319gPVTHDQi-TytVVgt3Ry6MAHJ1Cgs-XJjO9oDozezz336udb3-QlsMLXxrciU3WEpHzi7SugCjrpKJ4BPZs8R8aGPFeEl8eKrTbtFEL3cs29UeGhb3iopLZ_iByIvM362iz-XDmySnGoLwVF52DB8kKbF8tZxJKI9QwQ9qtKp1PJ2A0R3bl3ZPFRgINVKih0XH3NE7P7H9Vfeti0JTPHpN9QRCtcnaLQMkdiIPrH64T_-zPi9Ht_tN4U-Ym1k9IW5hlLa2Mlx3ZrckpcpMG6X66BIg_Rayl0CtGH5IXHz7UUJMkIYGOv-rZkNVZNtrdm2JpXBw",
-								"description": ""
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"description": ""
-					},
-					"response": []
-				},
-				{
-					"name": "Approve Comment",
-					"request": {
-						"url": "{{protocol}}://{{host}}/comment/approve/{{param_comment_id}}",
-						"method": "POST",
 						"header": [
 							{
 								"key": "Authorization",
@@ -1225,26 +1205,6 @@
 					"response": []
 				},
 				{
-					"name": "Approve",
-					"request": {
-						"url": "{{protocol}}://{{host}}/user/approve/{{param_user_id}}",
-						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJsb2NhbGhvc3Q6MTk5MTEiLCJleHAiOjE1NTY5NDkzMTgsIm5iZiI6MTU1Njk0NTcxOCwiaWF0IjoxNTU2OTQ1NzE4LCJzdWIiOiJhMzg2YTJlNy1kZmI2LTQ0OWMtOTIxMS0wZjY3YTc4OWUyMzkiLCJlbWFpbCI6Im1lQHZpbG92ZXVsLmNvbSIsIm5hbWUiOiJBZG1pbmlzdHJhdG9yIn0.rJtugyXULAvOW0UWqvQKz9l88B-Mh70MV2ShYc_poB5OHojgHqYfmNBbPPk5cw4iUjgmYJt-F1aCqclJ93l5zH9PVqOVASiPT5vI_FiLZPaa773Vf46PAtFaYX-Oz_NZ15v2km2JqDlXXyyda2VnHYmUQEXaMgIN1s_SNPzWwo8u7xxl9Ui_KJ2I0mr_sdDWA--io-XQ6YrGSs2X_eBLaSWeXs8i2e2UCqObDa34c7Bm870I5X3EUj5p9to5QTow2IK3Vnl0VB6NdpGFrQj-zpHYw551gxZRBjg2D_5aaKDWcnyMyH7qwvngLgkLjf6zHkGeKFmGSBXIljQlaAzMug",
-								"description": ""
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"description": ""
-					},
-					"response": []
-				},
-				{
 					"name": "Delete",
 					"request": {
 						"url": "{{protocol}}://{{host}}/user/delete/{{param_user_id}}",
@@ -1282,7 +1242,10 @@
 								"description": ""
 							}
 						],
-						"body": {},
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"description": ""
 					},
 					"response": []
@@ -1299,7 +1262,10 @@
 								"description": ""
 							}
 						],
-						"body": {},
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
 						"description": ""
 					},
 					"response": []

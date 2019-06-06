@@ -39,15 +39,6 @@ $router->add(
 )->setName('post.update');
 
 /**
- * approve post
- */
-$router->add(
-    new Route('POST /post/approve/{:id}', [
-        App\Controller\PostController::class, 'approve',
-    ])
-)->setName('post.approve');
-
-/**
  * Delete post
  */
 $router->add(

@@ -3,7 +3,7 @@
 use Viloveul\Router\Route;
 
 /**
- * get files
+ * get index audit
  */
 $router->add(
     new Route('GET /audit/index', [
@@ -12,7 +12,7 @@ $router->add(
 )->setName('audit.index');
 
 /**
- * get file
+ * get detail audit
  */
 $router->add(
     new Route('GET /audit/detail/{:id}', [

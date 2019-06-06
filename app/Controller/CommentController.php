@@ -101,30 +101,6 @@ class CommentController
     }
 
     /**
-     * Hanya user yang punya access yang bisa approve
-     * @param  string  $id
-     * @return mixed
-     */
-    public function approve(string $id)
-    {
-        if ($this->privilege->check($this->route->getName(), 'access') !== true) {
-            return $this->response->withErrors(403, [
-                "No direct access for route: {$this->route->getName()}",
-            ]);
-        }
-        if ($comment = Comment::where(['id' => $id])->find()) {
-            $previous = $comment->getAttributes();
-            $comment->status = 1;
-            $comment->updated_at = date('Y-m-d H:i:s');
-            $comment->save();
-            $this->audit->update($id, 'comment', $comment->getAttributes(), $previous);
-            return $this->response->withStatus(204);
-        } else {
-            return $this->response->withErrors(404, ['Comment not found']);
-        }
-    }
-
-    /**
      * setiap user sampai guest dapat membuat comment
      * @return mixed
      */
@@ -157,7 +133,7 @@ class CommentController
                 foreach ($data as $key => $value) {
                     $comment->{$key} = $value;
                 }
-                $comment->status = (!$this->setting->get('moderations.comment') || $this->privilege->check('comment.approve'));
+                $comment->status = !$this->setting->get('moderations.comment');
                 $comment->created_at = date('Y-m-d H:i:s');
                 $comment->id = str_uuid();
                 $comment->save();
@@ -278,6 +254,15 @@ class CommentController
                 ]);
                 foreach ($data as $key => $value) {
                     $comment->{$key} = $value;
+                }
+                $hasAccess = $this->privilege->check($this->route->getName(), 'access') === true;
+                $needModeration = $this->setting->get('moderations.comment');
+                // jika ada access update atau tidak perlu moderasi, maka status nya sesuai request
+                // selain itu maka statusnya 0
+                if ($hasAccess || !$needModeration) {
+                    $comment->status = in_array($comment->status, [0, 1]) ? $comment->status : 1;
+                } else {
+                    $comment->status = 0;
                 }
                 $comment->updated_at = date('Y-m-d H:i:s');
                 $comment->save();
