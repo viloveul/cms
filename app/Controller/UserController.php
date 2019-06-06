@@ -92,29 +92,6 @@ class UserController
     }
 
     /**
-     * @param  string  $id
-     * @return mixed
-     */
-    public function approve(string $id)
-    {
-        if ($this->privilege->check($this->route->getName(), 'access') !== true) {
-            return $this->response->withErrors(403, [
-                "No direct access for route: {$this->route->getName()}",
-            ]);
-        }
-        if ($user = User::where(['id' => $id])->find()) {
-            $previous = $user->getAttributes();
-            $user->status = 1;
-            $user->updated_at = date('Y-m-d H:i:s');
-            $user->save();
-            $this->audit->update($user->id, 'user', $user->getAttributes(), $previous);
-            return $this->response->withStatus(204);
-        } else {
-            return $this->response->withErrors(404, ['User not found']);
-        }
-    }
-
-    /**
      * @return mixed
      */
     public function create()
@@ -315,6 +292,16 @@ class UserController
                 foreach ($data as $key => $value) {
                     $user->{$key} = $value;
                 }
+
+                $hasAccess = $this->privilege->check($this->route->getName(), 'access') === true;
+                // jika ada access update, maka status nya sesuai request
+                // selain itu maka statusnya 1, diasumsikan user sudah sudah aktif
+                if ($hasAccess) {
+                    $user->status = in_array($user->status, [0, 1]) ? $user->status : 1;
+                } else {
+                    $user->status = 1;
+                }
+
                 $user->updated_at = date('Y-m-d H:i:s');
                 if ($password = $attr->get('password')) {
                     $user->password = password_hash($password, PASSWORD_DEFAULT);

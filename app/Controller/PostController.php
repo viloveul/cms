@@ -101,29 +101,6 @@ class PostController
     }
 
     /**
-     * @param  string  $id
-     * @return mixed
-     */
-    public function approve(string $id)
-    {
-        if ($this->privilege->check($this->route->getName(), 'access') !== true) {
-            return $this->response->withErrors(403, [
-                "No direct access for route: {$this->route->getName()}",
-            ]);
-        }
-        if ($post = Post::where(['id' => $id])->find()) {
-            $previous = $post->getAttributes();
-            $post->status = 1;
-            $post->updated_at = date('Y-m-d H:i:s');
-            $post->save();
-            $this->audit->update($id, 'post', $post->getAttributes(), $previous);
-            return $this->response->withStatus(204);
-        } else {
-            return $this->response->withErrors(404, ['Post not found']);
-        }
-    }
-
-    /**
      * @return mixed
      */
     public function create()
@@ -156,7 +133,7 @@ class PostController
             $post->created_at = date('Y-m-d H:i:s');
             $post->author_id = $this->user->get('sub') ?: 0;
             $post->description = substr(strip_tags($post->content), 0, 200);
-            $post->status = (!$this->setting->get('moderations.post') || $this->privilege->check('post.approve')) ? 1 : 0;
+            $post->status = !$this->setting->get('moderations.post');
             $post->id = str_uuid();
             if (!$attr->cover) {
                 $post->cover = sprintf('%s/images/no-image-available.jpg', $this->request->getBaseUrl());
@@ -285,7 +262,17 @@ class PostController
                 }
                 $post->updated_at = date('Y-m-d H:i:s');
                 $post->description = substr(strip_tags($post->content), 0, 200);
-                $post->status = (!$this->setting->get('moderations.post') || $this->privilege->check('post.approve')) ? 1 : 0;
+
+                $hasAccess = $this->privilege->check($this->route->getName(), 'access') === true;
+                $needModeration = $this->setting->get('moderations.post');
+                // jika ada access update atau tidak perlu moderasi, maka status nya sesuai request
+                // selain itu maka statusnya 0
+                if ($hasAccess || !$needModeration) {
+                    $post->status = in_array($post->status, [0, 1]) ? $post->status : 1;
+                } else {
+                    $post->status = 0;
+                }
+
                 if (!$attr->cover) {
                     $post->cover = sprintf('%s/images/no-image-available.jpg', $this->request->getBaseUrl());
                 }
