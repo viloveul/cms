@@ -166,7 +166,7 @@ class MenuController
             $menu = $tmp->toArray();
             $results = MenuItem::select(['id', 'parent_id', 'label', 'icon', 'url'])
                 ->where(['menu_id' => $id, 'status' => 1])
-                ->orderBy('order', Query::SORT_ASC)
+                ->order('order', Query::SORT_ASC)
                 ->findAll();
             foreach ($results->toArray() ?: [] as $item) {
                 $items[$item['parent_id']][] = $item;
@@ -198,7 +198,7 @@ class MenuController
                 $model->where([$key => "%{$value}%"], Query::OPERATOR_LIKE);
             }
             $total = $model->count();
-            $result = $model->orderBy($order, $sort === 'ASC' ? Query::SORT_ASC : Query::SORT_DESC)
+            $result = $model->order($order, $sort === 'ASC' ? Query::SORT_ASC : Query::SORT_DESC)
                 ->limit($size, ($page * $size) - $size)
                 ->findAll();
             return new ResultSet($total, $result->toArray());

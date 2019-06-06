@@ -82,7 +82,7 @@ class Dummy
         $post->sync('tagRelations', [$this->tagId]);
 
         // generate random
-        for ($i = 0; $i < 10; $i++) {
+        for ($i = 0; $i < 15; $i++) {
             $o = Post::where(['slug' => 'random-' . $i])->findOrCreate([
                 'id' => str_uuid(),
                 'slug' => 'random-' . $i,
