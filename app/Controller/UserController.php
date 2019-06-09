@@ -167,7 +167,7 @@ class UserController
             if (!$user->picture) {
                 $user->picture = sprintf(
                     '%s/images/no-image-available.jpg',
-                    $this->request->getBaseUrl()
+                    $this->config->get('baseurl')
                 );
             }
             return $this->response->withPayload([
@@ -218,7 +218,7 @@ class UserController
                 if (!$user->picture) {
                     $user->picture = sprintf(
                         '%s/images/no-image-available.jpg',
-                        $this->request->getBaseUrl()
+                        $this->config->get('baseurl')
                     );
                 }
                 return $this->response->withPayload([

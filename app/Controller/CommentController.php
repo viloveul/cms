@@ -208,7 +208,10 @@ class CommentController
     {
         $model = Comment::with('post');
         if ($this->privilege->check($this->route->getName(), 'access') !== true) {
-            $model->where(['author_id' => $this->user->get('sub')]);
+            $model->where(function($where) {
+                $where->add(['author_id' => $this->user->get('sub')]);
+                $where->add(['status' => 1], Query::OPERATOR_EQUAL, Query::SEPARATOR_OR);
+            });
         }
         $parameter = new Parameter('search', $_GET);
         $pagination = new Pagination($parameter);

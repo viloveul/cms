@@ -117,7 +117,7 @@ class MediaController
             $image_url = $media->url;
             if (false === stripos($media->type, 'image')) {
                 $image_url = vsprintf('%s/images/no-image-available.jpg', [
-                    $this->request->getBaseUrl(),
+                    $this->config->get('baseurl'),
                 ]);
             }
             return $this->response->withPayload([
@@ -141,8 +141,8 @@ class MediaController
         }
         $parameter = new Parameter('search', $_GET);
         $pagination = new Pagination($parameter);
-        $request = $this->request;
-        $pagination->with(function ($conditions, $size, $page, $order, $sort) use ($request, $model) {
+        $config = $this->config;
+        $pagination->with(function ($conditions, $size, $page, $order, $sort) use ($config, $model) {
             foreach ($conditions as $key => $value) {
                 $model->where([$key => "%{$value}%"], Query::OPERATOR_LIKE);
             }
@@ -150,11 +150,11 @@ class MediaController
             $result = $model->order($order, $sort === 'ASC' ? Query::SORT_ASC : Query::SORT_DESC)
                 ->limit($size, ($page * $size) - $size)
                 ->findAll();
-            $data = array_map(function ($o) use ($request) {
+            $data = array_map(function ($o) use ($config) {
                 $o['image_url'] = $o['url'];
                 if (false === stripos($o['type'], 'image')) {
                     $o['image_url'] = vsprintf('%s/images/no-image-available.jpg', [
-                        $request->getBaseUrl(),
+                        $config->get('baseurl'),
                     ]);
                 }
                 return $o;
@@ -180,11 +180,11 @@ class MediaController
                 "No direct access for route: {$this->route->getName()}",
             ]);
         }
-        $request = $this->request;
+        $config = $this->config;
         $response = $this->response;
         $user = $this->user;
         $audit = $this->audit;
-        return $uploader->upload('*', function ($uploadedFiles, $errors, $files) use ($request, $response, $user, $audit) {
+        return $uploader->upload('*', function ($uploadedFiles, $errors, $files) use ($config, $response, $user, $audit) {
             $results = [];
             foreach ($uploadedFiles as $uploadedFile) {
                 $media = new Media();
@@ -204,7 +204,7 @@ class MediaController
                 $image_url = $media->url;
                 if (false === stripos($media->type, 'image')) {
                     $image_url = vsprintf('%s/images/no-image-available.jpg', [
-                        $request->getBaseUrl(),
+                        $config->get('baseurl'),
                     ]);
                 }
                 $results[] = array_merge($media->getAttributes(), [
