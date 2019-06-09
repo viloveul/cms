@@ -52,7 +52,7 @@ $event->listen('setting.get', function ($payload) {
         $results = App\Entity\MenuItem::select(['id', 'parent_id', 'label', 'icon', 'url'])
             ->where(['status' => 1, 'menu_id' => $menu['id']])
             ->order('order', Viloveul\Database\Contracts\Query::SORT_ASC)
-            ->getResults();
+            ->findAll();
         foreach ($results->toArray() ?: [] as $item) {
             $items[$item['parent_id']][] = $item;
         }
