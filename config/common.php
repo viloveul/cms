@@ -8,12 +8,12 @@ return [
     # root application
     'root' => dirname(__DIR__),
     # base pathinfo on url
-    'basepath' => '/',
+    'baseurl' => env('VILOVEUL_BASEURL', 'http://localhost'),
     # uploader
     'upload' => [
         # target upload
         'target' => dirname(__DIR__) . '/public/uploads',
-        'baseurl' => env('VILOVEUL_BASEURL') . '/uploads',
+        'baseurl' => env('VILOVEUL_BASEURL', 'http://localhost') . '/uploads',
     ],
     'auth' => [
         # token name on header for jwt
@@ -24,6 +24,8 @@ return [
         'public' => env('VILOVEUL_AUTH_PUBLIC_KEY', realpath(dirname(__DIR__) . '/var/public.pem')),
         # phrase
         'phrase' => env('VILOVEUL_AUTH_PASSPHRASE', 'viloveul'),
+        # lifetime
+        'lifetime' => env('VILOVEUL_AUTH_LIFETIME', 3600)
     ],
     'db' => [
         'host' => env('VILOVEUL_DB_HOST', 'localhost'),

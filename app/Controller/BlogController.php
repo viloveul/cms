@@ -172,7 +172,7 @@ class BlogController
                     }
                 }
                 $model->where([
-                    'status', 1,
+                    'status' => 1,
                     'author_id' => $author->id,
                 ]);
                 $model->where(['created_at' => date('Y-m-d H:i:s')], Query::OPERATOR_LTE);
@@ -281,6 +281,10 @@ class BlogController
         $parameter = new Parameter('search', $_GET);
         $pagination = new Pagination($parameter);
         $pagination->with(function ($conditions, $size, $page, $order, $sort) use ($model) {
+            if (!array_key_exists('type', $conditions)) {
+                $conditions['type'] = 'post';
+            }
+
             foreach ($conditions as $key => $value) {
                 if (in_array($key, ['id', 'author_id', 'type', 'comment_enabled'])) {
                     $model->where([$key => $value]);
@@ -288,10 +292,8 @@ class BlogController
                     $model->where([$key => "%{$value}%"], Query::OPERATOR_LIKE);
                 }
             }
-            $model->where([
-                'type' => 'post',
-                'status' => 1,
-            ]);
+
+            $model->where(['status' => 1]);
             $model->where(['created_at' => date('Y-m-d H:i:s')], Query::OPERATOR_LTE);
 
             $total = $model->count();

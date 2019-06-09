@@ -136,7 +136,7 @@ class PostController
             $post->status = !$this->setting->get('moderations.post');
             $post->id = str_uuid();
             if (!$attr->cover) {
-                $post->cover = sprintf('%s/images/no-image-available.jpg', $this->request->getBaseUrl());
+                $post->cover = sprintf('%s/images/no-image-available.jpg', $this->config->get('baseurl'));
             }
             $post->save();
             $tags = $attr->get('relations') ?: [];
@@ -209,7 +209,10 @@ class PostController
         $model = Post::with('author');
         $model->select(['id', 'slug', 'author_id', 'title', 'description', 'created_at', 'status']);
         if ($this->privilege->check($this->route->getName(), 'access') !== true) {
-            $model->where(['author_id' => $this->user->get('sub')]);
+            $model->where(function ($where) {
+                $where->add(['author_id' => $this->user->get('sub')]);
+                $where->add(['status' => 1], Query::OPERATOR_EQUAL, Query::SEPARATOR_OR);
+            });
         }
         $parameter = new Parameter('search', $_GET);
         $pagination = new Pagination($parameter);
@@ -274,7 +277,7 @@ class PostController
                 }
 
                 if (!$attr->cover) {
-                    $post->cover = sprintf('%s/images/no-image-available.jpg', $this->request->getBaseUrl());
+                    $post->cover = sprintf('%s/images/no-image-available.jpg', $this->config->get('baseurl'));
                 }
                 $post->save();
                 $this->audit->update($id, 'post', $post->getAttributes(), $previous);

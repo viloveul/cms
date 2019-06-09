@@ -18,6 +18,7 @@ use App\Validation\User as Validation;
 use Viloveul\Http\Contracts\ServerRequest;
 use Viloveul\Auth\Contracts\Authentication;
 use Viloveul\Container\ContainerAwareTrait;
+use Viloveul\Config\Contracts\Configuration;
 use Viloveul\Container\Contracts\ContainerAware;
 use Viloveul\Transport\Contracts\ErrorCollection;
 
@@ -39,6 +40,11 @@ class AuthController implements ContainerAware
      * @var mixed
      */
     protected $bus;
+
+    /**
+     * @var mixed
+     */
+    protected $config;
 
     /**
      * @var mixed
@@ -66,6 +72,7 @@ class AuthController implements ContainerAware
      * @param Privilege      $privilege
      * @param Setting        $setting
      * @param AuditTrail     $audit
+     * @param Configuration  $config
      * @param Bus            $bus
      * @param Authentication $auth
      */
@@ -75,6 +82,7 @@ class AuthController implements ContainerAware
         Privilege $privilege,
         Setting $setting,
         AuditTrail $audit,
+        Configuration $config,
         Bus $bus,
         Authentication $auth
     ) {
@@ -83,6 +91,7 @@ class AuthController implements ContainerAware
         $this->privilege = $privilege;
         $this->setting = $setting;
         $this->audit = $audit;
+        $this->config = $config;
         $this->bus = $bus;
         $this->auth = $auth;
     }
@@ -179,7 +188,7 @@ class AuthController implements ContainerAware
                     if (!$user->photo) {
                         $user->photo = sprintf(
                             '%s/images/no-image-available.jpg',
-                            $this->request->getBaseUrl()
+                            $this->config->get('baseurl')
                         );
                     }
                     $this->privilege->clear();
@@ -193,8 +202,10 @@ class AuthController implements ContainerAware
                                     'email' => $user->email,
                                     'name' => $user->name,
                                     'picture' => $user->picture,
-                                ])
+                                ]),
+                                $this->config->get('auth.lifetime')
                             ),
+                            'lifetime' => $this->config->get('auth.lifetime'),
                         ],
                     ]);
                 } else {
