@@ -164,6 +164,7 @@ class MenuController
         }
         if ($tmp = Menu::where(['id' => $id])->find()) {
             $menu = $tmp->toArray();
+            $items = [];
             $results = MenuItem::select(['id', 'parent_id', 'label', 'icon', 'url'])
                 ->where(['menu_id' => $id, 'status' => 1])
                 ->order('order', Query::SORT_ASC)
@@ -206,6 +207,31 @@ class MenuController
         return $this->response->withPayload([
             'meta' => $pagination->getMeta(),
             'data' => $pagination->getData(),
+        ]);
+    }
+
+    /**
+     * @param  string  $name
+     * @return mixed
+     */
+    public function load(string $name)
+    {
+        $items = [];
+        $id = $this->setting->get('menu-' . $name);
+        if ($tmp = Menu::where(['id' => $id, 'status' => 1])->find()) {
+            $menu = $tmp->toArray();
+            $normalizeItems = [];
+            $results = MenuItem::select(['id', 'parent_id', 'label', 'icon', 'url'])
+                ->where(['menu_id' => $id, 'status' => 1])
+                ->order('order', Query::SORT_ASC)
+                ->findAll();
+            foreach ($results->toArray() ?: [] as $item) {
+                $normalizeItems[$item['parent_id']][] = $item;
+            }
+            $items = $this->helper->parseRecursiveMenuItem($normalizeItems ?: [], 0) ?: [];
+        }
+        return $this->response->withPayload([
+            'data' => $items,
         ]);
     }
 

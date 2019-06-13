@@ -6,7 +6,7 @@ use Viloveul\Router\Route;
  * get setting
  */
 $router->add(
-    new Route('GET /setting/{:name}', [
+    new Route('GET /setting', [
         App\Controller\SettingController::class, 'get',
     ])
 );
@@ -15,7 +15,7 @@ $router->add(
  * set new setting
  */
 $router->add(
-    new Route('POST /setting/{:name}', [
+    new Route('POST /setting', [
         App\Controller\SettingController::class, 'set',
     ])
 )->setName('setting.set');

@@ -43,21 +43,3 @@ $event->listen('setting.get', function ($payload) {
     }
     return $payload;
 });
-
-$event->listen('setting.get', function ($payload) {
-    if (strpos($payload['name'], 'menu-') !== false && isset($payload['value']['id'])) {
-        $container = Viloveul\Container\ContainerFactory::instance();
-        $menu = $payload['value'];
-        $items = [];
-        $results = App\Entity\MenuItem::select(['id', 'parent_id', 'label', 'icon', 'url'])
-            ->where(['status' => 1, 'menu_id' => $menu['id']])
-            ->order('order', Viloveul\Database\Contracts\Query::SORT_ASC)
-            ->findAll();
-        foreach ($results->toArray() ?: [] as $item) {
-            $items[$item['parent_id']][] = $item;
-        }
-        $mapped = $container->get(App\Component\Helper::class)->parseRecursiveMenuItem($items ?: [], 0) ?: [];
-        $payload['value']['items'] = $mapped;
-    }
-    return $payload;
-});
