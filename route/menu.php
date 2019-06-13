@@ -3,7 +3,7 @@
 use Viloveul\Router\Route;
 
 /**
- * Create new user
+ * Create new menu
  */
 $router->add(
     new Route('POST /menu/create', [
@@ -21,7 +21,7 @@ $router->add(
 )->setName('menu.index');
 
 /**
- * get user
+ * get menu
  */
 $router->add(
     new Route('GET /menu/detail/{:id}', [
@@ -30,7 +30,7 @@ $router->add(
 )->setName('menu.detail');
 
 /**
- * Update user
+ * Update menu
  */
 $router->add(
     new Route('POST /menu/update/{:id}', [
@@ -39,7 +39,7 @@ $router->add(
 )->setName('menu.update');
 
 /**
- * Delete user
+ * Delete menu
  */
 $router->add(
     new Route('DELETE /menu/delete/{:id}', [
@@ -48,7 +48,16 @@ $router->add(
 )->setName('menu.delete');
 
 /**
- * get user
+ * load menu
+ */
+$router->add(
+    new Route('GET /menu/load/{:name}', [
+        App\Controller\MenuController::class, 'load',
+    ])
+);
+
+/**
+ * get menu
  */
 $router->add(
     new Route('GET /menu/item/detail/{:id}', [

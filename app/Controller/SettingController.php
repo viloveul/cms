@@ -67,47 +67,49 @@ class SettingController
     }
 
     /**
-     * @param  $name
      * @return mixed
      */
-    public function get(string $name)
+    public function get()
     {
         return $this->response->withPayload([
-            'data' => [
-                'name' => $name,
-                'option' => $this->setting->get($name),
-            ],
+            'data' => $this->setting->all(),
         ]);
     }
 
     /**
-     * @param  string  $name
      * @return mixed
      */
-    public function set(string $name)
+    public function set()
     {
         if (!$this->privilege->check($this->route->getName())) {
             return $this->response->withErrors(401, [
                 "No direct access for route: {$this->route->getName()}",
             ]);
         }
-        $value = $this->request->getBody()->getContents();
-        $model = SettingModel::where(['name' => $name])->findOrNew([
-            'id' => str_uuid(),
-            'name' => $name,
-            'created_at' => date('Y-m-d H:i:s'),
-        ]);
-        $previous = $model->getAttributes();
-        $model->updated_at = date('Y-m-d H:i:s');
-        $model->option = is_scalar($value) ? $value : json_encode($value);
-        $model->save();
-        $this->audit->update($model->id, 'setting', $model->getAttributes(), $previous);
+        $body = $this->request->getBody()->getContents();
+        $contents = json_decode($body, true) ?: [];
+        if (json_last_error() === JSON_ERROR_NONE) {
+            foreach ($contents as $name => $value) {
+                if ($value != $this->setting->get($name)) {
+                    $model = SettingModel::where(['name' => $name])->findOrNew([
+                        'id' => str_uuid(),
+                        'name' => $name,
+                        'created_at' => date('Y-m-d H:i:s'),
+                    ]);
+                    $previous = $model->getAttributes();
+                    $newRecord = $model->isNewRecord();
+                    $model->updated_at = date('Y-m-d H:i:s');
+                    $model->option = is_scalar($value) ? $value : json_encode($value);
+                    $model->save();
+                    if ($newRecord) {
+                        $this->audit->create($model->id, 'setting');
+                    } else {
+                        $this->audit->update($model->id, 'setting', $model->getAttributes(), $previous);
+                    }
+                }
+            }
+        }
         $this->setting->clear();
-        return $this->response->withPayload([
-            'data' => [
-                'name' => $name,
-                'option' => $value,
-            ],
-        ]);
+        return $this->response->withStatus(204);
     }
 }
