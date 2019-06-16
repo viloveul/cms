@@ -1,9 +1,9 @@
 {
-    "name": "viloveul-cms/api",
+    "name": "viloveul/cms-restapi",
     "description": "Viloveul CMS API.",
     "type": "project",
     "license": "MIT",
-    "keywords": ["project", "cms", "api", "zafex", "viloveul", "fajrulaz"],
+    "keywords": ["project", "cms", "api", "rest", "zafex", "viloveul", "fajrulaz"],
     "homepage": "http://www.viloveul.com",
     "readme": "README.MD",
     "authors": [{
