@@ -5,7 +5,7 @@
 
 PHP7, OpenSSL, php-apcu/php-redis
 ```shell
-composer create-project viloveul-cms/api your-project-name
+composer create-project viloveul/cms-restapi your-project-name
 cd your-project-name
 ```
 Edit file .env anda sesuai kebutuhan :
@@ -53,7 +53,7 @@ php -S localhost:19911 -t public
 ##  UNDER DOCKER
 simple, just run
 ```shell
-docker run -p 19911:19911 -e VILOVEUL_AUTH_PASSPHRASE=dordor -e ADMIN_EMAIL=your@mail.com -e ADMIN_PASSWORD=YourP@s5w0rdH3rE -e VILOVEUL_DB_HOST=YOUR_DB_HOST fajrulaz/viloveul-cms-api
+docker run -p 19911:19911 -e VILOVEUL_AUTH_PASSPHRASE=dordor -e ADMIN_EMAIL=your@mail.com -e ADMIN_PASSWORD=YourP@s5w0rdH3rE -e VILOVEUL_DB_HOST=YOUR_DB_HOST fajrulaz/viloveul-cms-restapi
 ```
 your local ready : http://localhost:19911
 
