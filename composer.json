@@ -33,6 +33,7 @@
         "viloveul/support": "1.*|v1.x-dev",
         "viloveul/transport": "1.*|v1.x-dev",
         "viloveul/log": "1.*|v1.x-dev",
+        "viloveul/mutator": "1.*|v1.x-dev",
         "viloveul/validation": "1.*|v1.x-dev"
     },
     "require-dev": {
