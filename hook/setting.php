@@ -3,9 +3,9 @@
 /**
  * Format contents
  */
-$event->listen('setting.get', function ($payload) {
-    if ($payload['name'] === 'contents') {
-        $contents = $payload['value'];
+$mutator->addFilter('setting.get', function (Viloveul\Mutator\Contracts\Context $context) {
+    if ($context->name === 'contents') {
+        $contents = $context->value;
         $c['posts'] = [
             [
                 'name' => 'post',
@@ -39,7 +39,7 @@ $event->listen('setting.get', function ($payload) {
                 }
             }
         }
-        $payload['value'] = array_map('unserialize', array_unique(array_map('serialize', $c)));
+        $context->value = array_map('unserialize', array_unique(array_map('serialize', $c)));
     }
-    return $payload;
+    return $context;
 });

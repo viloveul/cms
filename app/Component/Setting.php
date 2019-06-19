@@ -2,9 +2,10 @@
 
 namespace App\Component;
 
+use Viloveul\Mutator\Payload;
 use Viloveul\Cache\Contracts\Cache;
 use App\Entity\Setting as SettingModel;
-use Viloveul\Event\Contracts\Dispatcher as Event;
+use Viloveul\Mutator\Contracts\Manager as Mutator;
 
 class Setting
 {
@@ -16,7 +17,7 @@ class Setting
     /**
      * @var mixed
      */
-    protected $event;
+    protected $mutator;
 
     /**
      * @var array
@@ -26,10 +27,10 @@ class Setting
     /**
      * @param Cache $cache
      */
-    public function __construct(Cache $cache, Event $event)
+    public function __construct(Cache $cache, Mutator $mutator)
     {
         $this->cache = $cache;
-        $this->event = $event;
+        $this->mutator = $mutator;
         if (!$this->cache->has('setting.options')) {
             $this->load();
         } else {
@@ -64,8 +65,8 @@ class Setting
     public function get(string $name, $default = null)
     {
         $value = array_get($this->options, $name, $default);
-        $map = $this->event->dispatch("setting.get", compact('name', 'value'));
-        return $map['value'];
+        $map = $this->mutator->apply("setting.get", new Payload(compact('name', 'value')));
+        return $map->value;
     }
 
     public function load(): void
