@@ -117,7 +117,7 @@ class CommentController
             $enabled = Post::select('comment_enabled')
                 ->where(['id' => $attributes->get('post_id'), 'status' => 1])
                 ->where(['created_at' => date('Y-m-d H:i:s')], Query::OPERATOR_LTE)
-                ->getValue('comment_enabled');
+                ->value('comment_enabled');
 
             if ($enabled == 1) {
                 $comment = new Comment();
