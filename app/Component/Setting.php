@@ -5,7 +5,7 @@ namespace App\Component;
 use Viloveul\Mutator\Payload;
 use Viloveul\Cache\Contracts\Cache;
 use App\Entity\Setting as SettingModel;
-use Viloveul\Mutator\Contracts\Manager as Mutator;
+use Viloveul\Mutator\Contracts\Context as Mutator;
 
 class Setting
 {
